@@ -2116,26 +2116,27 @@
                     <div id="standingsList" style="padding:4px 14px 14px 14px;"></div>
                 </div>
                 <div class="log-panel-content" id="moneyContent" style="display:none; padding:0; overflow-y:auto; flex-direction:column;">
-                    <!-- Month tab bar -->
-                    <div style="display:flex; align-items:center; border-bottom:1px solid #2a2a2a; background:#000; position:sticky; top:0; z-index:10; overflow-x:auto; scrollbar-width:none;">
-                        <div id="moneyTabFeb" onclick="showMonthTab('feb')" style="flex:1; min-width:60px; padding:12px 8px; text-align:center; font-size:11px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">FEB</div>
-                        <div id="moneyTabMar" onclick="showMonthTab('mar')" style="flex:1; min-width:60px; padding:12px 8px; text-align:center; font-size:11px; font-weight:800; color:#fff; cursor:pointer; border-bottom:2px solid #22c55e; letter-spacing:1px;">MAR</div>
-                        <div id="moneyTabApr" onclick="showMonthTab('apr')" style="flex:1; min-width:60px; padding:12px 8px; text-align:center; font-size:11px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">APR</div>
-                        <div id="moneyTabMay" onclick="showMonthTab('may')" style="flex:1; min-width:60px; padding:12px 8px; text-align:center; font-size:11px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">MAY</div>
-                        <div id="moneyTabJun" onclick="showMonthTab('jun')" style="flex:1; min-width:60px; padding:12px 8px; text-align:center; font-size:11px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">JUN</div>
-                    </div>
-                    <!-- Month content container -->
-                    <div id="monthChartContent" style="flex:1; padding:16px 14px; display:flex; flex-direction:column; gap:12px;">
-                        <!-- Starting bankroll input -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; background:#0d0d0d; border:1px solid #1a1a1a; border-radius:12px; padding:12px 16px;">
-                            <div style="font-size:10px;color:#555;letter-spacing:2px;font-weight:700;">START</div>
-                            <div id="monthStartInput" contenteditable="true" style="font-size:22px;font-weight:900;color:#22c55e;font-family:monospace;text-align:right;outline:none;min-width:80px;">$100.00</div>
+                    <div style="position:sticky; top:0; z-index:10; background:#000; border-bottom:1px solid #2a2a2a;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px 6px;">
+                            <div style="display:flex;flex-direction:column;">
+                                <div style="font-size:9px;color:#555;letter-spacing:2px;font-weight:700;">START</div>
+                                <div id="monthStartInput" contenteditable="true" style="font-size:20px;font-weight:900;color:#22c55e;font-family:monospace;outline:none;">$100.00</div>
+                            </div>
+                            <div id="monthHeaderProgress" style="text-align:right;"></div>
                         </div>
-                        <!-- Summary -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 14px;">
+                            <div onclick="prevMonth()" style="font-size:20px; color:#22c55e; cursor:pointer; font-weight:900; padding:4px 8px;">&#8592;</div>
+                            <div id="monthLabel" style="font-size:13px; font-weight:900; color:#fff; letter-spacing:2px;">MARCH</div>
+                            <div onclick="nextMonth()" style="font-size:20px; color:#22c55e; cursor:pointer; font-weight:900; padding:4px 8px;">&#8594;</div>
+                        </div>
+                        <div style="display:flex; border-top:1px solid #1a1a1a;">
+                            <div id="subTabRobego" onclick="showMoneySubTab('robego')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#fff; cursor:pointer; border-bottom:2px solid #22c55e; letter-spacing:1px;">ROB/EGO</div>
+                            <div id="subTabJustin" onclick="showMoneySubTab('justin')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">JUSTIN</div>
+                        </div>
+                    </div>
+                    <div id="monthChartContent" style="flex:1; padding:16px 14px; display:flex; flex-direction:column; gap:12px;">
                         <div id="monthSummary" style="text-align:center; margin-bottom:4px;"></div>
-                        <!-- Chart -->
                         <canvas id="monthChart" height="200"></canvas>
-                        <!-- Stats -->
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
                             <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:10px;text-align:center;">
                                 <div style="font-size:9px;color:#555;letter-spacing:1px;">PEAK</div>
@@ -2148,7 +2149,6 @@
                                 <div id="monthStatBestDay" style="font-size:9px;color:#444;">—</div>
                             </div>
                         </div>
-                        <!-- Day by day -->
                         <div id="monthBreakdown" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;"></div>
                     </div>
                 </div>
@@ -8392,12 +8392,11 @@
                         // Save deleted team to Firebase hidden list
                         if (teamName) {
                             try {
-                                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
-                                fetch(FB_URL + '/deletedLogbook.json').then(r => r.json()).then(existing => {
+                                fetch(BACKEND_URL + '/api/deletedLogbook').then(r => r.json()).then(existing => {
                                     const deleted = existing || [];
                                     if (!deleted.includes(teamName)) deleted.push(teamName);
-                                    fetch(FB_URL + '/deletedLogbook.json', {
-                                        method: 'PUT',
+                                    fetch(BACKEND_URL + '/api/deletedLogbook', {
+                                        method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify(deleted)
                                     });
@@ -8947,35 +8946,275 @@
             {_id:1773697151143,t1:'Lakers',o1:'+115',s1:3,i1:1,wl1:'42-25',l1:'6-4',t2:'Rockets',o2:'-135',s2:4,i2:4,wl2:'41-25',l2:'7-3',pick:'Rockets',res:'L'},
             {_id:1773697215467,t1:'Spurs',o1:'-360',s1:2,i1:3,wl1:'49-18',l1:'8-2',t2:'Clippers',o2:'+280',s2:8,i2:3,wl2:'34-33',l2:'6-4',pick:'Spurs',res:'W'},
           ]},
-          { day:39, date:'3/17', type:'', overall:'', games:[] },
-          { day:40, date:'3/18', type:'', overall:'', games:[] },
-          { day:41, date:'3/19', type:'', overall:'', games:[] },
-          { day:42, date:'3/20', type:'', overall:'', games:[] },
-          { day:43, date:'3/21', type:'', overall:'', games:[] },
-          { day:44, date:'3/22', type:'', overall:'', games:[] },
-          { day:45, date:'3/23', type:'', overall:'', games:[] },
-          { day:46, date:'3/24', type:'', overall:'', games:[] },
-          { day:47, date:'3/25', type:'', overall:'', games:[] },
-          { day:48, date:'3/26', type:'', overall:'', games:[] },
-          { day:49, date:'3/27', type:'', overall:'', games:[] },
-          { day:50, date:'3/28', type:'', overall:'', games:[] },
-          { day:51, date:'3/29', type:'', overall:'', games:[] },
-          { day:52, date:'3/30', type:'', overall:'', games:[] },
-          { day:53, date:'3/31', type:'', overall:'', games:[] },
-          { day:54, date:'4/1', type:'', overall:'', games:[] },
-          { day:55, date:'4/2', type:'', overall:'', games:[] },
-          { day:56, date:'4/3', type:'', overall:'', games:[] },
-          { day:57, date:'4/4', type:'', overall:'', games:[] },
-          { day:58, date:'4/5', type:'', overall:'', games:[] },
-          { day:59, date:'4/6', type:'', overall:'', games:[] },
-          { day:60, date:'4/7', type:'', overall:'', games:[] },
-          { day:61, date:'4/8', type:'', overall:'', games:[] },
-          { day:62, date:'4/9', type:'', overall:'', games:[] },
-          { day:63, date:'4/10', type:'', overall:'', games:[] },
+          { day:39, date:'3/17', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774568987677,t1:'Pistons',o1:'-2200',s1:1,i1:0,wl1:'48-19',l1:'5-5',t2:'Wizards',o2:'+1100',s2:14,i2:0,wl2:'16-51',l2:'0-10',pick:'Pistons',res:'W'},
+            {_id:1774569061200,t1:'Thunder',o1:'-450',s1:1,i1:0,wl1:'53-15',l1:'9-1',t2:'Magic',o2:'+350',s2:6,i2:0,wl2:'38-29',l2:'8-2',pick:'Thunder',res:'W'},
+            {_id:1774569079499,t1:'Heat',o1:'+170',s1:7,i1:3,wl1:'38-30',l1:'7-3',t2:'Hornets',o2:'-205',s2:10,i2:2,wl2:'34-34',l2:'7-3',pick:'Hornets',res:'W'},
+            {_id:1774569098718,t1:'Pacers',o1:'+550',s1:15,i1:0,wl1:'15-53',l1:'1-9',t2:'Knicks',o2:'-800',s2:3,i2:0,wl2:'44-25',l2:'6-4',pick:'Knicks',res:'W'},
+            {_id:1774569122237,t1:'Suns',o1:'+140',s1:7,i1:0,wl1:'39-29',l1:'6-4',t2:'Wolves',o2:'-165',s2:5,i2:0,wl2:'41-27',l2:'6-4',pick:'Wolves',res:'W'},
+            {_id:1774569142305,t1:'Cavaliers',o1:'-600',s1:4,i1:0,wl1:'41-27',l1:'4-6',t2:'Bucks',o2:'+450',s2:12,i2:0,wl2:'28-39',l2:'2-8',pick:'Cavaliers',res:'W'},
+            {_id:1774569157456,t1:'76ers',o1:'+750',s1:9,i1:3,wl1:'36-32',l1:'4-6',t2:'Nuggets',o2:'-1200',s2:6,i2:0,wl2:'41-27',l2:'5-5',pick:'Nuggets',res:'W'},
+            {_id:1774569177757,t1:'Spurs',o1:'-850',s1:2,i1:9,wl1:'50-18',l1:'9-1',t2:'Kings',o2:'+575',s2:15,i2:7,wl2:'17-52',l2:'2-8',pick:'Spurs',res:'W'},
+          ]},
+          { day:40, date:'3/18', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774569274555,t1:'Warriors',o1:'+475',s1:10,i1:0,wl1:'33-35',l1:'2-8',t2:'Celtics',o2:'-650',s2:2,i2:0,wl2:'45-23',l2:'7-3',pick:'Celtics',res:'W'},
+            {_id:1774569290971,t1:'Blazers',o1:'-700',s1:9,i1:0,wl1:'34-35',l1:'6-4',t2:'Pacers',o2:'+500',s2:15,i2:0,wl2:'15-54',l2:'1-9',pick:'Blazers',res:'W'},
+            {_id:1774569309256,t1:'Thunder',o1:'-2200',s1:1,i1:0,wl1:'54-15',l1:'9-1',t2:'Nets',o2:'+1100',s2:13,i2:6,wl2:'17-51',l2:'2-8',pick:'Thunder',res:'W'},
+            {_id:1774569326157,t1:'Jazz',o1:'+550',s1:14,i1:0,wl1:'20-48',l1:'2-8',t2:'Wolves',o2:'-800',s2:4,i2:0,wl2:'42-27',l2:'6-4',pick:'Wolves',res:'W'},
+            {_id:1774569351143,t1:'Clippers',o1:'-130',s1:8,i1:0,wl1:'34-34',l1:'7-3',t2:'Pelicans',o2:'+110',s2:13,i2:0,wl2:'23-46',l2:'2-8',pick:'Clippers',res:'L'},
+            {_id:1774569372669,t1:'Raptors',o1:'-300',s1:5,i1:0,wl1:'38-29',l1:'4-6',t2:'Bulls',o2:'+240',s2:11,i2:0,wl2:'29-39',l2:'2-8',pick:'Raptors',res:'W'},
+            {_id:1774569389187,t1:'Hawks',o1:'-340',s1:8,i1:0,wl1:'37-31',l1:'10-0',t2:'Mavericks',o2:'+270',s2:12,i2:0,wl2:'23-46',l2:'2-8',pick:'Hawks',res:'W'},
+            {_id:1774569412007,t1:'Nuggets',o1:'-800',s1:5,i1:0,wl1:'42-27',l1:'5-5',t2:'Grizzlies',o2:'+550',s2:11,i2:0,wl2:'23-44',l2:'2-8',pick:'Nuggets',res:'L'},
+            {_id:1774569431191,t1:'Lakers',o1:'+110',s1:3,i1:0,wl1:'43-25',l1:'9-1',t2:'Rockets',o2:'-130',s2:6,i2:0,wl2:'41-26',l2:'5-5',pick:'Lakers',res:'W'},
+          ]},
+          { day:41, date:'3/19', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774569575044,t1:'Magic',o1:'+180',s1:6,i1:0,wl1:'38-30',l1:'7-3',t2:'Hornets',o2:'-220',s2:10,i2:0,wl2:'35-34',l2:'7-3',pick:'Hornets',res:'W'},
+            {_id:1774569618865,t1:'Pistons',o1:'-1100',s1:1,i1:0,wl1:'49-19',l1:'5-5',t2:'Wizards',o2:'+700',s2:14,i2:0,wl2:'16-52',l2:'0-10',pick:'Pistons',res:'W'},
+            {_id:1774569637732,t1:'Suns',o1:'+375',s1:7,i1:0,wl1:'39-30',l1:'6-4',t2:'Spurs',o2:'-500',s2:2,i2:0,wl2:'51-18',l2:'9-1',pick:'Spurs',res:'W'},
+            {_id:1774569653868,t1:'Lakers',o1:'+140',s1:3,i1:0,wl1:'44-25',l1:'9-1',t2:'Heat',o2:'-165',s2:7,i2:0,wl2:'38-31',l2:'7-3',pick:'Lakers',res:'W'},
+            {_id:1774569679387,t1:'Clippers',o1:'+150',s1:9,i1:0,wl1:'34-35',l1:'6-4',t2:'Pelicans',o2:'-180',s2:12,i2:0,wl2:'24-46',l2:'6-4',pick:'Pelicans',res:'W'},
+            {_id:1774569700388,t1:'Cavaliers',o1:'-500',s1:4,i1:4,wl1:'42-27',l1:'5-5',t2:'Bulls',o2:'+375',s2:11,i2:10,wl2:'29-40',l2:'2-8',pick:'Cavaliers',res:'W'},
+            {_id:1774569718648,t1:'Bucks',o1:'-250',s1:12,i1:0,wl1:'28-40',l1:'2-8',t2:'Jazz',o2:'+205',s2:14,i2:0,wl2:'20-49',l2:'2-8',pick:'Bucks',res:'L'},
+            {_id:1774569740192,t1:'76ers',o1:'-150',s1:9,i1:0,wl1:'36-33',l1:'3-7',t2:'Kings',o2:'+125',s2:15,i2:0,wl2:'17-53',l2:'4-6',pick:'76ers',res:'W'},
+          ]},
+          { day:42, date:'3/20', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774570037176,t1:'Raptors',o1:'+220',s1:5,i1:0,wl1:'39-29',l1:'5-5',t2:'Nuggets',o2:'-270',s2:5,i2:0,wl2:'42-28',l2:'5-5',pick:'Nuggets',res:'W'},
+            {_id:1774570068810,t1:'Hawks',o1:'+125',s1:7,i1:0,wl1:'38-31',l1:'10-0',t2:'Rockets',o2:'-150',s2:6,i2:0,wl2:'41-27',l2:'4-6',pick:'Hawks',res:'L'},
+            {_id:1774570193424,t1:'Blazers',o1:'-105',s1:8,i1:0,wl1:'35-35',l1:'6-4',t2:'Wolves',o2:'-115',s2:4,i2:0,wl2:'43-27',l2:'6-4',pick:'Wolves',res:'L'},
+            {_id:1774570211608,t1:'Celtics',o1:'-1200',s1:2,i1:0,wl1:'46-23',l1:'7-3',t2:'Grizzlies',o2:'+750',s2:12,i2:0,wl2:'24-44',l2:'2-8',pick:'Celtics',res:'W'},
+            {_id:1774570236043,t1:'Warriors',o1:'+195',s1:10,i1:0,wl1:'33-36',l1:'3-7',t2:'Pistons',o2:'-240',s2:1,i2:0,wl2:'50-19',l2:'2-8',pick:'Pistons',res:'W'},
+            {_id:1774570275495,t1:'Knicks',o1:'-2200',s1:3,i1:0,wl1:'45-25',l1:'6-4',t2:'Nets',o2:'+1100',s2:13,i2:0,wl2:'17-52',l2:'2-8',pick:'Knicks',res:'W'},
+          ]},
+          { day:43, date:'3/21', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774570532089,t1:'Thunder',o1:'-3000',s1:1,i1:0,wl1:'55-15',l1:'10-0',t2:'Wizards',o2:'+1400',s2:14,i2:0,wl2:'16-53',l2:'0-10',pick:'Thunder',res:'W'},
+            {_id:1774570550806,t1:'Cavaliers',o1:'-205',s1:4,i1:0,wl1:'43-27',l1:'6-4',t2:'Pelicans',o2:'+170',s2:11,i2:0,wl2:'25-46',l2:'6-4',pick:'Cavaliers',res:'W'},
+            {_id:1774570573069,t1:'Lakers',o1:'-155',s1:3,i1:0,wl1:'45-25',l1:'9-1',t2:'Magic',o2:'+130',s2:6,i2:0,wl2:'38-31',l2:'7-3',pick:'Lakers',res:'W'},
+            {_id:1774570590172,t1:'Grizzlies',o1:'+950',s1:12,i1:0,wl1:'24-45',l1:'1-9',t2:'Hornets',o2:'-1700',s2:10,i2:0,wl2:'36-34',l2:'7-3',pick:'Hornets',res:'W'},
+            {_id:1774570610640,t1:'Pacers',o1:'+900',s1:15,i1:0,wl1:'15-55',l1:'0-10',t2:'Spurs',o2:'-1600',s2:2,i2:0,wl2:'52-18',l2:'9-1',pick:'Spurs',res:'W'},
+            {_id:1774570629858,t1:'Warriors',o1:'+250',s1:10,i1:0,wl1:'33-37',l1:'2-8',t2:'Hawks',o2:'-310',s2:7,i2:0,wl2:'38-32',l2:'9-1',pick:'Hawks',res:'W'},
+            {_id:1774570652610,t1:'Heat',o1:'+120',s1:8,i1:0,wl1:'38-32',l1:'7-3',t2:'Rockets',o2:'-140',s2:6,i2:0,wl2:'42-27',l2:'7-3',pick:'Rockets',res:'W'},
+            {_id:1774570672412,t1:'Clippers',o1:'-275',s1:9,i1:0,wl1:'34-36',l1:'5-5',t2:'Mavericks',o2:'+225',s2:13,i2:0,wl2:'23-47',l2:'2-8',pick:'Clippers',res:'W'},
+            {_id:1774570688980,t1:'76ers',o1:'-225',s1:9,i1:0,wl1:'37-33',l1:'4-6',t2:'Jazz',o2:'+185',s2:14,i2:0,wl2:'21-49',l2:'3-7',pick:'76ers',res:'W'},
+            {_id:1774570707973,t1:'Bucks',o1:'+450',s1:12,i1:0,wl1:'28-41',l1:'2-8',t2:'Suns',o2:'-600',s2:7,i2:0,wl2:'39-31',l2:'5-5',pick:'Suns',res:'L'},
+          ]},
+          { day:44, date:'3/22', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774570847847,t1:'Wizards',o1:'+1500',s1:14,i1:0,wl1:'16-54',l1:'0-10',t2:'Knicks',o2:'-5000',s2:3,i2:0,wl2:'46-25',l2:'7-3',pick:'Knicks',res:'W'},
+            {_id:1774570888051,t1:'Wolves',o1:'+325',s1:5,i1:0,wl1:'43-28',l1:'5-5',t2:'Celtics',o2:'-425',s2:2,i2:0,wl2:'47-23',l2:'7-3',pick:'Celtics',res:'L'},
+            {_id:1774570904835,t1:'Raptors',o1:'-180',s1:5,i1:0,wl1:'39-30',l1:'5-5',t2:'Suns',o2:'+150',s2:7,i2:0,wl2:'39-32',l2:'4-6',pick:'Raptors',res:'L'},
+            {_id:1774570969574,t1:'Blazers',o1:'+275',s1:8,i1:0,wl1:'36-35',l1:'7-3',t2:'Nuggets',o2:'-350',s2:6,i2:0,wl2:'43-28',l2:'6-4',pick:'Nuggets',res:'W'},
+            {_id:1774570985775,t1:'Nets',o1:'+200',s1:13,i1:0,wl1:'17-53',l1:'2-8',t2:'Kings',o2:'-245',s2:15,i2:0,wl2:'17-54',l2:'3-7',pick:'Kings',res:'W'},
+          ]},
+          { day:45, date:'3/23', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774571036933,t1:'Pacers',o1:'+400',s1:15,i1:0,wl1:'15-56',l1:'0-10',t2:'Magic',o2:'-550',s2:7,i2:0,wl2:'38-32',l2:'6-4',pick:'Magic',res:'L'},
+            {_id:1774571051284,t1:'Lakers',o1:'-120',s1:3,i1:0,wl1:'46-25',l1:'9-1',t2:'Pistons',o2:'+100',s2:1,i2:0,wl2:'51-19',l2:'6-4',pick:'Lakers',res:'L'},
+            {_id:1774571108502,t1:'Thunder',o1:'-1200',s1:1,i1:0,wl1:'56-15',l1:'10-0',t2:'76ers',o2:'+750',s2:9,i2:0,wl2:'38-33',l2:'5-5',pick:'Thunder',res:'W'},
+            {_id:1774571125239,t1:'Spurs',o1:'-160',s1:2,i1:0,wl1:'53-18',l1:'9-1',t2:'Heat',o2:'+135',s2:8,i2:0,wl2:'38-33',l2:'6-4',pick:'Spurs',res:'W'},
+            {_id:1774571139172,t1:'Grizzlies',o1:'+575',s1:12,i1:0,wl1:'24-46',l1:'1-9',t2:'Hawks',o2:'-850',s2:6,i2:0,wl2:'39-32',l2:'9-1',pick:'Hawks',res:'W'},
+            {_id:1774571186170,t1:'Rockets',o1:'-390',s1:6,i1:0,wl1:'43-27',l1:'5-5',t2:'Bulls',o2:'+310',s2:11,i2:0,wl2:'29-41',l2:'5-5',pick:'Rockets',res:'L'},
+            {_id:1774571211755,t1:'Raptors',o1:'-450',s1:5,i1:0,wl1:'39-31',l1:'4-6',t2:'Jazz',o2:'+350',s2:14,i2:0,wl2:'21-50',l2:'3-7',pick:'Raptors',res:'W'},
+            {_id:1774571236570,t1:'Warriors',o1:'-140',s1:10,i1:0,wl1:'33-38',l1:'2-8',t2:'Mavericks',o2:'+120',s2:13,i2:0,wl2:'23-48',l2:'2-8',pick:'Warriors',res:'W'},
+            {_id:1774571256146,t1:'Nets',o1:'+700',s1:13,i1:0,wl1:'17-54',l1:'2-8',t2:'Blazers',o2:'-1100',s2:8,i2:0,wl2:'36-36',l2:'7-3',pick:'Blazers',res:'W'},
+            {_id:1774571270782,t1:'Bucks',o1:'+600',s1:12,i1:6,wl1:'29-41',l1:'3-7',t2:'Clippers',o2:'-900',s2:9,i2:3,wl2:'35-36',l2:'5-5',pick:'Clippers',res:'W'},
+          ]},
+          { day:46, date:'3/24', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774571394697,t1:'Kings',o1:'+1000',s1:15,i1:0,wl1:'18-54',l1:'4-6',t2:'Hornets',o2:'-2000',s2:10,i2:0,wl2:'37-34',l2:'7-3',pick:'Hornets',res:'W'},
+            {_id:1774571410631,t1:'Pelicans',o1:'+280',s1:11,i1:0,wl1:'25-47',l1:'6-4',t2:'Knicks',o2:'-360',s2:3,i2:0,wl2:'47-25',l2:'6-4',pick:'Knicks',res:'W'},
+            {_id:1774571446096,t1:'Magic',o1:'+350',s1:7,i1:0,wl1:'38-33',l1:'5-5',t2:'Cavaliers',o2:'-450',s2:4,i2:0,wl2:'44-27',l2:'6-4',pick:'Cavaliers',res:'W'},
+            {_id:1774571459914,t1:'Nuggets',o1:'-240',s1:4,i1:0,wl1:'44-28',l1:'6-4',t2:'Suns',o2:'+195',s2:7,i2:0,wl2:'40-32',l2:'5-5',pick:'Nuggets',res:'W'},
+          ]},
+          { day:47, date:'3/25', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774571514135,t1:'Bulls',o1:'+205',s1:11,i1:0,wl1:'30-41',l1:'5-5',t2:'76ers',o2:'-250',s2:9,i2:0,wl2:'38-34',l2:'4-6',pick:'76ers',res:'W'},
+            {_id:1774571535170,t1:'Hawks',o1:'+120',s1:6,i1:0,wl1:'40-32',l1:'9-1',t2:'Pistons',o2:'-140',s2:1,i2:0,wl2:'52-19',l2:'7-3',pick:'Pistons',res:'L'},
+            {_id:1774571556705,t1:'Lakers',o1:'-425',s1:3,i1:0,wl1:'46-26',l1:'9-1',t2:'Pacers',o2:'+325',s2:15,i2:0,wl2:'16-56',l2:'1-9',pick:'Lakers',res:'W'},
+            {_id:1774571577741,t1:'Thunder',o1:'-130',s1:1,i1:0,wl1:'57-15',l1:'10-0',t2:'Celtics',o2:'+110',s2:3,i2:0,wl2:'47-24',l2:'6-4',pick:'Thunder',res:'L'},
+            {_id:1774571593059,t1:'Heat',o1:'+125',s1:8,i1:0,wl1:'38-34',l1:'5-5',t2:'Cavaliers',o2:'-150',s2:4,i2:0,wl2:'45-27',l2:'7-3',pick:'Cavaliers',res:'L'},
+            {_id:1774571609727,t1:'Spurs',o1:'-2000',s1:2,i1:0,wl1:'54-18',l1:'9-1',t2:'Grizzlies',o2:'+1000',s2:12,i2:0,wl2:'24-47',l2:'1-9',pick:'Spurs',res:'W'},
+            {_id:1774571621111,t1:'Wizards',o1:'+130',s1:14,i1:0,wl1:'16-55',l1:'0-10',t2:'Jazz',o2:'-155',s2:14,i2:0,wl2:'21-51',l2:'3-7',pick:'Jazz',res:'L'},
+            {_id:1774571639446,t1:'Rockets',o1:'-130',s1:6,i1:0,wl1:'43-28',l1:'5-5',t2:'Wolves',o2:'+110',s2:5,i2:0,wl2:'44-28',l2:'5-5',pick:'Wolves',res:'W'},
+            {_id:1774571661856,t1:'Nets',o1:'+500',s1:13,i1:0,wl1:'17-55',l1:'2-8',t2:'Warriors',o2:'-700',s2:10,i2:0,wl2:'34-38',l2:'2-8',pick:'Warriors',res:'W'},
+            {_id:1774571675157,t1:'Bucks',o1:'+700',s1:12,i1:0,wl1:'29-42',l1:'3-7',t2:'Blazers',o2:'-1100',s2:8,i2:0,wl2:'37-36',l2:'7-3',pick:'Blazers',res:'W'},
+            {_id:1774571718353,t1:'Mavericks',o1:'+450',s1:13,i1:0,wl1:'23-49',l1:'2-8',t2:'Nuggets',o2:'-600',s2:4,i2:0,wl2:'45-28',l2:'6-4',pick:'Nuggets',res:'W'},
+            {_id:1774571742268,t1:'Raptors',o1:'+150',s1:5,i1:0,wl1:'40-31',l1:'5-5',t2:'Clippers',o2:'-180',s2:9,i2:0,wl2:'36-36',l2:'6-4',pick:'Clippers',res:'W'},
+          ]},
+          { day:48, date:'3/26', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1774571952803,t1:'Pelicans',o1:'+180',s1:11,i1:2,wl1:'25-48',l1:'6-4',t2:'Pistons',o2:'-220',s2:1,i2:4,wl2:'52-20',l2:'7-3',pick:'Pistons',res:'W'},
+            {_id:1774571968596,t1:'Knicks',o1:'+110',s1:3,i1:3,wl1:'48-25',l1:'8-2',t2:'Hornets',o2:'-130',s2:10,i2:2,wl2:'38-34',l2:'7-3',pick:'Knicks',res:'W'},
+            {_id:1774571997352,t1:'Kings',o1:'+800',s1:15,i1:7,wl1:'18-55',l1:'4-6',t2:'Magic',o2:'-1300',s2:9,i2:3,wl2:'38-34',l2:'5-5',pick:'Magic',res:'W'},
+          ]},
+          { day:49, date:'3/27', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776282206309,t1:'Clippers',o1:'-390',s1:9,i1:0,wl1:'37-36',l1:'6-4',t2:'Pacers',o2:'+310',s2:15,i2:0,wl2:'16-57',l2:'1-9',pick:'Clippers',res:'W'},
+            {_id:1776282302219,t1:'Hawks',o1:'+180',s1:5,i1:0,wl1:'41-32',l1:'9-1',t2:'Celtics',o2:'-220',s2:3,i2:0,wl2:'48-24',l2:'7-3',pick:'Celtics',res:'W'},
+            {_id:1776282320345,t1:'Heat',o1:'+180',s1:8,i1:0,wl1:'39-34',l1:'5-5',t2:'Cavaliers',o2:'-220',s2:4,i2:0,wl2:'45-28',l2:'6-4',pick:'Cavaliers',res:'W'},
+            {_id:1776282346731,t1:'Bulls',o1:'+1200',s1:11,i1:0,wl1:'30-42',l1:'5-5',t2:'Thunder',o2:'-2400',s2:1,i2:0,wl2:'57-16',l2:'9-1',pick:'Thunder',res:'W'},
+            {_id:1776282388610,t1:'Rockets',o1:'-950',s1:6,i1:0,wl1:'43-29',l1:'4-6',t2:'Grizzlies',o2:'+625',s2:12,i2:0,wl2:'24-48',l2:'1-9',pick:'Rockets',res:'W'},
+            {_id:1776282410569,t1:'Pelicans',o1:'+270',s1:11,i1:0,wl1:'25-49',l1:'5-5',t2:'Raptors',o2:'-340',s2:6,i2:0,wl2:'40-32',l2:'5-5',pick:'Raptors',res:'W'},
+            {_id:1776283635728,t1:'Jazz',o1:'+1100',s1:14,i1:0,wl1:'21-52',l1:'2-8',t2:'Nuggets',o2:'-2200',s2:4,i2:0,wl2:'46-28',l2:'7-3',pick:'Nuggets',res:'W'},
+            {_id:1776283651036,t1:'Wizards',o1:'+550',s1:13,i1:0,wl1:'17-55',l1:'1-9',t2:'Warriors',o2:'-800',s2:10,i2:0,wl2:'35-38',l2:'3-7',pick:'Warriors',res:'W'},
+            {_id:1776283676371,t1:'Mavericks',o1:'+375',s1:13,i1:0,wl1:'23-50',l1:'2-8',t2:'Blazers',o2:'-500',s2:8,i2:0,wl2:'38-36',l2:'8-2',pick:'Blazers',res:'L'},
+            {_id:1776283693682,t1:'Nets',o1:'+1100',s1:14,i1:0,wl1:'17-56',l1:'1-9',t2:'Lakers',o2:'-2200',s2:3,i2:0,wl2:'47-26',l2:'9-1',pick:'Lakers',res:'W'},
+          ]},
+          { day:50, date:'3/28', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776283833096,t1:'Spurs',o1:'-2000',s1:2,i1:0,wl1:'55-18',l1:'9-1',t2:'Bucks',o2:'+1000',s2:12,i2:0,wl2:'29-43',l2:'2-8',pick:'Spurs',res:'W'},
+            {_id:1776283870077,t1:'Pistons',o1:'-130',s1:1,i1:0,wl1:'53-20',l1:'8-2',t2:'Wolves',o2:'+110',s2:5,i2:0,wl2:'45-28',l2:'5-5',pick:'Pistons',res:'W'},
+            {_id:1776283888197,t1:'76ers',o1:'+205',s1:7,i1:0,wl1:'39-34',l1:'5-5',t2:'Hornets',o2:'-250',s2:10,i2:0,wl2:'38-35',l2:'6-4',pick:'Hornets',res:'L'},
+            {_id:1776283911348,t1:'Kings',o1:'+525',s1:15,i1:0,wl1:'18-56',l1:'4-6',t2:'Hawks',o2:'-750',s2:6,i2:0,wl2:'41-33',l2:'8-2',pick:'Hawks',res:'W'},
+            {_id:1776283931058,t1:'Bulls',o1:'-210',s1:11,i1:0,wl1:'30-43',l1:'4-6',t2:'Grizzlies',o2:'+175',s2:12,i2:0,wl2:'24-49',l2:'1-9',pick:'Bulls',res:'L'},
+            {_id:1776283956775,t1:'Jazz',o1:'+950',s1:14,i1:0,wl1:'21-53',l1:'2-8',t2:'Suns',o2:'-1700',s2:7,i2:0,wl2:'40-33',l2:'4-6',pick:'Suns',res:'W'},
+          ]},
+          { day:51, date:'3/29', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776284056089,t1:'Clippers',o1:'-1400',s1:8,i1:0,wl1:'38-36',l1:'6-4',t2:'Bucks',o2:'+850',s2:12,i2:0,wl2:'29-44',l2:'2-8',pick:'Clippers',res:'W'},
+            {_id:1776284080701,t1:'Heat',o1:'-360',s1:9,i1:0,wl1:'39-35',l1:'4-6',t2:'Pacers',o2:'+280',s2:15,i2:0,wl2:'16-58',l2:'1-9',pick:'Heat',res:'L'},
+            {_id:1776284102028,t1:'Kings',o1:'+105',s1:15,i1:0,wl1:'18-57',l1:'4-6',t2:'Nets',o2:'-125',s2:14,i2:0,wl2:'17-57',l2:'0-10',pick:'Kings',res:'L'},
+            {_id:1776284125413,t1:'Magic',o1:'+100',s1:8,i1:0,wl1:'39-34',l1:'4-6',t2:'Raptors',o2:'-120',s2:6,i2:0,wl2:'41-32',l2:'5-5',pick:'Raptors',res:'W'},
+            {_id:1776284156699,t1:'Wizards',o1:'+950',s1:13,i1:0,wl1:'17-56',l1:'1-9',t2:'Blazers',o2:'-1700',s2:9,i2:0,wl2:'38-37',l2:'7-3',pick:'Blazers',res:'W'},
+            {_id:1776284193619,t1:'Celtics',o1:'+115',s1:2,i1:0,wl1:'49-24',l1:'7-3',t2:'Hornets',o2:'-135',s2:10,i2:0,wl2:'38-36',l2:'6-4',pick:'Celtics',res:'W'},
+            {_id:1776284227023,t1:'Rockets',o1:'-245',s1:6,i1:0,wl1:'44-29',l1:'5-5',t2:'Pelicans',o2:'+200',s2:12,i2:0,wl2:'25-50',l2:'5-5',pick:'Rockets',res:'W'},
+            {_id:1776284252075,t1:'Knicks',o1:'+275',s1:3,i1:0,wl1:'49-25',l1:'8-2',t2:'Thunder',o2:'-350',s2:1,i2:0,wl2:'58-16',l2:'9-1',pick:'Thunder',res:'W'},
+            {_id:1776284265268,t1:'Warriors',o1:'+475',s1:10,i1:0,wl1:'36-38',l1:'4-6',t2:'Nuggets',o2:'-650',s2:4,i2:0,wl2:'47-28',l2:'8-2',pick:'Nuggets',res:'W'},
+          ]},
+          { day:52, date:'3/30', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776284368369,t1:'76ers',o1:'-130',s1:7,i1:0,wl1:'40-34',l1:'6-4',t2:'Heat',o2:'+110',s2:9,i2:0,wl2:'39-36',l2:'3-7',pick:'76ers',res:'L'},
+            {_id:1776284389487,t1:'Celtics',o1:'+125',s1:2,i1:0,wl1:'50-24',l1:'7-3',t2:'Hawks',o2:'-150',s2:6,i2:0,wl2:'42-33',l2:'8-2',pick:'Hawks',res:'W'},
+            {_id:1776284410656,t1:'Suns',o1:'-600',s1:7,i1:0,wl1:'41-33',l1:'4-6',t2:'Grizzlies',o2:'+450',s2:11,i2:0,wl2:'25-49',l2:'2-8',pick:'Suns',res:'W'},
+            {_id:1776284447138,t1:'Bulls',o1:'+900',s1:11,i1:0,wl1:'30-44',l1:'3-7',t2:'Spurs',o2:'-2000',s2:2,i2:0,wl2:'56-18',l2:'9-1',pick:'Spurs',res:'W'},
+            {_id:1776284468415,t1:'Wolves',o1:'-360',s1:5,i1:0,wl1:'45-29',l1:'5-5',t2:'Mavericks',o2:'+280',s2:13,i2:0,wl2:'24-50',l2:'3-7',pick:'Wolves',res:'W'},
+            {_id:1776284486801,t1:'Cavaliers',o1:'-1600',s1:4,i1:0,wl1:'46-28',l1:'7-3',t2:'Jazz',o2:'+900',s2:14,i2:0,wl2:'21-54',l2:'1-9',pick:'Cavaliers',res:'W'},
+            {_id:1776284505977,t1:'Pistons',o1:'+450',s1:1,i1:0,wl1:'54-20',l1:'8-2',t2:'Thunder',o2:'-600',s2:1,i2:0,wl2:'59-16',l2:'9-1',pick:'Thunder',res:'W'},
+            {_id:1776284522921,t1:'Wizards',o1:'+850',s1:14,i1:0,wl1:'17-57',l1:'1-9',t2:'Lakers',o2:'-1400',s2:3,i2:0,wl2:'48-26',l2:'9-1',pick:'Lakers',res:'W'},
+          ]},
+          { day:53, date:'3/31', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776284609653,t1:'Suns',o1:'+110',s1:7,i1:0,wl1:'42-33',l1:'4-6',t2:'Magic',o2:'-130',s2:9,i2:0,wl2:'39-35',l2:'3-7',pick:'Suns',res:'L'},
+            {_id:1776284632923,t1:'Hornets',o1:'-2000',s1:10,i1:0,wl1:'38-37',l1:'6-4',t2:'Nets',o2:'+1000',s2:13,i2:0,wl2:'18-57',l2:'1-9',pick:'Hornets',res:'W'},
+            {_id:1776284657849,t1:'Raptors',o1:'+135',s1:6,i1:0,wl1:'42-32',l1:'6-4',t2:'Pistons',o2:'-180',s2:1,i2:0,wl2:'54-21',l2:'7-3',pick:'Pistons',res:'W'},
+            {_id:1776284672626,t1:'Knicks',o1:'-125',s1:3,i1:0,wl1:'49-26',l1:'8-2',t2:'Rockets',o2:'+105',s2:6,i2:0,wl2:'45-29',l2:'5-5',pick:'Knicks',res:'L'},
+            {_id:1776284696820,t1:'Mavericks',o1:'-140',s1:13,i1:0,wl1:'24-51',l1:'3-7',t2:'Bucks',o2:'+120',s2:12,i2:0,wl2:'29-45',l2:'3-7',pick:'Mavericks',res:'L'},
+            {_id:1776284720997,t1:'Cavaliers',o1:'+115',s1:4,i1:0,wl1:'47-28',l1:'7-3',t2:'Lakers',o2:'-135',s2:3,i2:0,wl2:'49-26',l2:'9-1',pick:'Lakers',res:'W'},
+            {_id:1776284746633,t1:'Blazers',o1:'+160',s1:9,i1:0,wl1:'39-37',l1:'8-2',t2:'Clippers',o2:'-190',s2:8,i2:0,wl2:'39-36',l2:'6-4',pick:'Clippers',res:'L'},
+          ]},
+          { day:54, date:'4/1', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776285476134,t1:'76ers',o1:'-1200',s1:7,i1:0,wl1:'40-35',l1:'5-5',t2:'Wizards',o2:'+750',s2:14,i2:0,wl2:'17-58',l2:'1-9',pick:'76ers',res:'W'},
+            {_id:1776285498986,t1:'Hawks',o1:'-150',s1:5,i1:0,wl1:'43-33',l1:'8-2',t2:'Magic',o2:'+125',s2:8,i2:0,wl2:'40-35',l2:'3-7',pick:'Hawks',res:'W'},
+            {_id:1776285555866,t1:'Celtics',o1:'-200',s1:2,i1:0,wl1:'50-25',l1:'7-3',t2:'Heat',o2:'+165',s2:9,i2:0,wl2:'40-36',l2:'3-7',pick:'Celtics',res:'W'},
+            {_id:1776285593194,t1:'Knicks',o1:'-900',s1:3,i1:0,wl1:'49-27',l1:'8-2',t2:'Grizzlies',o2:'+600',s2:11,i2:0,wl2:'25-50',l2:'2-8',pick:'Knicks',res:'W'},
+            {_id:1776285665727,t1:'Kings',o1:'+500',s1:15,i1:0,wl1:'18-58',l1:'3-7',t2:'Raptors',o2:'-700',s2:6,i2:0,wl2:'42-33',l2:'5-5',pick:'Raptors',res:'L'},
+            {_id:1776285756981,t1:'Bucks',o1:'+1250',s1:12,i1:0,wl1:'30-45',l1:'3-7',t2:'Rockets',o2:'-2500',s2:6,i2:0,wl2:'46-29',l2:'6-4',pick:'Rockets',res:'W'},
+            {_id:1776285794484,t1:'Pacers',o1:'+140',s1:15,i1:0,wl1:'17-58',l1:'2-8',t2:'Bulls',o2:'-165',s2:11,i2:0,wl2:'30-45',l2:'2-8',pick:'Bulls',res:'L'},
+            {_id:1776285815628,t1:'Nuggets',o1:'-2000',s1:4,i1:0,wl1:'48-28',l1:'8-2',t2:'Jazz',o2:'+1000',s2:14,i2:0,wl2:'21-55',l2:'1-9',pick:'Nuggets',res:'W'},
+            {_id:1776285860781,t1:'Spurs',o1:'-1100',s1:2,i1:0,wl1:'57-18',l1:'9-1',t2:'Warriors',o2:'+700',s2:10,i2:0,wl2:'36-39',l2:'4-6',pick:'Spurs',res:'W'},
+          ]},
+          { day:55, date:'4/2', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776286044031,t1:'Wolves',o1:'+175',s1:6,i1:0,wl1:'46-29',l1:'6-4',t2:'Pistons',o2:'-210',s2:1,i2:0,wl2:'55-21',l2:'7-3',pick:'Pistons',res:'W'},
+            {_id:1776286478019,t1:'Suns',o1:'+170',s1:7,i1:0,wl1:'42-34',l1:'3-7',t2:'Hornets',o2:'-205',s2:10,i2:0,wl2:'39-37',l2:'6-4',pick:'Hornets',res:'W'},
+            {_id:1776286577790,t1:'Lakers',o1:'+300',s1:3,i1:0,wl1:'50-26',l1:'9-1',t2:'Thunder',o2:'-380',s2:1,i2:0,wl2:'60-16',l2:'9-1',pick:'Thunder',res:'W'},
+            {_id:1776286627886,t1:'Pelicans',o1:'+200',s1:12,i1:0,wl1:'25-51',l1:'4-6',t2:'Blazers',o2:'-245',s2:8,i2:0,wl2:'40-37',l2:'8-2',pick:'Blazers',res:'W'},
+            {_id:1776286652889,t1:'Cavaliers',o1:'-500',s1:4,i1:0,wl1:'47-29',l1:'7-3',t2:'Warriors',o2:'+375',s2:10,i2:0,wl2:'36-40',l2:'4-6',pick:'Cavaliers',res:'W'},
+            {_id:1776286676341,t1:'Spurs',o1:'+120',s1:2,i1:0,wl1:'58-18',l1:'10-0',t2:'Clippers',o2:'-140',s2:9,i2:0,wl2:'39-37',l2:'5-5',pick:'Spurs',res:'W'},
+          ]},
+          { day:56, date:'4/3', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776286733668,t1:'Hawks',o1:'-1700',s1:5,i1:0,wl1:'44-33',l1:'8-2',t2:'Nets',o2:'-950',s2:13,i2:0,wl2:'18-58',l2:'1-9',pick:'Hawks',res:'W'},
+            {_id:1776286754685,t1:'Bulls',o1:'+650',s1:12,i1:0,wl1:'30-46',l1:'2-8',t2:'Knicks',o2:'-1000',s2:3,i2:0,wl2:'50-27',l2:'8-2',pick:'Knicks',res:'W'},
+            {_id:1776286827805,t1:'Wolves',o1:'+140',s1:6,i1:0,wl1:'46-30',l1:'6-4',t2:'76ers',o2:'-165',s2:7,i2:0,wl2:'41-35',l2:'6-4',pick:'76ers',res:'W'},
+            {_id:1776286891136,t1:'Pacers',o1:'+900',s1:14,i1:0,wl1:'18-58',l1:'3-7',t2:'Hornets',o2:'-1600',s2:10,i2:0,wl2:'40-37',l2:'6-4',pick:'Hornets',res:'W'},
+            {_id:1776286928719,t1:'Jazz',o1:'+1000',s1:14,i1:0,wl1:'21-56',l1:'1-9',t2:'Rockets',o2:'-2000',s2:5,i2:0,wl2:'47-29',l2:'6-4',pick:'Rockets',res:'W'},
+            {_id:1776286944704,t1:'Celtics',o1:'-2200',s1:2,i1:0,wl1:'51-25',l1:'8-2',t2:'Bucks',o2:'+1100',s2:11,i2:0,wl2:'30-46',l2:'3-7',pick:'Celtics',res:'W'},
+            {_id:1776286966272,t1:'Raptors',o1:'-1000',s1:6,i1:0,wl1:'42-34',l1:'5-5',t2:'Grizzlies',o2:'+650',s2:11,i2:0,wl2:'25-51',l2:'2-8',pick:'Raptors',res:'W'},
+            {_id:1776286985389,t1:'Magic',o1:'-260',s1:9,i1:0,wl1:'40-36',l1:'2-8',t2:'Mavericks',o2:'+210',s2:13,i2:0,wl2:'24-52',l2:'2-8',pick:'Magic',res:'W'},
+            {_id:1776287003700,t1:'Pelicans',o1:'-250',s1:12,i1:0,wl1:'25-52',l1:'3-7',t2:'Kings',o2:'+205',s2:15,i2:0,wl2:'19-58',l2:'4-6',pick:'Pelicans',res:'L'},
+          ]},
+          { day:57, date:'4/4', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776287109957,t1:'Spurs',o1:'-125',s1:2,i1:0,wl1:'59-18',l1:'10-0',t2:'Nuggets',o2:'+105',s2:4,i2:0,wl2:'49-28',l2:'8-2',pick:'Spurs',res:'L'},
+            {_id:1776287131865,t1:'Wizards',o1:'+1200',s1:15,i1:0,wl1:'17-59',l1:'1-9',t2:'Heat',o2:'-2400',s2:10,i2:0,wl2:'40-37',l2:'2-8',pick:'Heat',res:'W'},
+            {_id:1776287146493,t1:'Pistons',o1:'-170',s1:1,i1:0,wl1:'56-21',l1:'8-2',t2:'76ers',o2:'+125',s2:7,i2:0,wl2:'42-35',l2:'6-4',pick:'Pistons',res:'W'},
+          ]},
+          { day:58, date:'4/5', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776287201134,t1:'Raptors',o1:'+325',s1:6,i1:0,wl1:'43-34',l1:'5-5',t2:'Celtics',o2:'-425',s2:2,i2:0,wl2:'52-25',l2:'8-2',pick:'Celtics',res:'W'},
+            {_id:1776287224180,t1:'Grizzlies',o1:'+225',s1:11,i1:0,wl1:'25-52',l1:'2-8',t2:'Bucks',o2:'-275',s2:11,i2:0,wl2:'30-47',l2:'2-8',pick:'Bucks',res:'W'},
+            {_id:1776287269992,t1:'Suns',o1:'-600',s1:7,i1:0,wl1:'42-35',l1:'3-7',t2:'Bulls',o2:'+450',s2:12,i2:0,wl2:'30-47',l2:'3-7',pick:'Suns',res:'W'},
+            {_id:1776287301344,t1:'Wizards',o1:'+135',s1:15,i1:0,wl1:'17-60',l1:'1-9',t2:'Nets',o2:'-160',s2:13,i2:0,wl2:'18-59',l2:'1-9',pick:'Nets',res:'W'},
+            {_id:1776287321709,t1:'Pacers',o1:'+950',s1:14,i1:0,wl1:'18-59',l1:'1-9',t2:'Cavaliers',o2:'-1700',s2:4,i2:0,wl2:'48-29',l2:'7-3',pick:'Cavaliers',res:'W'},
+            {_id:1776287351956,t1:'Magic',o1:'-245',s1:8,i1:0,wl1:'41-36',l1:'3-7',t2:'Pelicans',o2:'+200',s2:12,i2:0,wl2:'25-53',l2:'3-7',pick:'Magic',res:'W'},
+            {_id:1776287390426,t1:'Jazz',o1:'+2500',s1:14,i1:0,wl1:'21-57',l1:'1-9',t2:'Thunder',o2:'-1000',s2:1,i2:0,wl2:'61-16',l2:'9-1',pick:'Thunder',res:'W'},
+            {_id:1776287413903,t1:'Hornets',o1:'-185',s1:9,i1:0,wl1:'41-37',l1:'7-3',t2:'Wolves',o2:'+155',s2:6,i2:0,wl2:'46-31',l2:'5-5',pick:'Hornets',res:'W'},
+            {_id:1776287438630,t1:'Lakers',o1:'-115',s1:3,i1:0,wl1:'50-27',l1:'8-2',t2:'Mavericks',o2:'-105',s2:13,i2:0,wl2:'24-53',l2:'2-8',pick:'Lakers',res:'L'},
+            {_id:1776287460383,t1:'Clippers',o1:'-850',s1:9,i1:0,wl1:'39-38',l1:'5-5',t2:'Kings',o2:'+575',s2:15,i2:0,wl2:'20-58',l2:'4-6',pick:'Clippers',res:'W'},
+            {_id:1776287488451,t1:'Rockets',o1:'-180',s1:5,i1:0,wl1:'48-29',l1:'7-3',t2:'Warriors',o2:'+150',s2:10,i2:0,wl2:'36-41',l2:'4-6',pick:'Rockets',res:'W'},
+          ]},
+          { day:59, date:'4/6', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776288325055,t1:'Knicks',o1:'+100',s1:3,i1:0,wl1:'51-27',l1:'8-2',t2:'Hawks',o2:'-120',s2:5,i2:7,wl2:'45-33',l2:'8-2',pick:'Knicks',res:'W'},
+            {_id:1776288421643,t1:'Pistons',o1:'-120',s1:1,i1:0,wl1:'57-21',l1:'8-2',t2:'Magic',o2:'+100',s2:8,i2:0,wl2:'42-36',l2:'4-6',pick:'Pistons',res:'L'},
+            {_id:1776288446161,t1:'76ers',o1:'+280',s1:7,i1:0,wl1:'42-36',l1:'6-4',t2:'Spurs',o2:'-360',s2:2,i2:0,wl2:'59-19',l2:'9-1',pick:'Spurs',res:'W'},
+            {_id:1776288465279,t1:'Cavaliers',o1:'-950',s1:4,i1:0,wl1:'49-29',l1:'8-2',t2:'Grizzlies',o2:'+625',s2:11,i2:0,wl2:'25-53',l2:'1-9',pick:'Cavaliers',res:'W'},
+            {_id:1776288483397,t1:'Blazers',o1:'+220',s1:8,i1:0,wl1:'41-37',l1:'8-2',t2:'Nuggets',o2:'-270',s2:3,i2:0,wl2:'50-28',l2:'9-1',pick:'Nuggets',res:'W'},
+          ]},
+          { day:60, date:'4/7', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776288569242,t1:'Bulls',o1:'-230',s1:12,i1:0,wl1:'30-48',l1:'1-9',t2:'Wizards',o2:'+190',s2:15,i2:0,wl2:'17-61',l2:'1-9',pick:'Bulls',res:'W'},
+            {_id:1776288589777,t1:'Wolves',o1:'-800',s1:6,i1:0,wl1:'46-32',l1:'5-5',t2:'Pacers',o2:'+550',s2:14,i2:0,wl2:'18-60',l2:'3-7',pick:'Wolves',res:'W'},
+            {_id:1776288612463,t1:'Heat',o1:'+120',s1:10,i1:0,wl1:'41-37',l1:'3-7',t2:'Raptors',o2:'-140',s2:6,i2:0,wl2:'43-35',l2:'4-6',pick:'Raptors',res:'W'},
+            {_id:1776288627514,t1:'Bucks',o1:'-120',s1:11,i1:0,wl1:'31-47',l1:'3-7',t2:'Nets',o2:'+100',s2:13,i2:0,wl2:'19-59',l2:'2-8',pick:'Bucks',res:'L'},
+            {_id:1776288645832,t1:'Hornets',o1:'+170',s1:9,i1:0,wl1:'42-37',l1:'7-3',t2:'Celtics',o2:'-205',s2:2,i2:0,wl2:'53-25',l2:'8-2',pick:'Celtics',res:'W'},
+            {_id:1776288676625,t1:'Jazz',o1:'+200',s1:14,i1:0,wl1:'21-58',l1:'1-9',t2:'Pelicans',o2:'-235',s2:13,i2:0,wl2:'25-54',l2:'2-8',pick:'Pelicans',res:'W'},
+            {_id:1776288695511,t1:'Kings',o1:'+700',s1:15,i1:0,wl1:'20-59',l1:'3-7',t2:'Warriors',o2:'-1100',s2:10,i2:0,wl2:'36-42',l2:'3-7',pick:'Warriors',res:'W'},
+            {_id:1776288736077,t1:'Mavericks',o1:'+475',s1:11,i1:0,wl1:'25-53',l1:'2-8',t2:'Clippers',o2:'-650',s2:9,i2:0,wl2:'40-38',l2:'6-4',pick:'Clippers',res:'W'},
+            {_id:1776288751763,t1:'Thunder',o1:'-2200',s1:1,i1:0,wl1:'62-16',l1:'9-1',t2:'Lakers',o2:'+1100',s2:4,i2:0,wl2:'50-28',l2:'7-3',pick:'Thunder',res:'W'},
+            {_id:1776288769197,t1:'Rockets',o1:'-120',s1:5,i1:0,wl1:'49-29',l1:'8-2',t2:'Suns',o2:'+100',s2:7,i2:0,wl2:'43-35',l2:'4-6',pick:'Rockets',res:'W'},
+          ]},
+          { day:61, date:'4/8', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776288883747,t1:'Wolves',o1:'+375',s1:6,i1:0,wl1:'47-32',l1:'5-5',t2:'Magic',o2:'-500',s2:7,i2:0,wl2:'43-36',l2:'6-4',pick:'Magic',res:'W'},
+            {_id:1776288899550,t1:'Hawks',o1:'+145',s1:5,i1:0,wl1:'45-34',l1:'7-3',t2:'Cavaliers',o2:'-170',s2:4,i2:0,wl2:'50-29',l2:'8-2',pick:'Cavaliers',res:'W'},
+            {_id:1776288927652,t1:'Bucks',o1:'+1550',s1:11,i1:0,wl1:'31-48',l1:'3-7',t2:'Pistons',o2:'-4000',s2:1,i2:0,wl2:'57-22',l2:'8-2',pick:'Pistons',res:'W'},
+            {_id:1776288948787,t1:'Grizzlies',o1:'+1800',s1:13,i1:0,wl1:'25-54',l1:'1-9',t2:'Nuggets',o2:'-8000',s2:3,i2:0,wl2:'51-28',l2:'9-1',pick:'Nuggets',res:'W'},
+            {_id:1776288969906,t1:'Blazers',o1:'+130',s1:8,i1:0,wl1:'41-38',l1:'7-3',t2:'Spurs',o2:'-155',s2:2,i2:0,wl2:'60-19',l2:'9-1',pick:'Spurs',res:'W'},
+            {_id:1776289008713,t1:'Thunder',o1:'-360',s1:1,i1:0,wl1:'63-16',l1:'9-1',t2:'Clippers',o2:'+280',s2:9,i2:0,wl2:'41-38',l2:'6-4',pick:'Thunder',res:'W'},
+            {_id:1776289032620,t1:'Mavericks',o1:'+525',s1:12,i1:0,wl1:'25-54',l1:'2-8',t2:'Suns',o2:'-750',s2:7,i2:0,wl2:'43-36',l2:'4-6',pick:'Suns',res:'W'},
+          ]},
+          { day:62, date:'4/9', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776289222949,t1:'Bulls',o1:'-300',s1:11,i1:0,wl1:'31-48',l1:'2-8',t2:'Wizards',o2:'+240',s2:15,i2:0,wl2:'17-62',l2:'1-9',pick:'Bulls',res:'W'},
+            {_id:1776289252988,t1:'Heat',o1:'+150',s1:10,i1:0,wl1:'41-38',l1:'3-7',t2:'Raptors',o2:'-180',s2:6,i2:0,wl2:'44-35',l2:'5-5',pick:'Raptors',res:'W'},
+            {_id:1776289318810,t1:'Pacers',o1:'-155',s1:14,i1:0,wl1:'18-61',l1:'3-7',t2:'Nets',o2:'+130',s2:13,i2:10,wl2:'20-59',l2:'3-7',pick:'Pacers',res:'W'},
+            {_id:1776289414286,t1:'Celtics',o1:'+140',s1:2,i1:0,wl1:'54-25',l1:'8-2',t2:'Knicks',o2:'-165',s2:3,i2:0,wl2:'52-27',l2:'8-2',pick:'Knicks',res:'W'},
+            {_id:1776289435304,t1:'76ers',o1:'+205',s1:8,i1:0,wl1:'42-37',l1:'6-4',t2:'Rockets',o2:'-250',s2:5,i2:0,wl2:'50-29',l2:'8-2',pick:'Rockets',res:'W'},
+            {_id:1776289458548,t1:'Lakers',o1:'+100',s1:5,i1:0,wl1:'50-29',l1:'6-4',t2:'Warriors',o2:'-120',s2:10,i2:0,wl2:'37-42',l2:'4-6',pick:'Lakers',res:'W'},
+          ]},
+          { day:63, date:'4/10', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776290108639,t1:'Heat',o1:'-1600',s1:10,i1:0,wl1:'41-39',l1:'3-7',t2:'Wizards',o2:'+900',s2:15,i2:0,wl2:'17-63',l2:'1-9',pick:'Heat',res:'W'},
+            {_id:1776290132253,t1:'Pistons',o1:'+175',s1:1,i1:0,wl1:'58-22',l1:'7-3',t2:'Hornets',o2:'-210',s2:9,i2:0,wl2:'42-38',l2:'6-4',pick:'Pistons',res:'W'},
+            {_id:1776290152188,t1:'Cavaliers',o1:'+280',s1:4,i1:0,wl1:'51-29',l1:'8-2',t2:'Hawks',o2:'-360',s2:5,i2:0,wl2:'45-35',l2:'7-3',pick:'Hawks',res:'W'},
+            {_id:1776290184991,t1:'Raptors',o1:'+220',s1:6,i1:0,wl1:'45-35',l1:'6-4',t2:'Knicks',o2:'-270',s2:3,i2:0,wl2:'53-27',l2:'8-2',pick:'Knicks',res:'W'},
+            {_id:1776290211860,t1:'76ers',o1:'-1200',s1:8,i1:0,wl1:'42-38',l1:'5-5',t2:'Pacers',o2:'+750',s2:14,i2:0,wl2:'19-61',l2:'1-9',pick:'76ers',res:'W'},
+            {_id:1776290229295,t1:'Pelicans',o1:'+1100',s1:11,i1:0,wl1:'26-54',l1:'2-8',t2:'Celtics',o2:'-2200',s2:2,i2:0,wl2:'54-26',l2:'9-1',pick:'Celtics',res:'W'},
+            {_id:1776290243012,t1:'Nets',o1:'+390',s1:13,i1:0,wl1:'20-60',l1:'3-7',t2:'Bucks',o2:'-525',s2:12,i2:0,wl2:'31-49',l2:'3-7',pick:'Bucks',res:'W'},
+            {_id:1776290258848,t1:'Magic',o1:'-1400',s1:7,i1:0,wl1:'44-36',l1:'6-4',t2:'Bulls',o2:'+850',s2:11,i2:0,wl2:'32-48',l2:'3-7',pick:'Magic',res:'W'},
+            {_id:1776290301010,t1:'Mavericks',o1:'+1200',s1:12,i1:0,wl1:'25-55',l1:'2-8',t2:'Spurs',o2:'-2400',s2:2,i2:0,wl2:'61-19',l2:'9-1',pick:'Spurs',res:'W'},
+            {_id:1776290315177,t1:'Thunder',o1:'+120',s1:1,i1:0,wl1:'64-16',l1:'9-1',t2:'Nuggets',o2:'-140',s2:3,i2:0,wl2:'52-28',l2:'10-0',pick:'Nuggets',res:'W'},
+            {_id:1776290338113,t1:'Wolves',o1:'+375',s1:6,i1:0,wl1:'47-33',l1:'4-6',t2:'Rockets',o2:'-500',s2:4,i2:0,wl2:'51-29',l2:'8-2',pick:'Rockets',res:'L'},
+            {_id:1776290362140,t1:'Grizzlies',o1:'+155',s1:13,i1:0,wl1:'25-55',l1:'1-9',t2:'Jazz',o2:'-185',s2:14,i2:0,wl2:'21-59',l2:'0-10',pick:'Jazz',res:'W'},
+            {_id:1776290376658,t1:'Warriors',o1:'-500',s1:10,i1:0,wl1:'37-43',l1:'4-6',t2:'Kings',o2:'+375',s2:15,i2:0,wl2:'20-60',l2:'3-7',pick:'Warriors',res:'L'},
+            {_id:1776290392826,t1:'Clippers',o1:'+105',s1:9,i1:0,wl1:'41-39',l1:'7-3',t2:'Blazers',o2:'-125',s2:8,i2:0,wl2:'41-39',l2:'6-4',pick:'Blazers',res:'W'},
+            {_id:1776290419367,t1:'Suns',o1:'-135',s1:7,i1:0,wl1:'44-36',l1:'5-5',t2:'Lakers',o2:'+115',s2:5,i2:0,wl2:'51-29',l2:'6-4',pick:'Lakers',res:'W'},
+          ]},
           { day:64, date:'4/11', type:'', overall:'', games:[] },
-          { day:65, date:'4/12', type:'', overall:'', games:[] },
+          { day:65, date:'4/12', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776290635716,t1:'Pistons',o1:'-1200',s1:1,i1:0,wl1:'59-22',l1:'7-3',t2:'Pacers',o2:'+750',s2:14,i2:0,wl2:'19-62',l2:'4-6',pick:'Pistons',res:'W'},
+            {_id:1776290692500,t1:'Hornets',o1:'-900',s1:9,i1:1,wl1:'42-39',l1:'5-5',t2:'Knicks',o2:'+600',s2:3,i2:7,wl2:'54-27',l2:'8-2',pick:'Hornets',res:'W'},
+            {_id:1776290725753,t1:'Magic',o1:'-750',s1:7,i1:0,wl1:'45-36',l1:'7-3',t2:'Celtics',o2:'+525',s2:2,i2:0,wl2:'55-26',l2:'8-2',pick:'Magic',res:'L'},
+            {_id:1776290744254,t1:'Bucks',o1:'+800',s1:12,i1:0,wl1:'32-49',l1:'3-7',t2:'76ers',o2:'-1300',s2:8,i2:0,wl2:'43-38',l2:'5-5',pick:'76ers',res:'W'},
+            {_id:1776290763737,t1:'Hawks',o1:'+350',s1:5,i1:0,wl1:'46-35',l1:'7-3',t2:'Heat',o2:'-450',s2:10,i2:0,wl2:'42-39',l2:'4-6',pick:'Heat',res:'W'},
+            {_id:1776290781160,t1:'Wizards',o1:'+390',s1:15,i1:0,wl1:'17-64',l1:'1-9',t2:'Cavaliers',o2:'-525',s2:4,i2:0,wl2:'51-30',l2:'7-3',pick:'Cavaliers',res:'W'},
+            {_id:1776290800076,t1:'Nets',o1:'+1800',s1:13,i1:0,wl1:'20-61',l1:'3-7',t2:'Raptors',o2:'-8000',s2:6,i2:0,wl2:'45-36',l2:'5-5',pick:'Raptors',res:'W'},
+            {_id:1776290817627,t1:'Nuggets',o1:'+350',s1:3,i1:0,wl1:'53-28',l1:'10-0',t2:'Spurs',o2:'-450',s2:2,i2:0,wl2:'62-19',l2:'9-1',pick:'Spurs',res:'L'},
+            {_id:1776290839812,t1:'Pelicans',o1:'+150',s1:11,i1:0,wl1:'26-55',l1:'1-9',t2:'Wolves',o2:'-180',s2:6,i2:0,wl2:'48-33',l2:'5-5',pick:'Wolves',res:'W'},
+            {_id:1776290877208,t1:'Bulls',o1:'+165',s1:11,i1:0,wl1:'32-49',l1:'2-8',t2:'Mavericks',o2:'-200',s2:13,i2:0,wl2:'25-56',l2:'2-8',pick:'Mavericks',res:'W'},
+            {_id:1776290892409,t1:'Suns',o1:'+250',s1:7,i1:0,wl1:'44-37',l1:'5-5',t2:'Thunder',o2:'-310',s2:1,i2:0,wl2:'64-17',l2:'8-2',pick:'Thunder',res:'L'},
+            {_id:1776290907978,t1:'Grizzlies',o1:'+550',s1:12,i1:0,wl1:'25-56',l1:'1-9',t2:'Rockets',o2:'-800',s2:5,i2:0,wl2:'51-30',l2:'8-2',pick:'Rockets',res:'W'},
+            {_id:1776290932579,t1:'Warriors',o1:'+140',s1:10,i1:0,wl1:'37-44',l1:'4-6',t2:'Clippers',o2:'-165',s2:9,i2:0,wl2:'41-40',l2:'6-4',pick:'Clippers',res:'W'},
+            {_id:1776290958783,t1:'Kings',o1:'+1100',s1:15,i1:0,wl1:'21-60',l1:'4-6',t2:'Blazers',o2:'-2200',s2:8,i2:0,wl2:'42-39',l2:'6-4',pick:'Blazers',res:'W'},
+            {_id:1776290981109,t1:'Jazz',o1:'+650',s1:14,i1:0,wl1:'22-59',l1:'1-9',t2:'Lakers',o2:'-1000',s2:4,i2:0,wl2:'52-29',l2:'6-4',pick:'Lakers',res:'W'},
+          ]},
           { day:66, date:'4/13', type:'', overall:'', games:[] },
-          { day:67, date:'4/14', type:'', overall:'', games:[] },
+          { day:67, date:'4/14', type:'REAL 💰', overall:'', unlocked:true, games:[
+            {_id:1776291287334,t1:'Heat',o1:'+205',s1:10,i1:3,wl1:'43-39',l1:'5-5',t2:'Hornets',o2:'-250',s2:9,i2:1,wl2:'43-39',l2:'5-5',pick:'Hornets',res:'W'},
+            {_id:1776291313943,t1:'Blazers',o1:'+135',s1:8,i1:0,wl1:'43-39',l1:'7-3',t2:'Suns',o2:'-160',s2:7,i2:1,wl2:'45-37',l2:'5-5',pick:'Suns',res:'L'},
+          ]},
           { day:68, date:'4/15', type:'', overall:'', games:[] },
           { day:69, date:'4/16', type:'', overall:'', games:[] },
           { day:70, date:'4/17', type:'', overall:'', games:[] },
@@ -9056,6 +9295,7 @@
         function initFirebase() { /* no-op, using REST */ }
 
         const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
+        const BACKEND_URL = 'https://v3gas-b3ta-backend.onrender.com';
 
         // ===== AUTO INJURY FETCH =====
         let pendingLogbookEntries = null;
@@ -9128,8 +9368,8 @@
                     logbookEntries: logbookEntries
                 };
                 localStorage.setItem('appState', JSON.stringify(payload));
-                fetch(FB_URL + '.json', {
-                    method: 'PUT',
+                fetch(BACKEND_URL + '/api/state', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
@@ -9141,12 +9381,12 @@
 
         function loadAppState(callback) {
             // First load deleted logbook teams so we can filter them out
-            fetch(FB_URL + '/deletedLogbook.json')
+            fetch(BACKEND_URL + '/api/deletedLogbook')
                 .then(r => r.json())
                 .then(deleted => { if (Array.isArray(deleted)) deletedLogbookTeams = deleted; })
                 .catch(() => {});
 
-            fetch(FB_URL + '.json')
+            fetch(BACKEND_URL + '/api/state')
                 .then(r => r.json())
                 .then(data => {
                     if (data && data.betLog) {
@@ -9536,16 +9776,15 @@
                         setTimeout(() => {
                             if (day) day.games = day.games.filter(g => g._id != id);
                             saveAppState();
-                            // Force push deletion to Firebase immediately
+                            // Force push deletion to backend immediately
                             try {
-                                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
                                 const betLogState = betLog.map(d => ({
                                     day: d.day, unlocked: d.unlocked || false,
                                     type: d.type || '', overall: d.overall || '',
                                     games: d.games.map(g => ({...g, res: g.res === null ? 'pending' : g.res}))
                                 }));
-                                fetch(FB_URL + '.json', {
-                                    method: 'PUT',
+                                fetch(BACKEND_URL + '/api/state', {
+                                    method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ betLog: betLogState })
                                 });
@@ -9814,98 +10053,132 @@
         // ===== MONTH MONEY CHART =====
         let currentMonthTab = 'mar';
         let monthChartInstance = null;
+        let currentMoneyTab = 'mar'; // legacy compat
 
         const MONTH_RANGES = {
-            feb: { label: 'February', startDay: 1,  endDay: 11,  dates: ['2/1','2/2','2/3','2/4','2/5','2/6','2/7','2/8','2/9','2/10','2/11','2/12','2/13','2/14','2/15','2/16','2/17','2/18','2/19','2/20','2/21','2/22','2/23','2/24','2/25','2/26','2/27','2/28'] },
-            mar: { label: 'March',    startDay: 23, endDay: 38,  dates: ['3/1','3/2','3/3','3/4','3/5','3/6','3/7','3/8','3/9','3/10','3/11','3/12','3/13','3/14','3/15','3/16','3/17','3/18','3/19','3/20','3/21','3/22','3/23','3/24','3/25','3/26','3/27','3/28','3/29','3/30','3/31'] },
-            apr: { label: 'April',    startDay: 39, endDay: 68,  dates: ['4/1','4/2','4/3','4/4','4/5','4/6','4/7','4/8','4/9','4/10','4/11','4/12','4/13','4/14','4/15','4/16','4/17','4/18','4/19','4/20','4/21','4/22','4/23','4/24','4/25','4/26','4/27','4/28','4/29','4/30'] },
-            may: { label: 'May',      startDay: 69, endDay: 99,  dates: ['5/1','5/2','5/3','5/4','5/5','5/6','5/7','5/8','5/9','5/10','5/11','5/12','5/13','5/14','5/15','5/16','5/17','5/18','5/19','5/20','5/21','5/22','5/23','5/24','5/25','5/26','5/27','5/28','5/29','5/30','5/31'] },
-            jun: { label: 'June',     startDay: 100, endDay: 130, dates: ['6/1','6/2','6/3','6/4','6/5','6/6','6/7','6/8','6/9','6/10','6/11','6/12','6/13','6/14','6/15','6/16','6/17','6/18','6/19','6/20','6/21','6/22','6/23','6/24','6/25','6/26','6/27','6/28','6/29','6/30'] },
+            feb: { label: 'February', startDay: 1,   endDay: 22  },
+            mar: { label: 'March',    startDay: 23,  endDay: 53  },
+            apr: { label: 'April',    startDay: 54,  endDay: 83  },
+            may: { label: 'May',      startDay: 84,  endDay: 114 },
+            jun: { label: 'June',     startDay: 115, endDay: 137 },
         };
 
-        // Month starting bankrolls — auto-carry or custom override
-        let monthStartBankrolls = { feb: 100, mar: null, apr: null, may: null, jun: null };
+        let monthStartOverrides = {};
 
         function loadMonthStarts() {
             try {
-                const saved = localStorage.getItem('monthStartBankrolls');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    Object.assign(monthStartBankrolls, parsed);
-                }
-            } catch(e) {}
+                const saved = localStorage.getItem('monthStartOverrides');
+                if (saved) monthStartOverrides = JSON.parse(saved);
+                // Apr default $100 if never set
+                if (monthStartOverrides['apr'] === undefined) monthStartOverrides['apr'] = 100;
+            } catch(e) {
+                if (monthStartOverrides['apr'] === undefined) monthStartOverrides['apr'] = 100;
+            }
         }
 
         function saveMonthStarts() {
             try {
-                localStorage.setItem('monthStartBankrolls', JSON.stringify(monthStartBankrolls));
-                // Also push to Firebase via backend
+                localStorage.setItem('monthStartOverrides', JSON.stringify(monthStartOverrides));
                 fetch(BACKEND_URL + '/api/state', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ monthStartBankrolls })
+                    body: JSON.stringify({ monthStartOverrides })
                 });
             } catch(e) {}
         }
 
         function calcMonthEndBankroll(month) {
             const range = MONTH_RANGES[month];
-            const startAmount = getMonthStart(month);
-            let bankroll = startAmount;
+            let bankroll = getMonthStart(month);
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 const decided = day.games.filter(g => g.res === 'W' || g.res === 'L');
-                if (decided.length === 0) return;
+                if (decided.length === 0 || bankroll <= 0) return;
                 const n = decided.length;
                 const stake = bankroll / n;
                 let newBankroll = 0;
                 decided.forEach((g, i) => {
                     const s = i === n - 1 ? bankroll - (stake * (n - 1)) : stake;
                     const o = parseInt(g.pick === g.t1 ? g.o1 : g.o2);
-                    if (g.res === 'W') {
-                        newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
-                    }
+                    if (g.res === 'W') newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
                 });
                 bankroll = Math.round(newBankroll * 100) / 100;
-                if (bankroll <= 0) bankroll = 0;
+                if (bankroll < 0) bankroll = 0;
             });
             return bankroll;
         }
 
         function getMonthStart(month) {
-            // If user has set a custom override, use it
-            if (monthStartBankrolls[month] !== null && monthStartBankrolls[month] !== undefined) {
-                return monthStartBankrolls[month];
-            }
-            // Otherwise auto-carry from previous month end
+            if (monthStartOverrides[month] !== undefined) return monthStartOverrides[month];
             const order = ['feb', 'mar', 'apr', 'may', 'jun'];
             const idx = order.indexOf(month);
             if (idx === 0) return 100;
-            const prev = order[idx - 1];
-            return calcMonthEndBankroll(prev);
+            return calcMonthEndBankroll(order[idx - 1]);
         }
+
+        function fmtMoney(val) {
+            if (val >= 1000000) return '$' + (val / 1000000).toFixed(2) + 'M';
+            if (val >= 1000) return '$' + (val / 1000).toFixed(2) + 'k';
+            return '$' + val.toFixed(2);
+        }
+
+        // Deposits: { dayNumber: amount } — added to bankroll BEFORE that day's bets
+        const BANKROLL_DEPOSITS = { 69: 100 }; // 4/16: +$100
 
         function calcMonthData(month) {
             const range = MONTH_RANGES[month];
             const startAmount = getMonthStart(month);
             let bankroll = startAmount;
-            const data = [{ date: range.label + ' start', bankroll: startAmount }];
+            const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
+                // Apply any deposit for this day
+                if (BANKROLL_DEPOSITS[day.day]) {
+                    bankroll += BANKROLL_DEPOSITS[day.day];
+                    bankroll = Math.round(bankroll * 100) / 100;
+                }
                 const decided = day.games.filter(g => g.res === 'W' || g.res === 'L');
-                if (decided.length === 0) return;
+                if (decided.length === 0) { 
+                    if (BANKROLL_DEPOSITS[day.day]) data.push({ date: day.date + ' (+$' + BANKROLL_DEPOSITS[day.day] + ')', bankroll });
+                    return; 
+                }
+                if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
                 const n = decided.length;
                 const stake = bankroll / n;
                 let newBankroll = 0;
                 decided.forEach((g, i) => {
                     const s = i === n - 1 ? bankroll - (stake * (n - 1)) : stake;
                     const o = parseInt(g.pick === g.t1 ? g.o1 : g.o2);
-                    if (g.res === 'W') {
-                        newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
-                    }
+                    if (g.res === 'W') newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
                 });
                 bankroll = Math.round(newBankroll * 100) / 100;
-                if (bankroll <= 0) bankroll = 0;
+                if (bankroll < 0) bankroll = 0;
+                data.push({ date: day.date, bankroll });
+            });
+            return data;
+        }
+
+        function calcJustinData(month) {
+            // Justin logic: flat % per game (5% of bankroll per game)
+            const range = MONTH_RANGES[month];
+            const startAmount = getMonthStart(month);
+            let bankroll = startAmount;
+            const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
+            betLog.forEach(day => {
+                if (day.day < range.startDay || day.day > range.endDay) return;
+                if (BANKROLL_DEPOSITS[day.day]) bankroll = Math.round((bankroll + BANKROLL_DEPOSITS[day.day]) * 100) / 100;
+                const decided = day.games.filter(g => g.res === 'W' || g.res === 'L');
+                if (decided.length === 0) { if (BANKROLL_DEPOSITS[day.day]) data.push({ date: day.date + ' (+$' + BANKROLL_DEPOSITS[day.day] + ')', bankroll }); return; }
+                if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
+                let newBankroll = bankroll;
+                decided.forEach(g => {
+                    const stake = bankroll * 0.05;
+                    const o = parseInt(g.pick === g.t1 ? g.o1 : g.o2);
+                    if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
+                    else newBankroll -= stake;
+                });
+                bankroll = Math.round(newBankroll * 100) / 100;
+                if (bankroll < 0) bankroll = 0;
                 data.push({ date: day.date, bankroll });
             });
             return data;
@@ -9915,8 +10188,7 @@
             const canvas = document.getElementById('monthChart');
             if (!canvas) return;
             if (monthChartInstance) { monthChartInstance.destroy(); monthChartInstance = null; }
-
-            const data = calcMonthData(month);
+            const data = currentMoneySubTab === 'justin' ? calcJustinData(month) : calcMonthData(month);
             const startAmount = getMonthStart(month);
             const ctx = canvas.getContext('2d');
             const labels = data.map(d => d.date);
@@ -9926,131 +10198,81 @@
             gradient.addColorStop(1, 'rgba(34,197,94,0)');
             monthChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: values,
-                        borderColor: '#22c55e',
-                        borderWidth: 2.5,
-                        backgroundColor: gradient,
-                        pointBackgroundColor: values.map((v,i) => i > 0 && v < data[i-1].bankroll ? '#ef4444' : '#22c55e'),
-                        pointRadius: 5,
-                        pointHitRadius: 30,
-                        pointHoverRadius: 7,
-                        tension: 0.35,
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: { label: ctx => `$${ctx.raw.toFixed(2)}` },
-                            backgroundColor: '#111', borderColor: '#22c55e', borderWidth: 1,
-                            titleColor: '#fff', bodyColor: '#22c55e',
-                        }
-                    },
-                    scales: {
-                        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } },
-                        y: { ticks: { color: '#555', font: { size: 10 }, callback: v => `$${v}` }, grid: { color: '#1a1a1a' } }
-                    }
-                }
+                data: { labels, datasets: [{ data: values, borderColor: '#22c55e', borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: values.map((v,i) => i > 0 && v < data[i-1].bankroll ? '#ef4444' : '#22c55e'), pointRadius: 5, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
+                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtMoney(ctx.raw) }, backgroundColor: '#111', borderColor: '#22c55e', borderWidth: 1, titleColor: '#fff', bodyColor: '#22c55e' } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
             });
-
-            // Update start input
             const startInput = document.getElementById('monthStartInput');
-            if (startInput) startInput.textContent = `$${startAmount.toFixed(2)}`;
-
-            // Update summary
+            if (startInput) startInput.textContent = fmtMoney(startAmount);
             const current = values[values.length - 1] || startAmount;
             const gain = current - startAmount;
             const gainPct = startAmount > 0 ? Math.round((gain / startAmount) * 100) : 0;
+            const headerProgress = document.getElementById('monthHeaderProgress');
+            if (headerProgress) headerProgress.innerHTML = `<div style="font-size:18px;font-weight:900;color:${gain>=0?'#22c55e':'#ef4444'};font-family:monospace;">$${current.toFixed(2)}</div><div style="font-size:10px;color:${gain>=0?'#22c55e':'#ef4444'};opacity:0.8;">${gain>=0?'+':''}$${gain.toFixed(2)} (${gainPct}%)</div>`;
             const summaryEl = document.getElementById('monthSummary');
-            if (summaryEl) summaryEl.innerHTML = `
-                <div style="font-size:10px;color:#555;letter-spacing:2px;">CURRENT BANKROLL</div>
-                <div style="font-size:28px;font-weight:900;color:${gain>=0?'#22c55e':'#ef4444'};font-family:monospace;text-shadow:0 0 12px rgba(34,197,94,0.5);">$${current.toFixed(2)}</div>
-                <div style="font-size:11px;color:${gain>=0?'#22c55e':'#ef4444'};opacity:0.7;">${gain>=0?'+':''}$${gain.toFixed(2)} (${gainPct}%) in ${MONTH_RANGES[month].label}</div>
-            `;
-
-            // Stats
+            if (summaryEl) summaryEl.innerHTML = `<div style="font-size:10px;color:#555;letter-spacing:2px;">CURRENT BANKROLL</div><div style="font-size:28px;font-weight:900;color:${gain>=0?'#22c55e':'#ef4444'};font-family:monospace;text-shadow:0 0 12px rgba(34,197,94,0.5);">$${current.toFixed(2)}</div><div style="font-size:11px;color:${gain>=0?'#22c55e':'#ef4444'};opacity:0.7;">${gain>=0?'+':''}$${gain.toFixed(2)} (${gainPct}%) in ${MONTH_RANGES[month].label}</div>`;
             const peak = Math.max(...values);
             const peakDay = data.find(d => d.bankroll === peak)?.date || '';
             let bestDiff = 0, bestDay = '';
-            data.slice(1).forEach((d, i) => {
-                const diff = d.bankroll - data[i].bankroll;
-                if (diff > bestDiff) { bestDiff = diff; bestDay = d.date; }
-            });
+            data.slice(1).forEach((d, i) => { const diff = d.bankroll - data[i].bankroll; if (diff > bestDiff) { bestDiff = diff; bestDay = d.date; } });
             const peakEl = document.getElementById('monthStatPeak');
             const peakDayEl = document.getElementById('monthStatPeakDay');
             const bestEl = document.getElementById('monthStatBest');
             const bestDayEl = document.getElementById('monthStatBestDay');
-            if (peakEl) peakEl.textContent = `$${peak.toFixed(2)}`;
+            if (peakEl) peakEl.textContent = fmtMoney(peak);
             if (peakDayEl) peakDayEl.textContent = peakDay;
-            if (bestEl) bestEl.textContent = bestDiff > 0 ? `+$${bestDiff.toFixed(2)}` : '—';
+            if (bestEl) bestEl.textContent = bestDiff > 0 ? '+' + fmtMoney(bestDiff) : '—';
             if (bestDayEl) bestDayEl.textContent = bestDay || '—';
-
-            // Breakdown
             const breakdown = document.getElementById('monthBreakdown');
             if (breakdown) {
-                const rows = data.slice(1).map((d, i) => {
-                    const prev = data[i].bankroll;
-                    const diff = d.bankroll - prev;
-                    const color = diff >= 0 ? '#22c55e' : '#ef4444';
-                    const sign = diff >= 0 ? '+' : '';
-                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#0a0a0a;border-radius:8px;border-left:3px solid ${color};">
-                        <span style="font-size:11px;font-weight:700;color:#fff;">${d.date}</span>
-                        <span style="font-size:11px;font-weight:900;color:${color};font-family:monospace;">${sign}$${diff.toFixed(2)}</span>
-                        <span style="font-size:11px;font-weight:800;color:#aaa;font-family:monospace;">$${d.bankroll.toFixed(2)}</span>
-                    </div>`;
-                }).join('');
+                const rows = data.slice(1).map((d, i) => { const prev = data[i].bankroll; const diff = d.bankroll - prev; const color = diff >= 0 ? '#22c55e' : '#ef4444'; const sign = diff >= 0 ? '+' : '-'; return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#0a0a0a;border-radius:8px;border-left:3px solid ${color};"><span style="font-size:11px;font-weight:700;color:#fff;">${d.date}</span><span style="font-size:11px;font-weight:900;color:${color};font-family:monospace;">${sign}${fmtMoney(Math.abs(diff))}</span><span style="font-size:11px;font-weight:800;color:#aaa;font-family:monospace;">${fmtMoney(d.bankroll)}</span></div>`; }).join('');
                 breakdown.innerHTML = `<div style="font-size:9px;color:#444;letter-spacing:2px;margin-bottom:4px;">DAY BY DAY</div>${rows}`;
             }
         }
 
+        let currentMoneySubTab = 'robego';
+        const MONTH_ORDER = ['feb', 'mar', 'apr', 'may', 'jun'];
+        const MONTH_LABELS = { feb: 'FEBRUARY', mar: 'MARCH', apr: 'APRIL', may: 'MAY', jun: 'JUNE' };
+
+        function prevMonth() {
+            const idx = MONTH_ORDER.indexOf(currentMonthTab);
+            if (idx > 0) showMonthTab(MONTH_ORDER[idx - 1]);
+        }
+
+        function nextMonth() {
+            const idx = MONTH_ORDER.indexOf(currentMonthTab);
+            if (idx < MONTH_ORDER.length - 1) showMonthTab(MONTH_ORDER[idx + 1]);
+        }
+
         function showMonthTab(month) {
             currentMonthTab = month;
-            ['feb','mar','apr','may','jun'].forEach(m => {
-                const tab = document.getElementById('moneyTab' + m.charAt(0).toUpperCase() + m.slice(1));
-                if (tab) {
-                    tab.style.color = m === month ? '#fff' : '#555';
-                    tab.style.borderBottomColor = m === month ? '#22c55e' : 'transparent';
-                }
-            });
+            const label = document.getElementById('monthLabel');
+            if (label) label.textContent = MONTH_LABELS[month] || month.toUpperCase();
             setTimeout(() => buildMonthChart(month), 50);
         }
 
-        // Start input editing
-        document.addEventListener('DOMContentLoaded', () => {
-            loadMonthStarts();
-        });
+        function showMoneySubTab(sub) {
+            currentMoneySubTab = sub;
+            const robegoTab = document.getElementById('subTabRobego');
+            const justinTab = document.getElementById('subTabJustin');
+            if (robegoTab) { robegoTab.style.color = sub === 'robego' ? '#fff' : '#555'; robegoTab.style.borderBottomColor = sub === 'robego' ? '#22c55e' : 'transparent'; }
+            if (justinTab) { justinTab.style.color = sub === 'justin' ? '#fff' : '#555'; justinTab.style.borderBottomColor = sub === 'justin' ? '#22c55e' : 'transparent'; }
+            setTimeout(() => buildMonthChart(currentMonthTab), 50);
+        }
 
-        // Handle start input changes
+        function showMoneyTab(tab) { showMonthTab(currentMonthTab); }
+        function buildRobegoChart() {}
+
         setTimeout(() => {
+            loadMonthStarts();
             const startInput = document.getElementById('monthStartInput');
             if (startInput) {
                 startInput.addEventListener('blur', () => {
                     const val = parseFloat(startInput.textContent.replace('$','').replace(',',''));
-                    if (!isNaN(val) && val >= 0) {
-                        monthStartBankrolls[currentMonthTab] = val;
-                        saveMonthStarts();
-                        buildMonthChart(currentMonthTab);
-                    }
+                    if (!isNaN(val) && val >= 0) { monthStartOverrides[currentMonthTab] = val; saveMonthStarts(); buildMonthChart(currentMonthTab); }
                 });
-                startInput.addEventListener('keydown', e => {
-                    if (e.key === 'Enter') { e.preventDefault(); startInput.blur(); }
-                });
+                startInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); startInput.blur(); } });
             }
         }, 1000);
-
-        function showMoneyTab(tab) {
-            // Legacy stub — replaced by showMonthTab
-        }
-
-        function buildRobegoChart() {
-            // Legacy stub
-        }
 
         document.getElementById('logNavMoney').addEventListener('click', () => {
             document.getElementById('logPanelContent').style.display = 'none';
