@@ -2130,7 +2130,7 @@
                             <div onclick="nextMonth()" style="font-size:20px; color:#22c55e; cursor:pointer; font-weight:900; padding:4px 8px;">&#8594;</div>
                         </div>
                         <div style="display:flex; border-top:1px solid #1a1a1a;">
-                            <div id="subTabRobego" onclick="showMoneySubTab('robego')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#fff; cursor:pointer; border-bottom:2px solid #22c55e; letter-spacing:1px;">ROB/EGO</div>
+                            <div id="subTabRobego" onclick="showMoneySubTab('robego')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#ef4444; cursor:pointer; border-bottom:2px solid #ef4444; letter-spacing:1px;">ROB</div>
                             <div id="subTabJustin" onclick="showMoneySubTab('justin')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">JUSTIN</div>
                         </div>
                     </div>
@@ -10063,22 +10063,24 @@
             jun: { label: 'June',     startDay: 115, endDay: 137 },
         };
 
-        let monthStartOverrides = {};
+        let monthStartOverrides = { robego: {}, justin: {} };
 
         function loadMonthStarts() {
             try {
-                const saved = localStorage.getItem('monthStartOverrides');
+                const saved = localStorage.getItem('monthStartOverrides2');
                 if (saved) monthStartOverrides = JSON.parse(saved);
-                // Apr default $100 if never set
-                if (monthStartOverrides['apr'] === undefined) monthStartOverrides['apr'] = 100;
+                if (!monthStartOverrides.robego) monthStartOverrides.robego = {};
+                if (!monthStartOverrides.justin) monthStartOverrides.justin = {};
+                if (monthStartOverrides.robego['apr'] === undefined) monthStartOverrides.robego['apr'] = 100;
+                if (monthStartOverrides.justin['apr'] === undefined) monthStartOverrides.justin['apr'] = 100;
             } catch(e) {
-                if (monthStartOverrides['apr'] === undefined) monthStartOverrides['apr'] = 100;
+                monthStartOverrides = { robego: { apr: 100 }, justin: { apr: 100 } };
             }
         }
 
         function saveMonthStarts() {
             try {
-                localStorage.setItem('monthStartOverrides', JSON.stringify(monthStartOverrides));
+                localStorage.setItem('monthStartOverrides2', JSON.stringify(monthStartOverrides));
                 fetch(BACKEND_URL + '/api/state', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -10087,9 +10089,9 @@
             } catch(e) {}
         }
 
-        function calcMonthEndBankroll(month) {
+        function calcMonthEndBankroll(month, sub) {
             const range = MONTH_RANGES[month];
-            let bankroll = getMonthStart(month);
+            let bankroll = getMonthStart(month, sub);
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 const decided = day.games.filter(g => g.res === 'W' || g.res === 'L');
@@ -10108,12 +10110,14 @@
             return bankroll;
         }
 
-        function getMonthStart(month) {
-            if (monthStartOverrides[month] !== undefined) return monthStartOverrides[month];
+        function getMonthStart(month, sub) {
+            sub = sub || currentMoneySubTab;
+            const overrides = monthStartOverrides[sub] || {};
+            if (overrides[month] !== undefined) return overrides[month];
             const order = ['feb', 'mar', 'apr', 'may', 'jun'];
             const idx = order.indexOf(month);
             if (idx === 0) return 100;
-            return calcMonthEndBankroll(order[idx - 1]);
+            return calcMonthEndBankroll(order[idx - 1], sub);
         }
 
         function fmtMoney(val) {
@@ -10159,9 +10163,9 @@
         }
 
         function calcJustinData(month) {
-            // Justin logic: flat % per game (5% of bankroll per game)
+            // Justin logic: top 5 games by most positive odds, 20% stake each
             const range = MONTH_RANGES[month];
-            const startAmount = getMonthStart(month);
+            const startAmount = getMonthStart(month, 'justin');
             let bankroll = startAmount;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
             betLog.forEach(day => {
@@ -10170,9 +10174,16 @@
                 const decided = day.games.filter(g => g.res === 'W' || g.res === 'L');
                 if (decided.length === 0) { if (BANKROLL_DEPOSITS[day.day]) data.push({ date: day.date + ' (+$' + BANKROLL_DEPOSITS[day.day] + ')', bankroll }); return; }
                 if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
+                // Sort by odds descending (most positive first)
+                const sorted = [...decided].sort((a, b) => {
+                    const oA = parseInt(a.pick === a.t1 ? a.o1 : a.o2);
+                    const oB = parseInt(b.pick === b.t1 ? b.o1 : b.o2);
+                    return oB - oA;
+                });
+                const selected = sorted.slice(0, 5);
                 let newBankroll = bankroll;
-                decided.forEach(g => {
-                    const stake = bankroll * 0.05;
+                selected.forEach(g => {
+                    const stake = bankroll * 0.20;
                     const o = parseInt(g.pick === g.t1 ? g.o1 : g.o2);
                     if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
                     else newBankroll -= stake;
@@ -10193,16 +10204,25 @@
             const ctx = canvas.getContext('2d');
             const labels = data.map(d => d.date);
             const values = data.map(d => d.bankroll);
+            const chartColor = currentMoneySubTab === 'robego' ? '#ef4444' : '#3b82f6';
+            const chartColorRgb = currentMoneySubTab === 'robego' ? '239,68,68' : '59,130,246';
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-            gradient.addColorStop(0, 'rgba(34,197,94,0.4)');
-            gradient.addColorStop(1, 'rgba(34,197,94,0)');
+            gradient.addColorStop(0, `rgba(${chartColorRgb},0.4)`);
+            gradient.addColorStop(1, `rgba(${chartColorRgb},0)`);
             monthChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: { labels, datasets: [{ data: values, borderColor: '#22c55e', borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: values.map((v,i) => i > 0 && v < data[i-1].bankroll ? '#ef4444' : '#22c55e'), pointRadius: 5, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
-                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtMoney(ctx.raw) }, backgroundColor: '#111', borderColor: '#22c55e', borderWidth: 1, titleColor: '#fff', bodyColor: '#22c55e' } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
+                data: { labels, datasets: [{ data: values, borderColor: chartColor, borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: values.map((v,i) => i > 0 && v < data[i-1].bankroll ? '#555' : chartColor), pointRadius: 5, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
+                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtMoney(ctx.raw) }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
             });
             const startInput = document.getElementById('monthStartInput');
-            if (startInput) startInput.textContent = fmtMoney(startAmount);
+            if (startInput) {
+                startInput.textContent = fmtMoney(startAmount);
+                startInput.style.color = currentMoneySubTab === 'robego' ? '#ef4444' : '#3b82f6';
+            }
+            const robegoTab = document.getElementById('subTabRobego');
+            const justinTab = document.getElementById('subTabJustin');
+            if (robegoTab) { robegoTab.style.color = currentMoneySubTab === 'robego' ? '#ef4444' : '#555'; robegoTab.style.borderBottomColor = currentMoneySubTab === 'robego' ? '#ef4444' : 'transparent'; }
+            if (justinTab) { justinTab.style.color = currentMoneySubTab === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = currentMoneySubTab === 'justin' ? '#3b82f6' : 'transparent'; }
             const current = values[values.length - 1] || startAmount;
             const gain = current - startAmount;
             const gainPct = startAmount > 0 ? Math.round((gain / startAmount) * 100) : 0;
@@ -10254,8 +10274,10 @@
             currentMoneySubTab = sub;
             const robegoTab = document.getElementById('subTabRobego');
             const justinTab = document.getElementById('subTabJustin');
-            if (robegoTab) { robegoTab.style.color = sub === 'robego' ? '#fff' : '#555'; robegoTab.style.borderBottomColor = sub === 'robego' ? '#22c55e' : 'transparent'; }
-            if (justinTab) { justinTab.style.color = sub === 'justin' ? '#fff' : '#555'; justinTab.style.borderBottomColor = sub === 'justin' ? '#22c55e' : 'transparent'; }
+            const startInput = document.getElementById('monthStartInput');
+            if (robegoTab) { robegoTab.style.color = sub === 'robego' ? '#ef4444' : '#555'; robegoTab.style.borderBottomColor = sub === 'robego' ? '#ef4444' : 'transparent'; }
+            if (justinTab) { justinTab.style.color = sub === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = sub === 'justin' ? '#3b82f6' : 'transparent'; }
+            if (startInput) startInput.style.color = sub === 'robego' ? '#ef4444' : '#3b82f6';
             setTimeout(() => buildMonthChart(currentMonthTab), 50);
         }
 
@@ -10267,8 +10289,13 @@
             const startInput = document.getElementById('monthStartInput');
             if (startInput) {
                 startInput.addEventListener('blur', () => {
-                    const val = parseFloat(startInput.textContent.replace('$','').replace(',',''));
-                    if (!isNaN(val) && val >= 0) { monthStartOverrides[currentMonthTab] = val; saveMonthStarts(); buildMonthChart(currentMonthTab); }
+                    const val = parseFloat(startInput.textContent.replace(/[^0-9.]/g,''));
+                    if (!isNaN(val) && val >= 0) {
+                        if (!monthStartOverrides[currentMoneySubTab]) monthStartOverrides[currentMoneySubTab] = {};
+                        monthStartOverrides[currentMoneySubTab][currentMonthTab] = val;
+                        saveMonthStarts();
+                        buildMonthChart(currentMonthTab);
+                    }
                 });
                 startInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); startInput.blur(); } });
             }
