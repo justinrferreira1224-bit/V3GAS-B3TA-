@@ -10034,37 +10034,17 @@
         };
 
         async function fetchMLBInjuries(teamName, side) {
-            const today = new Date().toISOString().split('T')[0];
-            const cacheKey = 'mlb_inj3_' + teamName;
-            if (cachedInjuries[cacheKey] !== undefined && cachedInjuries[cacheKey + '_date'] === today) {
-                const injEl = document.getElementById(side === 'away' ? 'bbAwayInj' : 'bbHomeInj');
-                if (injEl) { injEl.value = cachedInjuries[cacheKey]; calculateBaseballEdge(); }
-                return;
-            }
             try {
-                const teamID = MLB_TEAM_IDS[teamName];
-                if (!teamID) { console.warn('No ESPN MLB ID for:', teamName); return; }
-                const r = await fetch('https://site.web.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/' + teamID + '?enable=roster,injuries');
+                const cleanName = teamName.replace(/[.$#\[\]/]/g, '_').trim();
+                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbInjuries/' + encodeURIComponent(cleanName) + '.json';
+                const r = await fetch(FB_URL);
                 const d = await r.json();
-                const athletes = d?.team?.athletes || [];
-                let count = 0;
-                const ilStatuses = ['10-day-il', '15-day-il', '60-day-il', '7-day il'];
-                for (const athlete of athletes) {
-                    if (athlete.injuries && athlete.injuries.length > 0) {
-                        const hasIL = athlete.injuries.some(inj => {
-                            const status = (inj.status || '').toLowerCase();
-                            return ilStatuses.some(s => status.includes(s));
-                        });
-                        if (hasIL) count += 1;
-                    }
-                }
-                cachedInjuries[cacheKey] = count;
-                cachedInjuries[cacheKey + '_date'] = today;
-                console.log('✅ MLB ' + teamName + ' injuries: ' + count);
+                const count = d ? (d.count || 0) : 0;
+                console.log('✅ MLB ' + teamName + ' injuries from Firebase: ' + count);
                 const injEl = document.getElementById(side === 'away' ? 'bbAwayInj' : 'bbHomeInj');
                 if (injEl) { injEl.value = count; calculateBaseballEdge(); }
             } catch(e) {
-                console.warn('MLB injury fetch failed for', teamName, e);
+                console.warn('MLB injury Firebase fetch failed for', teamName, e);
             }
         }
 
