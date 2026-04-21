@@ -10014,7 +10014,7 @@
             if (eraEl) eraEl.value = stats.starterERA;
             if (ipEl)  ipEl.value  = stats.starterIP;
             if (bpEl)  bpEl.value  = stats.bullpenERA;
-            if (injEl) injEl.value = stats.injuries;
+            // injuries now handled by fetchMLBInjuries from Firebase
             // show pitcher name in pitching label
             if (stats.starterName) {
                 const labelId = prefix + 'PitchPct';
