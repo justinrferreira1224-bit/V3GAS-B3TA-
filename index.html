@@ -2658,7 +2658,7 @@
             { name: 'Twins',        prefix: 'MIN', espn: 'min',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/min.png', park: 'Target Field' },
             { name: 'Mets',         prefix: 'NYM', espn: 'nym',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png', park: 'Citi Field' },
             { name: 'Yankees',      prefix: 'NYY', espn: 'nyy',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png', park: 'Yankee Stadium' },
-            { name: 'Athletics',    prefix: 'OAK', espn: 'ath',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png', park: 'Sutter Health Park' },
+            { name: 'Athletics',    prefix: 'ATH', espn: 'ath',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/ath.png', park: 'Sutter Health Park' },
             { name: 'Phillies',     prefix: 'PHI', espn: 'phi',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png', park: 'Citizens Bank Park' },
             { name: 'Pirates',      prefix: 'PIT', espn: 'pit',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png', park: 'PNC Park' },
             { name: 'Padres',       prefix: 'SD',  espn: 'sd',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',  park: 'Petco Park' },
@@ -7247,6 +7247,7 @@
                             });
                             updateWinnerDisplay();
                         } else if (selectingFor === 'bbAway') {
+                            closeTeamPopup();
                             selectedBBAwayTeam = team;
                             const box = document.getElementById('bbAwayTeamName');
                             if (box) {
@@ -7261,6 +7262,7 @@
                             fetchMLBPitchingStats(team.name, 'away');
                             fetchMLBBatting(team.name, 'away');
                         } else if (selectingFor === 'bbHome') {
+                            closeTeamPopup();
                             selectedBBHomeTeam = team;
                             const box = document.getElementById('bbHomeTeamName');
                             if (box) {
