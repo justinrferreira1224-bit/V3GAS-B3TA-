@@ -7247,7 +7247,6 @@
                             });
                             updateWinnerDisplay();
                         } else if (selectingFor === 'bbAway') {
-                            if (teamSearch) teamSearch.blur();
                             selectedBBAwayTeam = team;
                             const box = document.getElementById('bbAwayTeamName');
                             if (box) {
@@ -7262,7 +7261,6 @@
                             fetchMLBPitchingStats(team.name, 'away');
                             fetchMLBBatting(team.name, 'away');
                         } else if (selectingFor === 'bbHome') {
-                            if (teamSearch) teamSearch.blur();
                             selectedBBHomeTeam = team;
                             const box = document.getElementById('bbHomeTeamName');
                             if (box) {
