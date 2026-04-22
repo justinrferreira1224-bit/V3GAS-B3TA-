@@ -2166,49 +2166,60 @@
                     <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <div id="bbAwaySeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —%</div>
-                            <div id="bbAwayStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —%</div>
-                            <div id="bbAwayL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —%</div>
-                            <div id="bbAwayWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —%</div>
-                            <div id="bbAwaySeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:11px;text-align:center;padding:4px;">last 5 series: 0-0</div>
-                            <input type="number" id="bbAwayInj" placeholder="injuries" min="0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <div id="bbAwayNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                            <div id="bbAwayAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
+                                <div id="bbAwaySeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
+                                <div id="bbAwayStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
+                                <div id="bbAwayL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
+                                <div id="bbAwayWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
+                                <div id="bbAwaySeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
+                                <div id="bbAwayInj" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
+                                <div id="bbAwayNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                            </div>
                             <div id="bbAwayAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
-                        <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;display:flex;align-items:center;justify-content:center;">ability</div>
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">ability</div>
+                            <div onclick="toggleAbilityView()" id="abilityToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
+                        </div>
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <div id="bbHomeSeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —%</div>
-                            <div id="bbHomeStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —%</div>
-                            <div id="bbHomeL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —%</div>
-                            <div id="bbHomeWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —%</div>
-                            <div id="bbHomeSeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:11px;text-align:center;padding:4px;">last 5 series: 0-0</div>
-                            <input type="number" id="bbHomeInj" placeholder="injuries" min="0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <div id="bbHomeNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                            <div id="bbHomeAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
+                                <div id="bbHomeSeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
+                                <div id="bbHomeStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
+                                <div id="bbHomeL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
+                                <div id="bbHomeWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
+                                <div id="bbHomeSeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
+                                <div id="bbHomeInj" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
+                                <div id="bbHomeNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                            </div>
                             <div id="bbHomeAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
                     </div>
 
                     <!-- FACTORS ROW -->
                     <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                        <!-- AWAY FACTORS -->
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <select id="bbParkAway" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">away home park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
-                            <input type="text" id="bbSeriesCount" placeholder="series e.g. 1-0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <input type="text" id="bbSeriesCount" placeholder="series e.g. 1-0" oninput="document.getElementById('bbSeriesCount2').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;color:#fff;font-size:11px;">
+                            <select id="bbSeriesGames" onchange="document.getElementById('bbSeriesGames2').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
+                            <select id="bbParkAway" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">away park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
                             <div id="bbAwayParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
                             <div id="bbAwaySeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
                             <div id="bbAwayBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
                             <div id="bbAwayGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
-                        <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;display:flex;align-items:center;justify-content:center;">factors</div>
+                        <!-- MIDDLE -->
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">factors</div>
+                            <div onclick="toggleFactorsView()" id="factorsToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
+                        </div>
+                        <!-- HOME FACTORS -->
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                            <input type="text" id="bbSeriesCount2" placeholder="series e.g. 1-0" oninput="document.getElementById('bbSeriesCount').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;color:#fff;font-size:11px;">
+                            <select id="bbSeriesGames2" onchange="document.getElementById('bbSeriesGames').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
                             <select id="bbParkHome" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">home park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
-                            <select id="bbSeriesGames" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <option value="4">4-game series</option>
-                                <option value="3">3-game series</option>
-                                <option value="2">2-game series</option>
-                            </select>
                             <div id="bbHomeParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
                             <div id="bbHomeSeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
                             <div id="bbHomeBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
@@ -3440,6 +3451,36 @@
         // ===== PITCHING TOGGLE =====
         let pitchViewVerbose = true;
         let batViewVerbose = true;
+        let abilityViewVerbose = true;
+        let factorsViewVerbose = true;
+        function toggleFactorsView() {
+            factorsViewVerbose = !factorsViewVerbose;
+            const ids = ['bbAwayParkPct','bbAwaySeriesCountPct','bbAwayBasePct',
+                         'bbHomeParkPct','bbHomeSeriesCountPct','bbHomeBasePct',
+                         'bbSeriesCount','bbSeriesCount2','bbSeriesGames','bbSeriesGames2',
+                         'bbParkAway','bbParkHome'];
+            const btn = document.getElementById('factorsToggleBtn');
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = factorsViewVerbose ? '' : 'none';
+            });
+            if (btn) btn.textContent = factorsViewVerbose ? 'stats' : '%';
+        }
+        function toggleAbilityView() {
+            abilityViewVerbose = !abilityViewVerbose;
+            const awayV = document.getElementById('bbAwayAbilityVerbose');
+            const homeV = document.getElementById('bbHomeAbilityVerbose');
+            const btn   = document.getElementById('abilityToggleBtn');
+            if (abilityViewVerbose) {
+                if (awayV) awayV.style.display = 'flex';
+                if (homeV) homeV.style.display = 'flex';
+                if (btn)   btn.textContent = 'stats';
+            } else {
+                if (awayV) awayV.style.display = 'none';
+                if (homeV) homeV.style.display = 'none';
+                if (btn)   btn.textContent = '%';
+            }
+        }
         function toggleBatView() {
             batViewVerbose = !batViewVerbose;
             const awayV = document.getElementById('bbAwayBatVerbose');
@@ -3491,8 +3532,10 @@
 
             const awayOddsStr  = document.getElementById('bbAwayOdds')?.value.trim()  || '';
             const homeOddsStr  = document.getElementById('bbHomeOdds')?.value.trim()  || '';
-            const awayInjCount = parseInt(document.getElementById('bbAwayInj')?.value) || 0;
-            const homeInjCount = parseInt(document.getElementById('bbHomeInj')?.value) || 0;
+            const awayInjEl = document.getElementById('bbAwayInj');
+            const homeInjEl = document.getElementById('bbHomeInj');
+            const awayInjCount = parseInt((awayInjEl?.textContent || '').replace(/[^0-9]/g,'')) || 0;
+            const homeInjCount = parseInt((homeInjEl?.textContent || '').replace(/[^0-9]/g,'')) || 0;
             const seriesCount  = document.getElementById('bbSeriesCount')?.value || '0-0';
             const seriesGames  = parseInt(document.getElementById('bbSeriesGames')?.value) || 4;
             const parkHome     = document.getElementById('bbParkHome')?.value || '';
@@ -3754,6 +3797,8 @@
             setEl('bbHomeSeedPct',     homeStanding ? 'seed #' + homeStanding.rank : 'seed: —');
             setEl('bbAwayStrengthPct', awayStanding ? 'strength: #' + awayStanding.rank + ' - ' + awayInjCount + ' inj' : 'strength: —');
             setEl('bbHomeStrengthPct', homeStanding ? 'strength: #' + homeStanding.rank + ' - ' + homeInjCount + ' inj' : 'strength: —');
+            setEl('bbAwayInj', 'inj: ' + awayInjCount);
+            setEl('bbHomeInj', 'inj: ' + homeInjCount);
             setEl('bbAwayL10Pct',      awayL10W !== null ? 'last 10: ' + awayL10W + '-' + (10-awayL10W) : 'last 10: —');
             setEl('bbHomeL10Pct',      homeL10W !== null ? 'last 10: ' + homeL10W + '-' + (10-homeL10W) : 'last 10: —');
             setEl('bbAwayWLPct',       awayStanding ? 'W-L: ' + awayStanding.wins + '-' + awayStanding.losses : 'W-L: —');
@@ -4230,6 +4275,56 @@
             resetBtn.addEventListener('click', resetTimer);
         }
         saveBetBtn.addEventListener('click', () => {
+            // MLB Game Winner mode — save differently
+            if (currentSport === 'mlb' && currentBetType === 'winner') {
+                if (!selectedBBAwayTeam || !selectedBBHomeTeam) {
+                    alert('Please select both teams first!');
+                    return;
+                }
+                const winnerEl = document.getElementById('bbWinnerBox');
+                const edgeEl   = document.getElementById('bbFinalEdge');
+                const awayOdds = document.getElementById('bbAwayOdds')?.value || '';
+                const homeOdds = document.getElementById('bbHomeOdds')?.value || '';
+                const winner   = winnerEl?.textContent || '—';
+                const edge     = edgeEl?.textContent || '—';
+
+                // Determine pick — whoever the winner box shows
+                const pickTeam = winner.includes(selectedBBHomeTeam.name) ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
+                const pickOdds = winner.includes(selectedBBHomeTeam.name) ? homeOdds : awayOdds;
+
+                const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
+                const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
+                if (targetDay) {
+                    const newGame = {
+                        t1: selectedBBAwayTeam.name,
+                        o1: awayOdds,
+                        s1: selectedBBAwayTeam.rank || 0,
+                        i1: 0,
+                        wl1: '',
+                        l1: '',
+                        t2: selectedBBHomeTeam.name,
+                        o2: homeOdds,
+                        s2: selectedBBHomeTeam.rank || 0,
+                        i2: 0,
+                        wl2: '',
+                        l2: '',
+                        pick: pickTeam,
+                        res: null,
+                        edge: edge,
+                        sport: 'mlb',
+                        _id: Date.now()
+                    };
+                    targetDay.games.push(newGame);
+                    saveAppState();
+                    if (activeBetDay === targetDay.day) renderBetDayCards();
+                    // Flash button
+                    saveBetBtn.style.transform = 'scale(1.2)';
+                    setTimeout(() => saveBetBtn.style.transform = 'scale(1)', 200);
+                    console.log('✅ MLB game saved:', newGame);
+                }
+                return;
+            }
+
             const config = getSportConfig();
             const betData = {
                 id: currentBetId || Date.now(),
@@ -7327,6 +7422,8 @@
                             fetchMLBInjuries(team.name, 'away');
                             fetchMLBPitchingStats(team.name, 'away');
                             fetchMLBBatting(team.name, 'away');
+                            fetchMLBSeries(team.name);
+                            calcCurrentSeriesCount();
                             calculateBaseballEdge();
                         } else if (selectingFor === 'bbHome') {
                             selectedBBHomeTeam = team;
@@ -7341,6 +7438,7 @@
                             calculateBaseballEdge();
                             fetchMLBInjuries(team.name, 'home');
                             fetchMLBPitchingStats(team.name, 'home');
+                            calcCurrentSeriesCount();
                             fetchMLBBatting(team.name, 'home');
                         }
                         closeTeamPopup();
@@ -8133,6 +8231,58 @@
         const gwRecordBtn = document.getElementById('gwRecordBtn');
         if (gwRecordBtn) {
             gwRecordBtn.addEventListener('click', () => {
+
+                // ── MLB GAME WINNER SAVE ──────────────────────────────
+                if (currentSport === 'mlb' && currentBetType === 'winner') {
+                    if (!selectedBBAwayTeam || !selectedBBHomeTeam) {
+                        alert('Please select both teams first!');
+                        return;
+                    }
+                    const awayOdds = document.getElementById('bbAwayOdds')?.value || '';
+                    const homeOdds = document.getElementById('bbHomeOdds')?.value || '';
+                    const winnerEl = document.getElementById('bbWinnerBox');
+                    const edgeEl  = document.getElementById('bbFinalEdge');
+                    const winnerText = winnerEl?.textContent || '—';
+                    const edge = edgeEl?.textContent || '—';
+
+                    if (!awayOdds || !homeOdds || winnerText === '—') {
+                        alert('Please select teams and enter odds first!');
+                        return;
+                    }
+
+                    const pickIsHome = winnerText.includes(selectedBBHomeTeam.name);
+                    const pickTeam   = pickIsHome ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
+                    const pickOdds   = pickIsHome ? homeOdds : awayOdds;
+
+                    const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
+                    const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
+
+                    if (targetDay) {
+                        const newGame = {
+                            t1:   selectedBBAwayTeam.name,
+                            o1:   awayOdds,
+                            s1:   0, i1: 0, wl1: '', l1: '',
+                            t2:   selectedBBHomeTeam.name,
+                            o2:   homeOdds,
+                            s2:   0, i2: 0, wl2: '', l2: '',
+                            pick: pickTeam,
+                            res:  null,
+                            edge: edge,
+                            sport: 'mlb',
+                            _id:  Date.now()
+                        };
+                        targetDay.games.push(newGame);
+                        saveAppState();
+                        if (activeBetDay === targetDay.day) renderBetDayCards();
+                        console.log('✅ MLB game saved to bet log:', newGame);
+                        // Flash button
+                        gwRecordBtn.style.transform = 'scale(1.2)';
+                        setTimeout(() => gwRecordBtn.style.transform = 'scale(1)', 200);
+                    }
+                    return;
+                }
+
+                // ── NBA GAME WINNER SAVE ──────────────────────────────
                 // FORCE FRESH RECALCULATION
                 calculateGameWinnerEdge();
                 
@@ -9122,7 +9272,7 @@
                 currentMLBLeague = conf;
                 eastTab.textContent = 'AL';
                 westTab.textContent = 'NL';
-                if (logo) logo.src = 'https://upload.wikimedia.org/wikipedia/en/a/a6/Major_League_Baseball_logo.svg';
+                if (logo) logo.src = 'https://www.mlbstatic.com/team-logos/league-on-dark/1.svg';
                 if (conf === 'al') {
                     eastTab.style.color='#fff'; eastTab.style.borderBottom='2px solid #1D428A';
                     westTab.style.color='#555'; westTab.style.borderBottom='2px solid transparent';
@@ -10071,9 +10221,28 @@
                 const count = d ? (d.count || 0) : 0;
                 console.log('✅ MLB ' + teamName + ' (' + fullName + ') injuries from Firebase: ' + count);
                 const injEl = document.getElementById(side === 'away' ? 'bbAwayInj' : 'bbHomeInj');
-                if (injEl) { injEl.value = count; calculateBaseballEdge(); }
+                if (injEl) { injEl.textContent = 'inj: ' + count; calculateBaseballEdge(); }
             } catch(e) {
                 console.warn('MLB injury Firebase fetch failed for', teamName, e);
+            }
+        }
+
+        async function fetchMLBSeries(teamName) {
+            try {
+                const fullName = MLB_FULL_NAMES[teamName] || teamName;
+                const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
+                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbSeries/' + encodeURIComponent(cleanName) + '.json';
+                const r = await fetch(FB_URL);
+                const d = await r.json();
+                if (!d) return;
+                const gamesEl = document.getElementById('bbSeriesGames');
+                const games2El = document.getElementById('bbSeriesGames2');
+                if (gamesEl) gamesEl.value = d.gamesInSeries || 3;
+                if (games2El) games2El.value = d.gamesInSeries || 3;
+                calculateBaseballEdge();
+                console.log('✅ MLB series from Firebase:', teamName, d);
+            } catch(e) {
+                console.warn('MLB series fetch failed for', teamName, e);
             }
         }
 
@@ -10316,6 +10485,69 @@
                 }
             });
             console.log('✅ MLB standings updated from bet log');
+        }
+
+        function calcCurrentSeriesCount() {
+            if (!selectedBBAwayTeam || !selectedBBHomeTeam) return;
+            const awayAbbr = selectedBBAwayTeam.prefix;
+            const homeAbbr = selectedBBHomeTeam.prefix;
+            const awayName = selectedBBAwayTeam.name;
+            const homeName = selectedBBHomeTeam.name;
+
+            // Get all MLB games only, sorted by day
+            const mlbGames = [];
+            betLog.forEach(day => {
+                day.games.forEach(g => {
+                    if (g.sport !== 'mlb') return;
+                    if (g.res !== 'W' && g.res !== 'L') return;
+                    // Check if this game involves both selected teams
+                    const teams = [g.t1, g.t2];
+                    const hasAway = teams.some(t => t === awayName || t === awayAbbr || t.includes(awayName) || awayName.includes(t));
+                    const hasHome = teams.some(t => t === homeName || t === homeAbbr || t.includes(homeName) || homeName.includes(t));
+                    if (hasAway && hasHome) {
+                        mlbGames.push({ day: day.day, pick: g.pick, res: g.res, t1: g.t1, t2: g.t2 });
+                    }
+                });
+            });
+
+            if (!mlbGames.length) {
+                // No games found — reset to 0-0
+                const sc1 = document.getElementById('bbSeriesCount');
+                const sc2 = document.getElementById('bbSeriesCount2');
+                if (sc1) sc1.value = '0-0';
+                if (sc2) sc2.value = '0-0';
+                calculateBaseballEdge();
+                return;
+            }
+
+            // Find the current series — consecutive games within 1 day gaps
+            // Work backwards from most recent game
+            const sorted = mlbGames.sort((a,b) => a.day - b.day);
+            let seriesGames = [sorted[sorted.length - 1]];
+            for (let i = sorted.length - 2; i >= 0; i--) {
+                if (seriesGames[0].day - sorted[i].day <= 1) {
+                    seriesGames.unshift(sorted[i]);
+                } else break;
+            }
+
+            // Count home wins and away wins in this series
+            let homeWins = 0, awayWins = 0;
+            seriesGames.forEach(g => {
+                const pickIsHome = g.pick === homeName || g.pick === homeAbbr || g.pick.includes(homeName) || homeName.includes(g.pick);
+                const pickIsAway = g.pick === awayName || g.pick === awayAbbr || g.pick.includes(awayName) || awayName.includes(g.pick);
+                if (pickIsHome && g.res === 'W') homeWins++;
+                else if (pickIsHome && g.res === 'L') awayWins++;
+                else if (pickIsAway && g.res === 'W') awayWins++;
+                else if (pickIsAway && g.res === 'L') homeWins++;
+            });
+
+            const seriesStr = homeWins + '-' + awayWins;
+            const sc1 = document.getElementById('bbSeriesCount');
+            const sc2 = document.getElementById('bbSeriesCount2');
+            if (sc1) sc1.value = seriesStr;
+            if (sc2) sc2.value = seriesStr;
+            console.log('✅ Current series:', awayName, 'vs', homeName, '→', seriesStr, '(home-away)');
+            calculateBaseballEdge();
         }
 
         function calcMLBLast5Series(teamAbbr) {
