@@ -9024,16 +9024,6 @@
                 let currentConference = 'east';
 
         let mlbStandings = { al: [], nl: [] };
-        // Load MLB standings from Firebase
-        fetch('https://vegas-bet-default-rtdb.firebaseio.com/mlbStandings.json')
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.al && data.nl) {
-                    mlbStandings = data;
-                    renderStandings(currentMLBLeague || 'al');
-                }
-            })
-            .catch(e => console.warn('MLB standings fetch failed', e));
         let currentMLBLeague = 'al';
 
         // Sync nbaTeams wins/losses/seed/last10 from nbaStandings so bet entry always uses live data
@@ -9821,6 +9811,19 @@
         const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
         const BACKEND_URL = 'https://v3gas-b3ta-backend.onrender.com';
 
+        // Load MLB standings from Render backend (after BACKEND_URL is defined)
+        fetch(BACKEND_URL + '/api/mlb/standings')
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.al && data.nl) {
+                    mlbStandings = data;
+                    console.log('✅ MLB standings loaded:', data.al.length, 'AL teams,', data.nl.length, 'NL teams');
+                    renderStandings(currentMLBLeague || 'al');
+                    calculateBaseballEdge();
+                }
+            })
+            .catch(e => console.warn('MLB standings fetch failed', e));
+
         // ===== AUTO INJURY FETCH =====
         let pendingLogbookEntries = null;
         let cachedInjuries = {};
@@ -9842,8 +9845,7 @@
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
-                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbStarters/' + encodeURIComponent(cleanName) + '.json';
-                const r = await fetch(FB_URL);
+                const r = await fetch(BACKEND_URL + '/api/mlb/pitching/' + encodeURIComponent(cleanName));
                 const d = await r.json();
                 if (!d) { console.warn('No Firebase starter data for', teamName); return; }
                 const result = {
@@ -9987,8 +9989,7 @@
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
-                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbInjuries/' + encodeURIComponent(cleanName) + '.json';
-                const r = await fetch(FB_URL);
+                const r = await fetch(BACKEND_URL + '/api/mlb/injuries/' + encodeURIComponent(cleanName));
                 const d = await r.json();
                 const count = d ? (d.count || 0) : 0;
                 console.log('✅ MLB ' + teamName + ' (' + fullName + ') injuries from Firebase: ' + count);
@@ -10003,8 +10004,7 @@
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
-                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbBatting/' + encodeURIComponent(cleanName) + '.json';
-                const r = await fetch(FB_URL);
+                const r = await fetch(BACKEND_URL + '/api/mlb/batting/' + encodeURIComponent(cleanName));
                 const d = await r.json();
                 if (!d) { console.warn('No Firebase batting data for', teamName); return; }
                 const prefix = side === 'away' ? 'bbAway' : 'bbHome';
