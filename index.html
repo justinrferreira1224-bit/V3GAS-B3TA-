@@ -7259,6 +7259,7 @@
                             calculateBaseballEdge();
                             fetchMLBInjuries(team.name, 'away');
                             fetchMLBPitchingStats(team.name, 'away');
+                            fetchMLBBatting(team.name, 'away');
                         } else if (selectingFor === 'bbHome') {
                             selectedBBHomeTeam = team;
                             const box = document.getElementById('bbHomeTeamName');
@@ -7272,6 +7273,7 @@
                             calculateBaseballEdge();
                             fetchMLBInjuries(team.name, 'home');
                             fetchMLBPitchingStats(team.name, 'home');
+                            fetchMLBBatting(team.name, 'home');
                         }
                         closeTeamPopup();
                     });
@@ -9021,42 +9023,17 @@
         };
                 let currentConference = 'east';
 
-        const mlbStandings = {
-            al: [
-                { rank:1,  name:'Yankees',    wins:8,  losses:2,  pct:0.800, last10:['W','W','W','W','W','W','W','W','L','L'] },
-                { rank:2,  name:'Guardians',  wins:8,  losses:5,  pct:0.615, last10:['W','W','W','W','W','L','L','L','W','W'] },
-                { rank:3,  name:'Rangers',    wins:7,  losses:5,  pct:0.583, last10:['W','W','W','W','W','W','L','L','L','W'] },
-                { rank:4,  name:'Angels',     wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:5,  name:'Twins',      wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:6,  name:'Orioles',    wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:7,  name:'Blue Jays',  wins:5,  losses:7,  pct:0.417, last10:['W','W','W','L','L','L','L','W','W','L'] },
-                { rank:8,  name:'Rays',       wins:5,  losses:7,  pct:0.417, last10:['W','W','W','L','L','L','L','W','W','L'] },
-                { rank:9,  name:'Astros',     wins:6,  losses:7,  pct:0.462, last10:['W','W','W','W','L','L','L','L','W','L'] },
-                { rank:10, name:'Royals',     wins:5,  losses:7,  pct:0.417, last10:['W','W','L','L','L','L','W','W','L','L'] },
-                { rank:11, name:'Red Sox',    wins:4,  losses:8,  pct:0.333, last10:['W','W','L','L','L','L','L','W','W','L'] },
-                { rank:12, name:'Tigers',     wins:4,  losses:8,  pct:0.333, last10:['W','W','L','L','L','L','L','W','W','L'] },
-                { rank:13, name:'White Sox',  wins:4,  losses:8,  pct:0.333, last10:['W','W','L','L','L','L','L','W','W','L'] },
-                { rank:14, name:'Athletics',  wins:3,  losses:7,  pct:0.300, last10:['W','L','L','L','L','L','W','W','L','L'] },
-                { rank:15, name:'Mariners',   wins:4,  losses:9,  pct:0.308, last10:['W','L','L','L','L','L','L','W','W','L'] },
-            ],
-            nl: [
-                { rank:1,  name:'Dodgers',    wins:9,  losses:3,  pct:0.750, last10:['W','W','W','W','W','W','W','W','L','L'] },
-                { rank:2,  name:'Reds',       wins:8,  losses:4,  pct:0.667, last10:['W','W','W','W','W','W','L','L','W','L'] },
-                { rank:3,  name:'Brewers',    wins:8,  losses:4,  pct:0.667, last10:['W','W','W','W','W','W','L','L','W','L'] },
-                { rank:4,  name:'Braves',     wins:8,  losses:5,  pct:0.615, last10:['W','W','W','W','W','L','L','L','W','W'] },
-                { rank:5,  name:'Mets',       wins:7,  losses:5,  pct:0.583, last10:['W','W','W','W','W','L','L','L','W','L'] },
-                { rank:6,  name:'Marlins',    wins:7,  losses:5,  pct:0.583, last10:['W','W','W','W','W','L','L','L','W','L'] },
-                { rank:7,  name:'Cardinals',  wins:7,  losses:5,  pct:0.583, last10:['W','W','W','W','W','L','L','L','W','L'] },
-                { rank:8,  name:'Pirates',    wins:7,  losses:5,  pct:0.583, last10:['W','W','W','W','W','L','L','L','W','L'] },
-                { rank:9,  name:'D-backs',    wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:10, name:'Padres',     wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:11, name:'Rockies',    wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:12, name:'Cubs',       wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:13, name:'Phillies',   wins:6,  losses:6,  pct:0.500, last10:['W','W','W','W','L','L','L','W','W','L'] },
-                { rank:14, name:'Nationals',  wins:4,  losses:8,  pct:0.333, last10:['W','W','L','L','L','L','L','W','W','L'] },
-                { rank:15, name:'Giants',     wins:5,  losses:8,  pct:0.385, last10:['W','W','W','L','L','L','L','L','W','L'] },
-            ]
-        };
+        let mlbStandings = { al: [], nl: [] };
+        // Load MLB standings from Firebase
+        fetch('https://vegas-bet-default-rtdb.firebaseio.com/mlbStandings.json')
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.al && data.nl) {
+                    mlbStandings = data;
+                    renderStandings(currentMLBLeague || 'al');
+                }
+            })
+            .catch(e => console.warn('MLB standings fetch failed', e));
         let currentMLBLeague = 'al';
 
         // Sync nbaTeams wins/losses/seed/last10 from nbaStandings so bet entry always uses live data
@@ -9862,67 +9839,23 @@
         const cachedMLBStats = {};
 
         async function fetchMLBPitchingStats(teamName, side) {
-            const today = new Date().toISOString().split('T')[0];
-            const cacheKey = teamName + '_pitch_' + today;
-            if (cachedMLBStats[cacheKey]) {
-                applyMLBPitchingStats(cachedMLBStats[cacheKey], side);
-                return;
-            }
             try {
-                const teamID = MLB_TEAM_IDS[teamName];
-                if (!teamID) { console.warn('No ESPN MLB ID for:', teamName); return; }
-
-                // Use same ESPN API pattern as NBA injury scraper
-                const url = 'https://site.web.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/' + teamID + '?enable=roster,injuries,stats';
-                const res = await fetch(url);
-                const d = await res.json();
-                const athletes = d?.team?.athletes || [];
-                console.log('Athletes count:', athletes.length);
-                if (athletes[0]) console.log('Athlete[0]:', JSON.stringify(athletes[0]).substring(0, 500));
-                let spERAs = [], spIPs = [], spGSs = [], rpERAs = [], injuryCount = 0;
-
-                for (const athlete of athletes) {
-                    if (athlete.injuries && athlete.injuries.length > 0) injuryCount++;
-                    const pos = athlete?.position?.abbreviation || '';
-                    const isSP = pos === 'SP';
-                    const isRP = pos === 'RP' || pos === 'P';
-                    if (!isSP && !isRP) continue;
-
-                    // Walk through all stat categories to find pitching
-                    const statGroups = athlete?.statistics || [];
-                    for (const group of statGroups) {
-                        const cats = group?.splits?.categories || group?.categories || [];
-                        for (const cat of cats) {
-                            if (cat?.name !== 'pitching') continue;
-                            const stats = cat?.stats || cat?.totals || [];
-                            let era = null, ip = null, gs = null;
-                            for (const s of stats) {
-                                const n = s?.name || s?.abbreviation || '';
-                                const v = parseFloat(s?.value ?? s?.displayValue ?? 0);
-                                if (/^era$/i.test(n) && v > 0 && v < 20) era = v;
-                                if (/^ip$|inningsPitched/i.test(n) && v > 0) ip = v;
-                                if (/^gs$|gamesStarted/i.test(n)) gs = v;
-                            }
-                            if (era && ip) {
-                                if (isSP) { spERAs.push(era); spIPs.push(ip); spGSs.push(gs || 1); }
-                                else rpERAs.push(era);
-                            }
-                        }
-                    }
-                }
-
-                console.log('SP ERAs:', spERAs, 'SP IPs:', spIPs, 'RP ERAs:', rpERAs);
-
-                const starterERA = spERAs.length ? Math.round(spERAs.reduce((a,b)=>a+b)/spERAs.length * 100)/100 : 4.00;
-                const starterIP  = spGSs.reduce((a,b)=>a+b,0) > 0 ? Math.round((spIPs.reduce((a,b)=>a+b,0) / spGSs.reduce((a,b)=>a+b,0)) * 10)/10 : 5.5;
-                const bullpenERA = rpERAs.length ? Math.round(rpERAs.reduce((a,b)=>a+b)/rpERAs.length * 100)/100 : 4.00;
-
-                const result = { starterERA, starterIP, bullpenERA, injuries: injuryCount };
-                cachedMLBStats[cacheKey] = result;
-                console.log('✅ MLB pitching stats for', teamName, result);
+                const fullName = MLB_FULL_NAMES[teamName] || teamName;
+                const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
+                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbStarters/' + encodeURIComponent(cleanName) + '.json';
+                const r = await fetch(FB_URL);
+                const d = await r.json();
+                if (!d) { console.warn('No Firebase starter data for', teamName); return; }
+                const result = {
+                    starterERA: d.starterERA || 4.00,
+                    starterIP: d.ip || 5.5,
+                    bullpenERA: d.bullpenERA || 4.00,
+                    starterName: d.starter || ''
+                };
+                console.log('✅ MLB pitching from Firebase:', teamName, result);
                 applyMLBPitchingStats(result, side);
             } catch(e) {
-                console.warn('MLB pitching fetch failed for', teamName, e);
+                console.warn('MLB pitching Firebase fetch failed for', teamName, e);
             }
         }
 
@@ -10063,6 +9996,28 @@
                 if (injEl) { injEl.value = count; calculateBaseballEdge(); }
             } catch(e) {
                 console.warn('MLB injury Firebase fetch failed for', teamName, e);
+            }
+        }
+
+        async function fetchMLBBatting(teamName, side) {
+            try {
+                const fullName = MLB_FULL_NAMES[teamName] || teamName;
+                const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
+                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbBatting/' + encodeURIComponent(cleanName) + '.json';
+                const r = await fetch(FB_URL);
+                const d = await r.json();
+                if (!d) { console.warn('No Firebase batting data for', teamName); return; }
+                const prefix = side === 'away' ? 'bbAway' : 'bbHome';
+                const avgEl = document.getElementById(prefix + 'Avg');
+                const obpEl = document.getElementById(prefix + 'OBP');
+                const slgEl = document.getElementById(prefix + 'SLG');
+                if (avgEl && d.avg) avgEl.value = d.avg;
+                if (obpEl && d.obp) obpEl.value = d.obp;
+                if (slgEl && d.slg) slgEl.value = d.slg;
+                calculateBaseballEdge();
+                console.log('✅ MLB batting from Firebase:', teamName, d);
+            } catch(e) {
+                console.warn('MLB batting Firebase fetch failed for', teamName, e);
             }
         }
 
