@@ -2107,19 +2107,31 @@
 
                     <!-- PITCHING ROW -->
                     <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                        <!-- AWAY PITCHING BOX -->
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <input type="number" id="bbAwayStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbAwayStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbAwayBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <!-- VERBOSE -->
+                            <div id="bbAwayPitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                <input type="number" id="bbAwayStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbAwayStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbAwayBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            </div>
                             <div id="bbAwayPitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
-                        <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;display:flex;align-items:center;justify-content:center;">pitching</div>
+                        <!-- MIDDLE: label + toggle -->
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">pitching</div>
+                            <div onclick="togglePitchView()" id="pitchToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
+                        </div>
+                        <!-- HOME PITCHING BOX -->
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <input type="number" id="bbHomeStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbHomeStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbHomeBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <!-- VERBOSE -->
+                            <div id="bbHomePitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                <input type="number" id="bbHomeStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbHomeStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbHomeBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            </div>
                             <div id="bbHomePitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
                     </div>
@@ -2128,17 +2140,24 @@
                     <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <input type="number" id="bbAwayAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbAwayOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbAwaySLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <div id="bbAwayBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                <input type="number" id="bbAwayAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbAwayOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbAwaySLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            </div>
                             <div id="bbAwayBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
-                        <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;display:flex;align-items:center;justify-content:center;">batting</div>
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">batting</div>
+                            <div onclick="toggleBatView()" id="batToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
+                        </div>
                         <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <input type="number" id="bbHomeAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbHomeOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            <input type="number" id="bbHomeSLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <div id="bbHomeBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                <input type="number" id="bbHomeAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbHomeOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <input type="number" id="bbHomeSLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            </div>
                             <div id="bbHomeBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                         </div>
                     </div>
@@ -2151,7 +2170,7 @@
                             <div id="bbAwayStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —%</div>
                             <div id="bbAwayL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —%</div>
                             <div id="bbAwayWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —%</div>
-                            <input type="number" id="bbAwaySeriesWins" placeholder="last 5 series W (0-5)" min="0" max="5" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <div id="bbAwaySeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:11px;text-align:center;padding:4px;">last 5 series: 0-0</div>
                             <input type="number" id="bbAwayInj" placeholder="injuries" min="0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                             <div id="bbAwayNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
                             <div id="bbAwayAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
@@ -2163,7 +2182,7 @@
                             <div id="bbHomeStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —%</div>
                             <div id="bbHomeL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —%</div>
                             <div id="bbHomeWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —%</div>
-                            <input type="number" id="bbHomeSeriesWins" placeholder="last 5 series W (0-5)" min="0" max="5" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <div id="bbHomeSeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:11px;text-align:center;padding:4px;">last 5 series: 0-0</div>
                             <input type="number" id="bbHomeInj" placeholder="injuries" min="0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                             <div id="bbHomeNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
                             <div id="bbHomeAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
@@ -2244,7 +2263,7 @@
                         <div style="font-size:10px; color:#444; font-weight:600;">TEAM</div>
                         <div style="font-size:10px; color:#444; font-weight:600; text-align:center;">W-L</div>
                         <div style="font-size:10px; color:#444; font-weight:600; text-align:center;">L10</div>
-                        <div style="font-size:10px; color:#444; font-weight:600; text-align:right;">PCT</div>
+                        <div style="font-size:10px; color:#444; font-weight:600; text-align:center;">PCT</div>
                     </div>
                     <div id="standingsList" style="padding:4px 14px 14px 14px;"></div>
                 </div>
@@ -3418,6 +3437,40 @@
             }
         }
 
+        // ===== PITCHING TOGGLE =====
+        let pitchViewVerbose = true;
+        let batViewVerbose = true;
+        function toggleBatView() {
+            batViewVerbose = !batViewVerbose;
+            const awayV = document.getElementById('bbAwayBatVerbose');
+            const homeV = document.getElementById('bbHomeBatVerbose');
+            const btn   = document.getElementById('batToggleBtn');
+            if (batViewVerbose) {
+                if (awayV) awayV.style.display = 'flex';
+                if (homeV) homeV.style.display = 'flex';
+                if (btn)   btn.textContent = 'stats';
+            } else {
+                if (awayV) awayV.style.display = 'none';
+                if (homeV) homeV.style.display = 'none';
+                if (btn)   btn.textContent = '%';
+            }
+        }
+        function togglePitchView() {
+            pitchViewVerbose = !pitchViewVerbose;
+            const awayV = document.getElementById('bbAwayPitchVerbose');
+            const homeV = document.getElementById('bbHomePitchVerbose');
+            const btn   = document.getElementById('pitchToggleBtn');
+            if (pitchViewVerbose) {
+                if (awayV) awayV.style.display = 'flex';
+                if (homeV) homeV.style.display = 'flex';
+                if (btn)   btn.textContent = 'stats';
+            } else {
+                if (awayV) awayV.style.display = 'none';
+                if (homeV) homeV.style.display = 'none';
+                if (btn)   btn.textContent = '%';
+            }
+        }
+
         // ===== BASEBALL GAME WINNER EDGE =====
         function calculateBaseballEdge() {
 
@@ -3494,9 +3547,11 @@
             // 3a. Seeding from mlbStandings — find each team's rank
             const awayTeamName = selectedBBAwayTeam ? selectedBBAwayTeam.name : '';
             const homeTeamName = selectedBBHomeTeam ? selectedBBHomeTeam.name : '';
+            const awayAbbr = selectedBBAwayTeam ? selectedBBAwayTeam.prefix : '';
+            const homeAbbr = selectedBBHomeTeam ? selectedBBHomeTeam.prefix : '';
             const allMLB = [...(mlbStandings.al || []), ...(mlbStandings.nl || [])];
-            const awayStanding = allMLB.find(t => t.name === awayTeamName);
-            const homeStanding = allMLB.find(t => t.name === homeTeamName);
+            const awayStanding = allMLB.find(t => t.abbr === awayAbbr) || allMLB.find(t => t.name === awayTeamName);
+            const homeStanding = allMLB.find(t => t.abbr === homeAbbr) || allMLB.find(t => t.name === homeTeamName);
             const awaySeed = awayStanding ? awayStanding.rank : 8;
             const homeSeed = homeStanding ? homeStanding.rank : 8;
 
@@ -3515,12 +3570,12 @@
             let homeStrength = homeSeedPct  - (homeInjCount * 3);
 
             // 3c. Last 10
-            const awayLast10 = (awayStanding && Array.isArray(awayStanding.last10)) ? awayStanding.last10 : [];
-            const homeLast10 = (homeStanding && Array.isArray(homeStanding.last10)) ? homeStanding.last10 : [];
-            const awayL10W   = awayLast10.filter(r => r === 'W').length;
-            const homeL10W   = homeLast10.filter(r => r === 'W').length;
-            const awayLast10Pct = awayLast10.length > 0 ? (awayL10W / 10) * 100 : 50;
-            const homeLast10Pct = homeLast10.length > 0 ? (homeL10W / 10) * 100 : 50;
+            const awayLast10 = (awayStanding && Array.isArray(awayStanding.last10) && awayStanding.last10.length > 0) ? awayStanding.last10 : null;
+            const homeLast10 = (homeStanding && Array.isArray(homeStanding.last10) && homeStanding.last10.length > 0) ? homeStanding.last10 : null;
+            const awayL10W   = awayLast10 ? awayLast10.filter(r => r === 'W').length : null;
+            const homeL10W   = homeLast10 ? homeLast10.filter(r => r === 'W').length : null;
+            const awayLast10Pct = awayL10W !== null ? (awayL10W / 10) * 100 : 50;
+            const homeLast10Pct = homeL10W !== null ? (homeL10W / 10) * 100 : 50;
 
             // 3d. Win-Loss %
             const awayWins   = awayStanding ? awayStanding.wins   : 0;
@@ -3531,8 +3586,17 @@
             const homeWLPct  = (homeWins + homeLosses) > 0 ? (homeWins / (homeWins + homeLosses)) * 100 : 50;
 
             // 3e. Last 5 series % — user inputs series wins (0-5)
-            const awaySeriesWins = parseInt(document.getElementById('bbAwaySeriesWins')?.value) || 0;
-            const homeSeriesWins = parseInt(document.getElementById('bbHomeSeriesWins')?.value) || 0;
+            // Last 5 series — auto from bet log
+            const awaySeriesRecord = selectedBBAwayTeam ? calcMLBLast5Series(selectedBBAwayTeam.prefix) : { wins: 0, losses: 0 };
+            const homeSeriesRecord = selectedBBHomeTeam ? calcMLBLast5Series(selectedBBHomeTeam.prefix) : { wins: 0, losses: 0 };
+            const awaySeriesWins = awaySeriesRecord.wins;
+            const homeSeriesWins = homeSeriesRecord.wins;
+
+            // Update display
+            const awaySwEl = document.getElementById('bbAwaySeriesWins');
+            const homeSwEl = document.getElementById('bbHomeSeriesWins');
+            if (awaySwEl) awaySwEl.textContent = `last 5 series: ${awaySeriesRecord.wins}-${awaySeriesRecord.losses}`;
+            if (homeSwEl) homeSwEl.textContent = `last 5 series: ${homeSeriesRecord.wins}-${homeSeriesRecord.losses}`;
             const awaySeriesPct  = awaySeriesWins * 20;
             const homeSeriesPct  = homeSeriesWins * 20;
 
@@ -3690,8 +3754,8 @@
             setEl('bbHomeSeedPct',     homeStanding ? 'seed #' + homeStanding.rank : 'seed: —');
             setEl('bbAwayStrengthPct', awayStanding ? 'strength: #' + awayStanding.rank + ' - ' + awayInjCount + ' inj' : 'strength: —');
             setEl('bbHomeStrengthPct', homeStanding ? 'strength: #' + homeStanding.rank + ' - ' + homeInjCount + ' inj' : 'strength: —');
-            setEl('bbAwayL10Pct',      awayStanding ? 'last 10: ' + awayL10W + '-' + (10-awayL10W) : 'last 10: —');
-            setEl('bbHomeL10Pct',      homeStanding ? 'last 10: ' + homeL10W + '-' + (10-homeL10W) : 'last 10: —');
+            setEl('bbAwayL10Pct',      awayL10W !== null ? 'last 10: ' + awayL10W + '-' + (10-awayL10W) : 'last 10: —');
+            setEl('bbHomeL10Pct',      homeL10W !== null ? 'last 10: ' + homeL10W + '-' + (10-homeL10W) : 'last 10: —');
             setEl('bbAwayWLPct',       awayStanding ? 'W-L: ' + awayStanding.wins + '-' + awayStanding.losses : 'W-L: —');
             setEl('bbHomeWLPct',       homeStanding ? 'W-L: ' + homeStanding.wins + '-' + homeStanding.losses : 'W-L: —');
             setEl('bbAwayNoVigPct',    hasOdds ? 'odds: ' + r(awayNoVig) + '%' : 'odds: —');
@@ -7248,6 +7312,10 @@
                             updateWinnerDisplay();
                         } else if (selectingFor === 'bbAway') {
                             selectedBBAwayTeam = team;
+                            // Refresh MLB standings silently on team select
+                            fetch(BACKEND_URL + '/api/mlb/standings').then(r=>r.json()).then(data=>{
+                                if(data&&data.al&&data.nl){mlbStandings=data;reapplyMLBStandingsFromBetLog();calculateBaseballEdge();}
+                            }).catch(()=>{});
                             const box = document.getElementById('bbAwayTeamName');
                             if (box) {
                                 box.innerHTML = `<div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">away</div><div style="display:flex;align-items:center;gap:4px;"><img src="${team.logo}" style="width:20px;height:20px;object-fit:contain;"><span style="font-size:11px;font-weight:700;color:#fff;">${team.name}</span></div>`;
@@ -9082,16 +9150,24 @@
             const data = currentSport === 'mlb' ? mlbStandings : nbaStandings;
             const key = currentSport === 'mlb' ? (conf === 'al' ? 'al' : 'nl') : conf;
             list.innerHTML = (data[key] || []).map(t => {
-                const bc = t.rank<=6 ? '#22c55e' : t.rank<=8 ? '#f59e0b' : '#2a2a2a';
+                const bc = t.rank<=6 ? '#22c55e' : t.rank<=8 ? '#f59e0b' : '#555';
                 const last10 = Array.isArray(t.last10) ? t.last10 : [];
+
                 const l10w = last10.filter(r=>r==='W').length;
-                const l10c = l10w>=7?'#22c55e':l10w>=5?'#fff':'#ef4444';
-                const dots = last10.map(r=>`<span style="color:${r==='W'?'#22c55e':'#ef4444'};font-size:8px;">●</span>`).join('');
+                const l10str = last10.length > 0 ? `${l10w}-${last10.length - l10w}` : '—';
+                const l10color = last10.length > 0 ? (l10w>=7?'#22c55e':l10w>=5?'#fff':'#ef4444') : '#555';
+                const filledDots = last10.map(r=>`<span style="color:${r==='W'?'#22c55e':'#ef4444'};font-size:8px;">●</span>`).join('');
+                const emptyDots = Array(10 - last10.length).fill('<span style="color:#333;font-size:8px;">●</span>').join('');
+                const dots = filledDots + emptyDots;
                 return `<div style="display:grid;grid-template-columns:24px 1fr 52px 38px 44px;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e;">
                     <div style="font-size:11px;font-weight:700;color:${bc};">${t.rank}</div>
-                    <div><div style="font-size:13px;font-weight:700;color:#fff;">${t.name}</div><div style="display:flex;gap:2px;margin-top:3px;">${dots}</div></div>
+                    <div>
+                        <div style="font-size:13px;font-weight:700;color:#fff;">${t.name}</div>
+                        <div style="display:flex;gap:2px;margin-top:3px;">${dots}</div>
+                    </div>
                     <div style="font-size:12px;font-weight:600;color:#aaa;text-align:center;">${t.wins}-${t.losses}</div>
-                    <div style="font-size:12px;font-weight:600;color:#aaa;text-align:center;">${(t.pct || 0).toFixed(3)}</div>
+                    <div style="font-size:12px;font-weight:700;color:${l10color};text-align:center;">${l10str}</div>
+                    <div style="font-size:11px;font-weight:600;color:#555;text-align:center;">${(t.pct || 0).toFixed(3)}</div>
                 </div>`;
             }).join('');
         }
@@ -9818,6 +9894,7 @@
                 if (data && data.al && data.nl) {
                     mlbStandings = data;
                     console.log('✅ MLB standings loaded:', data.al.length, 'AL teams,', data.nl.length, 'NL teams');
+                    reapplyMLBStandingsFromBetLog();
                     renderStandings(currentMLBLeague || 'al');
                     calculateBaseballEdge();
                 }
@@ -10209,6 +10286,84 @@
             });
             sortLogByConfidence();
             setTimeout(() => { calculateBetAmounts(); renderConfChips(); }, 50);
+        }
+
+        function reapplyMLBStandingsFromBetLog() {
+            const allMLB = [...(mlbStandings.al || []), ...(mlbStandings.nl || [])];
+            if (!allMLB.length) return;
+
+            // reset _allResults for each team
+            allMLB.forEach(t => { t._allResults = t._allResults || []; t._allResults = []; });
+
+            // Only update last10 from bet log — W-L and rankings stay as Firebase has them
+            betLog.forEach(day => {
+                day.games.forEach(g => {
+                    if (g.sport !== 'mlb') return;
+                    if (g.res !== 'W' && g.res !== 'L') return;
+                    const pickWon = g.res === 'W';
+                    const opponent = g.pick === g.t1 ? g.t2 : g.t1;
+                    const pickTeam = allMLB.find(t => t.abbr === g.pick || t.name.toLowerCase().includes(g.pick.toLowerCase()));
+                    const oppTeam  = allMLB.find(t => t.abbr === opponent || t.name.toLowerCase().includes(opponent.toLowerCase()));
+                    if (pickTeam) pickTeam._allResults.push(pickWon ? 'W' : 'L');
+                    if (oppTeam)  oppTeam._allResults.push(pickWon ? 'L' : 'W');
+                });
+            });
+
+            // Only apply last10 — leave wins/losses/rank untouched
+            allMLB.forEach(t => {
+                if (t._allResults && t._allResults.length > 0) {
+                    t.last10 = t._allResults.slice(-10);
+                }
+            });
+            console.log('✅ MLB standings updated from bet log');
+        }
+
+        function calcMLBLast5Series(teamAbbr) {
+            // Group MLB bet log games into series (same two teams, consecutive days)
+            const mlbGames = [];
+            betLog.forEach(day => {
+                day.games.forEach(g => {
+                    if (g.sport !== 'mlb') return;
+                    if (g.res !== 'W' && g.res !== 'L') return;
+                    mlbGames.push({ day: day.day, t1: g.t1, t2: g.t2, pick: g.pick, res: g.res });
+                });
+            });
+
+            if (!mlbGames.length) return { wins: 0, losses: 0 };
+
+            // Group into series — same two teams within 4 day window
+            const series = [];
+            let current = null;
+            for (const game of mlbGames) {
+                const teams = [game.t1, game.t2].sort().join('|');
+                if (current && current.teams === teams && game.day - current.lastDay <= 1) {
+                    current.games.push(game);
+                    current.lastDay = game.day;
+                } else {
+                    if (current) series.push(current);
+                    current = { teams, games: [game], lastDay: game.day };
+                }
+            }
+            if (current) series.push(current);
+
+            // Find series involving this team
+            const allMLB = [...(mlbStandings.al || []), ...(mlbStandings.nl || [])];
+            const teamObj = allMLB.find(t => t.abbr === teamAbbr);
+            if (!teamObj) return { wins: 0, losses: 0 };
+            const teamName = teamObj.name.split(' ').pop(); // last word e.g. "Giants"
+
+            const teamSeries = series.filter(s => s.teams.includes(teamAbbr) || s.games.some(g => g.t1.includes(teamName) || g.t2.includes(teamName)));
+            const last5 = teamSeries.slice(-5);
+
+            let wins = 0, losses = 0;
+            for (const s of last5) {
+                const teamWins  = s.games.filter(g => (g.pick.includes(teamName) || g.pick === teamAbbr) && g.res === 'W').length;
+                const teamLosses = s.games.filter(g => (g.pick.includes(teamName) || g.pick === teamAbbr) && g.res === 'L').length;
+                const oppWins   = s.games.filter(g => (!g.pick.includes(teamName) && g.pick !== teamAbbr) && g.res === 'W').length;
+                if (teamWins > oppWins) wins++;
+                else if (oppWins > teamWins) losses++;
+            }
+            return { wins, losses };
         }
 
         function reapplyStandingsFromBetLog() {
@@ -10748,6 +10903,7 @@
         loadAppState(() => {
             fixTeamNames();
             reapplyStandingsFromBetLog();
+            reapplyMLBStandingsFromBetLog();
             renderBetLog();
             renderStandings(currentConference);
         });
@@ -10760,6 +10916,7 @@
                 loadAppState(() => {
                     fixTeamNames();
                     reapplyStandingsFromBetLog();
+                    reapplyMLBStandingsFromBetLog();
                     renderBetLog();
                     renderStandings(currentConference);
                 });
@@ -11049,6 +11206,19 @@
             scrambleText(document.getElementById('logTitle'), 'standings', 1200);
             document.getElementById('logBackBtn').style.display = '';
             document.getElementById('logParlayBtn').style.display = 'none';
+            // Auto-refresh MLB standings when opening standings tab
+            if (currentSport === 'mlb') {
+                fetch(BACKEND_URL + '/api/mlb/standings')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.al && data.nl) {
+                            mlbStandings = data;
+                            reapplyMLBStandingsFromBetLog();
+                            renderStandings(currentMLBLeague || 'al');
+                        }
+                    })
+                    .catch(e => console.warn('MLB standings refresh failed', e));
+            }
             showConference(currentSport === 'mlb' ? currentMLBLeague : currentConference);
         });
         document.getElementById('logNavBetLog').addEventListener('click', () => {
