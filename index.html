@@ -7433,7 +7433,9 @@
                             }
                             if (team.park) {
                                 const homeParkEl = document.getElementById('bbParkHome');
+                                const awayParkEl = document.getElementById('bbParkAway');
                                 if (homeParkEl) homeParkEl.value = team.park;
+                                if (awayParkEl) awayParkEl.value = team.park;
                             }
                             calculateBaseballEdge();
                             fetchMLBInjuries(team.name, 'home');
@@ -8254,28 +8256,46 @@
                     const pickTeam   = pickIsHome ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                     const pickOdds   = pickIsHome ? homeOdds : awayOdds;
 
-                    const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
-                    const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
+                    const targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
 
                     if (targetDay) {
-                        const newGame = {
+                        const awayStand = [...(mlbStandings.al||[]),...(mlbStandings.nl||[])].find(t => t.abbr === selectedBBAwayTeam.prefix);
+                        const homeStand = [...(mlbStandings.al||[]),...(mlbStandings.nl||[])].find(t => t.abbr === selectedBBHomeTeam.prefix);
+                        const aWins = awayStand?.wins || 0;
+                        const aLoss = awayStand?.losses || 0;
+                        const hWins = homeStand?.wins || 0;
+                        const hLoss = homeStand?.losses || 0;
+                        const aL10  = awayStand?.last10 || [];
+                        const hL10  = homeStand?.last10 || [];
+                        const aL10w = aL10.filter(r=>r==='W').length;
+                        const hL10w = hL10.filter(r=>r==='W').length;
+                        const awayInjEl = document.getElementById('bbAwayInj');
+                        const homeInjEl = document.getElementById('bbHomeInj');
+                        const aInj = parseInt((awayInjEl?.textContent||'').replace(/[^0-9]/g,'')) || 0;
+                        const hInj = parseInt((homeInjEl?.textContent||'').replace(/[^0-9]/g,'')) || 0;
+                        const betId = Date.now();
+                        targetDay.games.push({
                             t1:   selectedBBAwayTeam.name,
                             o1:   awayOdds,
-                            s1:   0, i1: 0, wl1: '', l1: '',
+                            s1:   awayStand?.rank || 0,
+                            i1:   aInj,
+                            wl1:  `${aWins}-${aLoss}`,
+                            l1:   `${aL10w}-${10-aL10w}`,
                             t2:   selectedBBHomeTeam.name,
                             o2:   homeOdds,
-                            s2:   0, i2: 0, wl2: '', l2: '',
+                            s2:   homeStand?.rank || 0,
+                            i2:   hInj,
+                            wl2:  `${hWins}-${hLoss}`,
+                            l2:   `${hL10w}-${10-hL10w}`,
                             pick: pickTeam,
                             res:  null,
                             edge: edge,
                             sport: 'mlb',
-                            _id:  Date.now()
-                        };
-                        targetDay.games.push(newGame);
+                            _id:  betId
+                        });
                         saveAppState();
                         if (activeBetDay === targetDay.day) renderBetDayCards();
-                        console.log('✅ MLB game saved to bet log:', newGame);
-                        // Flash button
+                        console.log('✅ MLB game saved:', selectedBBAwayTeam.name, 'vs', selectedBBHomeTeam.name, '→', pickTeam);
                         gwRecordBtn.style.transform = 'scale(1.2)';
                         setTimeout(() => gwRecordBtn.style.transform = 'scale(1)', 200);
                     }
