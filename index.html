@@ -3515,8 +3515,8 @@
             let homeStrength = homeSeedPct  - (homeInjCount * 3);
 
             // 3c. Last 10
-            const awayLast10 = awayStanding ? awayStanding.last10 : [];
-            const homeLast10 = homeStanding ? homeStanding.last10 : [];
+            const awayLast10 = (awayStanding && Array.isArray(awayStanding.last10)) ? awayStanding.last10 : [];
+            const homeLast10 = (homeStanding && Array.isArray(homeStanding.last10)) ? homeStanding.last10 : [];
             const awayL10W   = awayLast10.filter(r => r === 'W').length;
             const homeL10W   = homeLast10.filter(r => r === 'W').length;
             const awayLast10Pct = awayLast10.length > 0 ? (awayL10W / 10) * 100 : 50;
@@ -7256,10 +7256,10 @@
                                 const awayParkEl = document.getElementById('bbParkAway');
                                 if (awayParkEl) awayParkEl.value = team.park;
                             }
-                            calculateBaseballEdge();
                             fetchMLBInjuries(team.name, 'away');
                             fetchMLBPitchingStats(team.name, 'away');
                             fetchMLBBatting(team.name, 'away');
+                            calculateBaseballEdge();
                         } else if (selectingFor === 'bbHome') {
                             selectedBBHomeTeam = team;
                             const box = document.getElementById('bbHomeTeamName');
@@ -9093,15 +9093,15 @@
             const key = currentSport === 'mlb' ? (conf === 'al' ? 'al' : 'nl') : conf;
             list.innerHTML = (data[key] || []).map(t => {
                 const bc = t.rank<=6 ? '#22c55e' : t.rank<=8 ? '#f59e0b' : '#2a2a2a';
-                const l10w = t.last10.filter(r=>r==='W').length;
+                const last10 = Array.isArray(t.last10) ? t.last10 : [];
+                const l10w = last10.filter(r=>r==='W').length;
                 const l10c = l10w>=7?'#22c55e':l10w>=5?'#fff':'#ef4444';
-                const dots = t.last10.map(r=>`<span style="color:${r==='W'?'#22c55e':'#ef4444'};font-size:8px;">●</span>`).join('');
+                const dots = last10.map(r=>`<span style="color:${r==='W'?'#22c55e':'#ef4444'};font-size:8px;">●</span>`).join('');
                 return `<div style="display:grid;grid-template-columns:24px 1fr 52px 38px 44px;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e;">
                     <div style="font-size:11px;font-weight:700;color:${bc};">${t.rank}</div>
                     <div><div style="font-size:13px;font-weight:700;color:#fff;">${t.name}</div><div style="display:flex;gap:2px;margin-top:3px;">${dots}</div></div>
                     <div style="font-size:12px;font-weight:600;color:#aaa;text-align:center;">${t.wins}-${t.losses}</div>
-                    <div style="font-size:12px;font-weight:700;color:${l10c};text-align:center;">${l10w}-${10-l10w}</div>
-                    <div style="font-size:11px;color:#555;text-align:right;">${t.pct.toFixed(3)}</div>
+                    <div style="font-size:12px;font-weight:600;color:#aaa;text-align:center;">${(t.pct || 0).toFixed(3)}</div>
                 </div>`;
             }).join('');
         }
