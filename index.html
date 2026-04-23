@@ -12060,24 +12060,30 @@
             jun: { label: 'June',     startDay: 115, endDay: 137 },
         };
 
-        let monthStartOverrides = { robego: {}, justin: {} };
+        let monthStartOverrides = { nba: { robego: {}, justin: {} }, mlb: { robego: {}, justin: {} } };
 
         function loadMonthStarts() {
             try {
-                const saved = localStorage.getItem('monthStartOverrides2');
+                const saved = localStorage.getItem('monthStartOverrides3');
                 if (saved) monthStartOverrides = JSON.parse(saved);
-                if (!monthStartOverrides.robego) monthStartOverrides.robego = {};
-                if (!monthStartOverrides.justin) monthStartOverrides.justin = {};
-                if (monthStartOverrides.robego['apr'] === undefined) monthStartOverrides.robego['apr'] = 100;
-                if (monthStartOverrides.justin['apr'] === undefined) monthStartOverrides.justin['apr'] = 100;
+                if (!monthStartOverrides.nba) monthStartOverrides.nba = { robego: {}, justin: {} };
+                if (!monthStartOverrides.mlb) monthStartOverrides.mlb = { robego: {}, justin: {} };
+                if (!monthStartOverrides.nba.robego) monthStartOverrides.nba.robego = {};
+                if (!monthStartOverrides.nba.justin) monthStartOverrides.nba.justin = {};
+                if (!monthStartOverrides.mlb.robego) monthStartOverrides.mlb.robego = {};
+                if (!monthStartOverrides.mlb.justin) monthStartOverrides.mlb.justin = {};
+                if (monthStartOverrides.nba.robego['apr'] === undefined) monthStartOverrides.nba.robego['apr'] = 100;
+                if (monthStartOverrides.nba.justin['apr'] === undefined) monthStartOverrides.nba.justin['apr'] = 100;
+                if (monthStartOverrides.mlb.robego['apr'] === undefined) monthStartOverrides.mlb.robego['apr'] = 100;
+                if (monthStartOverrides.mlb.justin['apr'] === undefined) monthStartOverrides.mlb.justin['apr'] = 100;
             } catch(e) {
-                monthStartOverrides = { robego: { apr: 100 }, justin: { apr: 100 } };
+                monthStartOverrides = { nba: { robego: { apr: 100 }, justin: { apr: 100 } }, mlb: { robego: { apr: 100 }, justin: { apr: 100 } } };
             }
         }
 
         function saveMonthStarts() {
             try {
-                localStorage.setItem('monthStartOverrides2', JSON.stringify(monthStartOverrides));
+                localStorage.setItem('monthStartOverrides3', JSON.stringify(monthStartOverrides));
                 fetch(BACKEND_URL + '/api/state', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -12109,7 +12115,8 @@
 
         function getMonthStart(month, sub) {
             sub = sub || currentMoneySubTab;
-            const overrides = monthStartOverrides[sub] || {};
+            const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
+            const overrides = (monthStartOverrides[sport] && monthStartOverrides[sport][sub]) || {};
             if (overrides[month] !== undefined) return overrides[month];
             const order = ['feb', 'mar', 'apr', 'may', 'jun'];
             const idx = order.indexOf(month);
@@ -12123,8 +12130,21 @@
             return '$' + val.toFixed(2);
         }
 
-        // Deposits: { dayNumber: amount } — added to bankroll BEFORE that day's bets
-        const BANKROLL_DEPOSITS = { 69: 100 }; // 4/16: +$100
+        // Deposits per sport per person: { sport: { person: { dayNumber: amount } } }
+        const BANKROLL_DEPOSITS = {
+            nba: {
+                robego: { 69: 100, 75: 100 }, // 4/16: +$100, 4/22: +$100
+                justin: { 69: 100 }            // 4/16: +$100
+            },
+            mlb: {
+                robego: {},
+                justin: {}
+            }
+        };
+        function getDeposits(sub) {
+            const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
+            return (BANKROLL_DEPOSITS[sport] && BANKROLL_DEPOSITS[sport][sub]) || {};
+        }
 
         function calcMonthData(month) {
             const range = MONTH_RANGES[month];
@@ -12134,13 +12154,12 @@
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 // Apply any deposit for this day
-                if (BANKROLL_DEPOSITS[day.day]) {
-                    bankroll += BANKROLL_DEPOSITS[day.day];
-                    bankroll = Math.round(bankroll * 100) / 100;
-                }
+                const dep = getDeposits('robego')[day.day];
+                if (dep) { bankroll += dep; bankroll = Math.round(bankroll * 100) / 100; }
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
                 if (decided.length === 0) { 
-                    if (BANKROLL_DEPOSITS[day.day]) data.push({ date: day.date + ' (+$' + BANKROLL_DEPOSITS[day.day] + ')', bankroll });
+                    const dep2 = getDeposits('robego')[day.day];
+                    if (dep2) data.push({ date: day.date + ' (+$' + dep2 + ')', bankroll });
                     return; 
                 }
                 if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
@@ -12167,9 +12186,11 @@
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
-                if (BANKROLL_DEPOSITS[day.day]) bankroll = Math.round((bankroll + BANKROLL_DEPOSITS[day.day]) * 100) / 100;
+                const jdep = getDeposits('justin')[day.day];
+                if (jdep) bankroll = Math.round((bankroll + jdep) * 100) / 100;
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
-                if (decided.length === 0) { if (BANKROLL_DEPOSITS[day.day]) data.push({ date: day.date + ' (+$' + BANKROLL_DEPOSITS[day.day] + ')', bankroll }); return; }
+                const jdep2 = getDeposits('justin')[day.day];
+                if (decided.length === 0) { if (jdep2) data.push({ date: day.date + ' (+$' + jdep2 + ')', bankroll }); return; }
                 if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
                 // Sort by odds descending (most positive first)
                 const sorted = [...decided].sort((a, b) => {
@@ -12288,8 +12309,10 @@
                 startInput.addEventListener('blur', () => {
                     const val = parseFloat(startInput.textContent.replace(/[^0-9.]/g,''));
                     if (!isNaN(val) && val >= 0) {
-                        if (!monthStartOverrides[currentMoneySubTab]) monthStartOverrides[currentMoneySubTab] = {};
-                        monthStartOverrides[currentMoneySubTab][currentMonthTab] = val;
+                        const _sport = currentSport === 'mlb' ? 'mlb' : 'nba';
+                        if (!monthStartOverrides[_sport]) monthStartOverrides[_sport] = {};
+                        if (!monthStartOverrides[_sport][currentMoneySubTab]) monthStartOverrides[_sport][currentMoneySubTab] = {};
+                        monthStartOverrides[_sport][currentMoneySubTab][currentMonthTab] = val;
                         saveMonthStarts();
                         buildMonthChart(currentMonthTab);
                     }
