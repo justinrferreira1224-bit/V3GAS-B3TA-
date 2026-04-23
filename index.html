@@ -629,7 +629,7 @@
             color: #ff8c42;
             opacity: 1;
             background: radial-gradient(circle, rgba(255, 140, 66, 0.4) 0%, rgba(255, 140, 66, 0.1) 50%, transparent 80%);
-            box-shadow: 0 0 20px rgba(255, 140, 66, 0.5);
+            box-shadow: 0 0 20px rgba(255, 140, 66, 0.5), 0 0 15px rgba(255,255,255,0.6);
             text-shadow: none;
             transform: none;
         }
@@ -2079,167 +2079,178 @@
                 </div>
 
                 <!-- MLB GAME WINNER CONTAINER -->
-                <div id="mlbGameWinnerContainer" style="display:none; flex-direction:column; gap:5px; padding-top:0; overflow-y:auto; max-height:560px;">
+                <div id="mlbGameWinnerContainer" style="display:none; flex-direction:column; gap:5px; padding-top:0; min-height:560px; max-height:560px; overflow-y:auto; flex:1;">
 
-                    <!-- MATCHUP ROW -->
-                    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:center;">
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbAwayTeamName">
+                    <!-- COLUMN LABELS ROW with STATS toggle top right -->
+                    <div style="display:flex;align-items:center;margin-bottom:2px;">
+                        <div style="flex:1;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">matchup</div>
+                        <div style="flex:0 0 50px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">odds</div>
+                        <div style="flex:0 0 38px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">inj</div>
+                        <!-- STATS TOGGLE TOP RIGHT -->
+                        <div onclick="toggleMLBDetailView()" id="mlbDetailToggle" style="margin-left:8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:4px 10px;">
+                            <div style="font-size:8px;font-weight:900;color:#aaa;letter-spacing:2px;text-transform:uppercase;">stats</div>
+                            <div id="mlbToggleTrack" style="width:28px;height:14px;background:rgba(255,255,255,0.15);border-radius:8px;position:relative;transition:background 0.2s;">
+                                <div id="mlbToggleThumb" style="width:10px;height:10px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AWAY ROW -->
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <div style="flex:1;background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbAwayTeamName">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">away</div>
                             <div style="font-size:11px;font-weight:700;color:#fff;">AWAY TEAM</div>
                         </div>
-                        <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">matchup</div>
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbHomeTeamName">
+                        <div style="flex:0 0 50px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;">
+                            <input type="text" id="bbAwayOdds" placeholder="odds" oninput="calculateBaseballEdge()" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;">
+                        </div>
+                        <div style="flex:0 0 38px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:700;color:#fff;" id="bbAwayInjDisplay">0</div>
+                    </div>
+
+                    <!-- HOME ROW -->
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <div style="flex:1;background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbHomeTeamName">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">home</div>
                             <div style="font-size:11px;font-weight:700;color:#fff;">HOME TEAM</div>
                         </div>
+                        <div style="flex:0 0 50px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;">
+                            <input type="text" id="bbHomeOdds" placeholder="odds" oninput="calculateBaseballEdge()" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;">
+                        </div>
+                        <div style="flex:0 0 38px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:700;color:#fff;" id="bbHomeInjDisplay">0</div>
                     </div>
 
-                    <!-- ODDS ROW -->
-                    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:center;">
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
-                            <input type="text" id="bbAwayOdds" placeholder="odds" oninput="calculateBaseballEdge()" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:8px;font-family:-apple-system,sans-serif;">
-                        </div>
-                        <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">odds</div>
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
-                            <input type="text" id="bbHomeOdds" placeholder="odds" oninput="calculateBaseballEdge()" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:8px;font-family:-apple-system,sans-serif;">
-                        </div>
-                    </div>
+                    <!-- DETAIL ROWS (hidden by default) -->
+                    <div id="mlbDetailRows" style="display:none;flex-direction:column;gap:5px;">
 
-                    <!-- PITCHING ROW -->
-                    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
-                        <!-- AWAY PITCHING BOX -->
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <!-- VERBOSE -->
-                            <div id="bbAwayPitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
-                                <input type="number" id="bbAwayStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbAwayStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbAwayBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                        <!-- PITCHING ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <div id="bbAwayPitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbAwayStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwayStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwayBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbAwayPitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
                             </div>
-                            <div id="bbAwayPitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
-                        <!-- MIDDLE: label + toggle -->
-                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
-                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">pitching</div>
-                            <div onclick="togglePitchView()" id="pitchToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
-                        </div>
-                        <!-- HOME PITCHING BOX -->
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <!-- VERBOSE -->
-                            <div id="bbHomePitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
-                                <input type="number" id="bbHomeStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbHomeStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbHomeBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">pitching</div>
+                                <div onclick="togglePitchView()" id="pitchToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">%</div>
                             </div>
-                            <div id="bbHomePitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <div id="bbHomePitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbHomeStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbHomePitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
                         </div>
+
+                        <!-- BATTING ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <div id="bbAwayBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbAwayAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwayOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwaySLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbAwayBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">batting</div>
+                                <div onclick="toggleBatView()" id="batToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">%</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <div id="bbHomeBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbHomeAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeSLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbHomeBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                        <!-- ABILITY ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <div id="bbAwayAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
+                                    <div id="bbAwaySeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
+                                    <div id="bbAwayStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
+                                    <div id="bbAwayL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
+                                    <div id="bbAwayWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
+                                    <div id="bbAwayL5SeriesPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
+                                    <div id="bbAwayInjPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
+                                    <div id="bbAwayOddsPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                                </div>
+                                <div id="bbAwayAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">ability</div>
+                                <div id="abilityStatsBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <div id="bbHomeAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
+                                    <div id="bbHomeSeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
+                                    <div id="bbHomeStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
+                                    <div id="bbHomeL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
+                                    <div id="bbHomeWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
+                                    <div id="bbHomeL5SeriesPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
+                                    <div id="bbHomeInjPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
+                                    <div id="bbHomeOddsPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                                </div>
+                                <div id="bbHomeAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                        <!-- FACTORS ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <input type="text" id="bbSeriesCount" placeholder="series e.g. 1-0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <select id="bbSeriesGames" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
+                                <select id="bbParkAway" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">away park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
+                                <div id="bbAwayParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
+                                <div id="bbAwaySeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
+                                <div id="bbAwayBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
+                                <div id="bbAwayGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">factors</div>
+                                <div onclick="toggleFactorsView()" id="factorsToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">%</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <input type="text" id="bbSeriesCount2" placeholder="series e.g. 1-0" oninput="document.getElementById('bbSeriesCount').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <select id="bbSeriesGames2" onchange="document.getElementById('bbSeriesGames').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
+                                <select id="bbParkHome" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">home park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
+                                <div id="bbHomeParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
+                                <div id="bbHomeSeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
+                                <div id="bbHomeBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
+                                <div id="bbHomeGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                    </div><!-- end mlbDetailRows -->
+
+                    <!-- FINAL EDGE — using same class as NBA -->
+                    <div class="winner-edge-box" id="bbWinnerEdgeBox" style="flex:1;">
+                        <div class="winner-edge-label">FINAL EDGE</div>
+                        <div class="winner-edge-value" id="bbFinalEdge">—</div>
                     </div>
 
-                    <!-- BATTING ROW -->
-                    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <div id="bbAwayBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
-                                <input type="number" id="bbAwayAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbAwayOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbAwaySLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            </div>
-                            <div id="bbAwayBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
-                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
-                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">batting</div>
-                            <div onclick="toggleBatView()" id="batToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
-                        </div>
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <div id="bbHomeBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
-                                <input type="number" id="bbHomeAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbHomeOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                                <input type="number" id="bbHomeSLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
-                            </div>
-                            <div id="bbHomeBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
+                    <!-- GAME WINNER — using same class as NBA -->
+                    <div class="winner-result-box" id="bbWinnerResultBox" style="flex:2;margin-top:5px;">
+                        <div class="winner-result-label">GAME WINNER</div>
+                        <div class="winner-result-text" id="bbWinnerBox">—</div>
                     </div>
 
-                    <!-- ABILITY ROW -->
-                    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <div id="bbAwayAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
-                                <div id="bbAwaySeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
-                                <div id="bbAwayStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
-                                <div id="bbAwayL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
-                                <div id="bbAwayWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
-                                <div id="bbAwaySeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
-                                <div id="bbAwayInj" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
-                                <div id="bbAwayNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
-                            </div>
-                            <div id="bbAwayAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
-                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
-                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">ability</div>
-                            <div onclick="toggleAbilityView()" id="abilityToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
-                        </div>
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <div id="bbHomeAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
-                                <div id="bbHomeSeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
-                                <div id="bbHomeStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
-                                <div id="bbHomeL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
-                                <div id="bbHomeWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
-                                <div id="bbHomeSeriesWins" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
-                                <div id="bbHomeInj" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
-                                <div id="bbHomeNoVigPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
-                            </div>
-                            <div id="bbHomeAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
-                    </div>
-
-                    <!-- FACTORS ROW -->
-                    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
-                        <!-- AWAY FACTORS -->
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
-                            <input type="text" id="bbSeriesCount" placeholder="series e.g. 1-0" oninput="document.getElementById('bbSeriesCount2').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;color:#fff;font-size:11px;">
-                            <select id="bbSeriesGames" onchange="document.getElementById('bbSeriesGames2').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
-                            <select id="bbParkAway" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">away park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
-                            <div id="bbAwayParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
-                            <div id="bbAwaySeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
-                            <div id="bbAwayBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
-                            <div id="bbAwayGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
-                        <!-- MIDDLE -->
-                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
-                            <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">factors</div>
-                            <div onclick="toggleFactorsView()" id="factorsToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
-                        </div>
-                        <!-- HOME FACTORS -->
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
-                            <input type="text" id="bbSeriesCount2" placeholder="series e.g. 1-0" oninput="document.getElementById('bbSeriesCount').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;color:#fff;font-size:11px;">
-                            <select id="bbSeriesGames2" onchange="document.getElementById('bbSeriesGames').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
-                            <select id="bbParkHome" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">home park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
-                            <div id="bbHomeParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
-                            <div id="bbHomeSeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
-                            <div id="bbHomeBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
-                            <div id="bbHomeGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
-                        </div>
-                    </div>
-
-                    <!-- FINAL EDGE + GAME WINNER -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:2px;">
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">final edge</div>
-                            <div style="font-size:16px;font-weight:700;color:#fff;" id="bbFinalEdge">—</div>
-                        </div>
-                        <div style="background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);">
-                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">game winner</div>
-                            <div style="font-size:13px;font-weight:700;color:#22c55e;text-align:center;" id="bbWinnerBox">—</div>
-                        </div>
-                    </div>
-
-                </div>
+                </div>                </div>
             </div>
             
             <div class="bottom-nav">
@@ -2599,7 +2610,7 @@
         
         // NFL Teams
         const nflTeams = [
-            { name: 'Cardinals', prefix: 'ARI', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/ari.png' },
+            { name: 'Cardinals', color1: '#C41E3A', color2: '#0C2340', prefix: 'ARI', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/ari.png' },
             { name: 'Falcons', prefix: 'ATL', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/atl.png' },
             { name: 'Ravens', prefix: 'BAL', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/bal.png' },
             { name: 'Bills', prefix: 'BUF', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/buf.png' },
@@ -2622,7 +2633,7 @@
             { name: 'Vikings', prefix: 'MIN', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/min.png' },
             { name: 'Patriots', prefix: 'NE', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/ne.png' },
             { name: 'Saints', prefix: 'NO', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/no.png' },
-            { name: 'Giants', prefix: 'NYG', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png' },
+            { name: 'Giants', color1: '#FD5A1E', color2: '#27251F', prefix: 'NYG', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png' },
             { name: 'Jets', prefix: 'NYJ', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png' },
             { name: 'Eagles', prefix: 'PHI', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png' },
             { name: 'Steelers', prefix: 'PIT', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/pit.png' },
@@ -2669,36 +2680,36 @@
         
         // MLB Teams
         const mlbTeams = [
-            { name: 'Diamondbacks', prefix: 'ARI', espn: 'ari',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png', park: 'Chase Field' },
-            { name: 'Braves',       prefix: 'ATL', espn: 'atl',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png', park: 'Truist Park' },
-            { name: 'Orioles',      prefix: 'BAL', espn: 'bal',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png', park: 'Camden Yards' },
-            { name: 'Red Sox',      prefix: 'BOS', espn: 'bos',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png', park: 'Fenway Park' },
-            { name: 'Cubs',         prefix: 'CHC', espn: 'chc',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png', park: 'Wrigley Field' },
-            { name: 'White Sox',    prefix: 'CWS', espn: 'chw',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png', park: 'Rate Field' },
-            { name: 'Reds',         prefix: 'CIN', espn: 'cin',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png', park: 'Great American Ball Park' },
-            { name: 'Guardians',    prefix: 'CLE', espn: 'cle',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png', park: 'Progressive Field' },
-            { name: 'Rockies',      prefix: 'COL', espn: 'col',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/col.png', park: 'Coors Field' },
-            { name: 'Tigers',       prefix: 'DET', espn: 'det',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/det.png', park: 'Comerica Park' },
-            { name: 'Astros',       prefix: 'HOU', espn: 'hou',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png', park: 'Daikin Park' },
-            { name: 'Royals',       prefix: 'KC',  espn: 'kc',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',  park: 'Kauffman Stadium' },
-            { name: 'Angels',       prefix: 'LAA', espn: 'laa',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png', park: 'Angel Stadium' },
-            { name: 'Dodgers',      prefix: 'LAD', espn: 'lad',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png', park: 'Dodger Stadium' },
-            { name: 'Marlins',      prefix: 'MIA', espn: 'mia',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png', park: 'loanDepot Park' },
-            { name: 'Brewers',      prefix: 'MIL', espn: 'mil',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png', park: 'American Family Field' },
-            { name: 'Twins',        prefix: 'MIN', espn: 'min',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/min.png', park: 'Target Field' },
-            { name: 'Mets',         prefix: 'NYM', espn: 'nym',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png', park: 'Citi Field' },
-            { name: 'Yankees',      prefix: 'NYY', espn: 'nyy',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png', park: 'Yankee Stadium' },
-            { name: 'Athletics',    prefix: 'ATH', espn: 'ath',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/ath.png', park: 'Sutter Health Park' },
-            { name: 'Phillies',     prefix: 'PHI', espn: 'phi',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png', park: 'Citizens Bank Park' },
-            { name: 'Pirates',      prefix: 'PIT', espn: 'pit',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png', park: 'PNC Park' },
-            { name: 'Padres',       prefix: 'SD',  espn: 'sd',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',  park: 'Petco Park' },
-            { name: 'Giants',       prefix: 'SF',  espn: 'sf',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',  park: 'Oracle Park' },
-            { name: 'Mariners',     prefix: 'SEA', espn: 'sea',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png', park: 'T-Mobile Park' },
-            { name: 'Cardinals',    prefix: 'STL', espn: 'stl',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png', park: 'Busch Stadium' },
-            { name: 'Rays',         prefix: 'TB',  espn: 'tb',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',  park: 'Tropicana Field' },
-            { name: 'Rangers',      prefix: 'TEX', espn: 'tex',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png', park: 'Globe Life Field' },
-            { name: 'Blue Jays',    prefix: 'TOR', espn: 'tor',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png', park: 'Rogers Centre' },
-            { name: 'Nationals',    prefix: 'WSH', espn: 'wsh',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png', park: 'Nationals Park' }
+            { name: 'Diamondbacks', color1: '#A71930', color2: '#E3D4AD', prefix: 'ARI', espn: 'ari',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png', park: 'Chase Field' },
+            { name: 'Braves', color1: '#CE1141', color2: '#13274F',       prefix: 'ATL', espn: 'atl',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png', park: 'Truist Park' },
+            { name: 'Orioles', color1: '#DF4601', color2: '#000000',      prefix: 'BAL', espn: 'bal',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png', park: 'Camden Yards' },
+            { name: 'Red Sox', color1: '#BD3039', color2: '#0C2340',      prefix: 'BOS', espn: 'bos',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png', park: 'Fenway Park' },
+            { name: 'Cubs', color1: '#0E3386', color2: '#CC3433',         prefix: 'CHC', espn: 'chc',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png', park: 'Wrigley Field' },
+            { name: 'White Sox', color1: '#27251F', color2: '#C4CED4',    prefix: 'CWS', espn: 'chw',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png', park: 'Rate Field' },
+            { name: 'Reds', color1: '#C6011F', color2: '#000000',         prefix: 'CIN', espn: 'cin',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png', park: 'Great American Ball Park' },
+            { name: 'Guardians', color1: '#00385D', color2: '#CC0000',    prefix: 'CLE', espn: 'cle',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png', park: 'Progressive Field' },
+            { name: 'Rockies', color1: '#33006F', color2: '#C4CED4',      prefix: 'COL', espn: 'col',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/col.png', park: 'Coors Field' },
+            { name: 'Tigers', color1: '#0C2340', color2: '#FA4616',       prefix: 'DET', espn: 'det',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/det.png', park: 'Comerica Park' },
+            { name: 'Astros', color1: '#002D62', color2: '#EB6E1F',       prefix: 'HOU', espn: 'hou',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png', park: 'Daikin Park' },
+            { name: 'Royals', color1: '#004687', color2: '#BD9B60',       prefix: 'KC',  espn: 'kc',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',  park: 'Kauffman Stadium' },
+            { name: 'Angels', color1: '#BA0021', color2: '#003263',       prefix: 'LAA', espn: 'laa',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png', park: 'Angel Stadium' },
+            { name: 'Dodgers', color1: '#005A9C', color2: '#EF3E42',      prefix: 'LAD', espn: 'lad',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png', park: 'Dodger Stadium' },
+            { name: 'Marlins', color1: '#00A3E0', color2: '#EF3340',      prefix: 'MIA', espn: 'mia',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png', park: 'loanDepot Park' },
+            { name: 'Brewers', color1: '#12284B', color2: '#FFC52F',      prefix: 'MIL', espn: 'mil',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png', park: 'American Family Field' },
+            { name: 'Twins', color1: '#002B5C', color2: '#D31145',        prefix: 'MIN', espn: 'min',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/min.png', park: 'Target Field' },
+            { name: 'Mets', color1: '#002D72', color2: '#FF5910',         prefix: 'NYM', espn: 'nym',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png', park: 'Citi Field' },
+            { name: 'Yankees', color1: '#003087', color2: '#C4CED4',      prefix: 'NYY', espn: 'nyy',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png', park: 'Yankee Stadium' },
+            { name: 'Athletics', color1: '#003831', color2: '#EFB21E',    prefix: 'ATH', espn: 'ath',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/ath.png', park: 'Sutter Health Park' },
+            { name: 'Phillies', color1: '#E81828', color2: '#002D72',     prefix: 'PHI', espn: 'phi',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png', park: 'Citizens Bank Park' },
+            { name: 'Pirates', color1: '#27251F', color2: '#FDB827',      prefix: 'PIT', espn: 'pit',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png', park: 'PNC Park' },
+            { name: 'Padres', color1: '#2F241D', color2: '#FFC425',       prefix: 'SD',  espn: 'sd',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',  park: 'Petco Park' },
+            { name: 'Giants', color1: '#FD5A1E', color2: '#27251F',       prefix: 'SF',  espn: 'sf',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',  park: 'Oracle Park' },
+            { name: 'Mariners', color1: '#0C2C56', color2: '#005C5C',     prefix: 'SEA', espn: 'sea',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png', park: 'T-Mobile Park' },
+            { name: 'Cardinals', color1: '#C41E3A', color2: '#0C2340',    prefix: 'STL', espn: 'stl',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png', park: 'Busch Stadium' },
+            { name: 'Rays', color1: '#092C5C', color2: '#8FBCE6',         prefix: 'TB',  espn: 'tb',   logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',  park: 'Tropicana Field' },
+            { name: 'Rangers', color1: '#003278', color2: '#C0111F',      prefix: 'TEX', espn: 'tex',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png', park: 'Globe Life Field' },
+            { name: 'Blue Jays', color1: '#134A8E', color2: '#E8291C',    prefix: 'TOR', espn: 'tor',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png', park: 'Rogers Centre' },
+            { name: 'Nationals', color1: '#AB0003', color2: '#14225A',    prefix: 'WSH', espn: 'wsh',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png', park: 'Nationals Park' }
         ];
         
         // NHL Teams
@@ -2715,7 +2726,7 @@
             { name: 'Blue Jackets', prefix: 'CBJ', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/cbj.png' },
             { name: 'Devils', prefix: 'NJ', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/nj.png' },
             { name: 'Islanders', prefix: 'NYI', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/nyi.png' },
-            { name: 'Rangers', prefix: 'NYR', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png' },
+            { name: 'Rangers', color1: '#003278', color2: '#C0111F', prefix: 'NYR', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png' },
             { name: 'Flyers', prefix: 'PHI', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/phi.png' },
             { name: 'Penguins', prefix: 'PIT', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/pit.png' },
             { name: 'Capitals', prefix: 'WSH', logo: 'https://a.espncdn.com/i/teamlogos/nhl/500/wsh.png' },
@@ -3512,6 +3523,23 @@
             }
         }
 
+        let mlbDetailVisible = false;
+        function toggleMLBDetailView() {
+            mlbDetailVisible = !mlbDetailVisible;
+            const rows  = document.getElementById('mlbDetailRows');
+            const track = document.getElementById('mlbToggleTrack');
+            const thumb = document.getElementById('mlbToggleThumb');
+            if (mlbDetailVisible) {
+                rows.style.display = 'flex';
+                track.style.background = 'rgba(34,197,94,0.6)';
+                thumb.style.left = '18px';
+            } else {
+                rows.style.display = 'none';
+                track.style.background = 'rgba(255,255,255,0.15)';
+                thumb.style.left = '2px';
+            }
+        }
+
         // ===== BASEBALL GAME WINNER EDGE =====
         function calculateBaseballEdge() {
 
@@ -3822,8 +3850,33 @@
             const winPct = Math.max(homeWinPct, awayWinPct);
             const edge   = Math.abs(homeWinPct - awayWinPct);
 
-            if (finalEdgeEl) finalEdgeEl.textContent = edge + '%';
+            if (finalEdgeEl) finalEdgeEl.textContent = winPct.toFixed(2) + '%';
             if (winnerBoxEl) winnerBoxEl.textContent  = winner + ' ' + winPct + '%';
+
+            const resultBox = document.getElementById('bbWinnerResultBox');
+            if (resultBox) {
+                const isHomeWinner = homeWinPct > awayWinPct;
+                const winnerTeamObj = isHomeWinner ? selectedBBHomeTeam : selectedBBAwayTeam;
+                const resultTextEl = resultBox.querySelector('.winner-result-text');
+
+                if (winnerTeamObj) {
+                    const color1 = winnerTeamObj.color1 || '#22c55e';
+                    const color2 = winnerTeamObj.color2 || '#16a34a';
+                    const logo   = winnerTeamObj.logo   || '';
+                    const name   = (isHomeWinner ? homeTeamName : awayTeamName).toUpperCase();
+
+                    resultBox.classList.add('highlight-winner');
+                    resultBox.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+                    if (resultTextEl) resultTextEl.innerHTML = `
+                        <img src="${logo}" style="width:60px;height:60px;margin-bottom:8px;object-fit:contain;">
+                        <div>${name} ${winPct}%</div>
+                    `;
+                } else {
+                    resultBox.classList.remove('highlight-winner');
+                    resultBox.style.background = 'rgba(60,60,70,0.95)';
+                    if (resultTextEl) resultTextEl.textContent = winner + ' ' + winPct + '%';
+                }
+            }
         }
 
         // Calculate stats
@@ -5944,7 +5997,7 @@
                         inset 0 -1px 2px rgba(0, 122, 51, 0.3),
                         0 0 0 1px rgba(255, 255, 255, 0.3),
                         0 4px 12px rgba(0, 122, 51, 0.5),
-                        0 0 20px rgba(0, 122, 51, 0.3);
+                        0 0 20px rgba(0, 122, 51, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -5989,7 +6042,7 @@
                         inset 0 -1px 2px rgba(29, 66, 186, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(29, 66, 186, 0.5),
-                        0 0 20px rgba(29, 66, 186, 0.3);
+                        0 0 20px rgba(29, 66, 186, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6034,7 +6087,7 @@
                         inset 0 -1px 2px rgba(245, 132, 38, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(245, 132, 38, 0.5),
-                        0 0 20px rgba(245, 132, 38, 0.3);
+                        0 0 20px rgba(245, 132, 38, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6079,7 +6132,7 @@
                         inset 0 -1px 2px rgba(134, 0, 56, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(134, 0, 56, 0.5),
-                        0 0 20px rgba(134, 0, 56, 0.3);
+                        0 0 20px rgba(134, 0, 56, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6124,7 +6177,7 @@
                         inset 0 -1px 2px rgba(206, 17, 65, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(206, 17, 65, 0.5),
-                        0 0 20px rgba(206, 17, 65, 0.3);
+                        0 0 20px rgba(206, 17, 65, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6169,7 +6222,7 @@
                         inset 0 -1px 2px rgba(0, 107, 182, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(0, 107, 182, 0.5),
-                        0 0 20px rgba(0, 107, 182, 0.3);
+                        0 0 20px rgba(0, 107, 182, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6214,7 +6267,7 @@
                         inset 0 -1px 2px rgba(0, 119, 192, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(0, 119, 192, 0.5),
-                        0 0 20px rgba(0, 119, 192, 0.3);
+                        0 0 20px rgba(0, 119, 192, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6259,7 +6312,7 @@
                         inset 0 -1px 2px rgba(152, 0, 46, 0.3),
                         0 0 0 1px rgba(249, 160, 27, 0.3),
                         0 4px 12px rgba(152, 0, 46, 0.5),
-                        0 0 20px rgba(152, 0, 46, 0.3);
+                        0 0 20px rgba(152, 0, 46, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6304,7 +6357,7 @@
                         inset 0 -1px 2px rgba(224, 58, 62, 0.3),
                         0 0 0 1px rgba(193, 211, 47, 0.3),
                         0 4px 12px rgba(224, 58, 62, 0.5),
-                        0 0 20px rgba(224, 58, 62, 0.3);
+                        0 0 20px rgba(224, 58, 62, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6349,7 +6402,7 @@
                         inset 0 -1px 2px rgba(29, 17, 96, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(29, 17, 96, 0.5),
-                        0 0 20px rgba(29, 17, 96, 0.3);
+                        0 0 20px rgba(29, 17, 96, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6394,7 +6447,7 @@
                         inset 0 -1px 2px rgba(206, 17, 65, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(206, 17, 65, 0.5),
-                        0 0 20px rgba(206, 17, 65, 0.3);
+                        0 0 20px rgba(206, 17, 65, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6439,7 +6492,7 @@
                         inset 0 -1px 2px rgba(0, 71, 27, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(0, 71, 27, 0.5),
-                        0 0 20px rgba(0, 71, 27, 0.3);
+                        0 0 20px rgba(0, 71, 27, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6484,7 +6537,7 @@
                         inset 0 -1px 2px rgba(0, 0, 0, 0.3),
                         0 0 0 1px rgba(150, 150, 150, 0.3),
                         0 4px 12px rgba(0, 0, 0, 0.5),
-                        0 0 20px rgba(0, 0, 0, 0.3);
+                        0 0 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6529,7 +6582,7 @@
                         inset 0 -1px 2px rgba(0, 43, 92, 0.3),
                         0 0 0 1px rgba(227, 24, 55, 0.3),
                         0 4px 12px rgba(0, 43, 92, 0.5),
-                        0 0 20px rgba(0, 43, 92, 0.3);
+                        0 0 20px rgba(0, 43, 92, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6574,7 +6627,7 @@
                         inset 0 -1px 2px rgba(0, 45, 98, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(0, 45, 98, 0.5),
-                        0 0 20px rgba(0, 45, 98, 0.3);
+                        0 0 20px rgba(0, 45, 98, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6619,7 +6672,7 @@
                         inset 0 -1px 2px rgba(0, 122, 193, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(0, 122, 193, 0.5),
-                        0 0 20px rgba(0, 122, 193, 0.3);
+                        0 0 20px rgba(0, 122, 193, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6664,7 +6717,7 @@
                         inset 0 -1px 2px rgba(58, 58, 58, 0.3),
                         0 0 0 1px rgba(150, 150, 150, 0.3),
                         0 4px 12px rgba(58, 58, 58, 0.5),
-                        0 0 20px rgba(58, 58, 58, 0.3);
+                        0 0 20px rgba(58, 58, 58, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6709,7 +6762,7 @@
                         inset 0 -1px 2px rgba(14, 34, 64, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(14, 34, 64, 0.5),
-                        0 0 20px rgba(14, 34, 64, 0.3);
+                        0 0 20px rgba(14, 34, 64, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6754,7 +6807,7 @@
                         inset 0 -1px 2px rgba(206, 17, 65, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(206, 17, 65, 0.5),
-                        0 0 20px rgba(206, 17, 65, 0.3);
+                        0 0 20px rgba(206, 17, 65, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6797,7 +6850,7 @@
                         inset 0 -1px 2px rgba(12, 35, 64, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(12, 35, 64, 0.5),
-                        0 0 20px rgba(12, 35, 64, 0.3);
+                        0 0 20px rgba(12, 35, 64, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6840,7 +6893,7 @@
                         inset 0 -1px 2px rgba(29, 17, 96, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(29, 17, 96, 0.5),
-                        0 0 20px rgba(29, 17, 96, 0.3);
+                        0 0 20px rgba(29, 17, 96, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6883,7 +6936,7 @@
                         inset 0 -1px 2px rgba(85, 37, 131, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(85, 37, 131, 0.5),
-                        0 0 20px rgba(85, 37, 131, 0.3);
+                        0 0 20px rgba(85, 37, 131, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6929,7 +6982,7 @@
                         inset 0 -1px 2px rgba(29, 66, 138, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(29, 66, 138, 0.5),
-                        0 0 20px rgba(29, 66, 138, 0.3);
+                        0 0 20px rgba(29, 66, 138, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -6972,7 +7025,7 @@
                         inset 0 -1px 2px rgba(224, 58, 62, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(224, 58, 62, 0.5),
-                        0 0 20px rgba(224, 58, 62, 0.3);
+                        0 0 20px rgba(224, 58, 62, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7015,7 +7068,7 @@
                         inset 0 -1px 2px rgba(200, 16, 46, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(200, 16, 46, 0.5),
-                        0 0 20px rgba(200, 16, 46, 0.3);
+                        0 0 20px rgba(200, 16, 46, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7058,7 +7111,7 @@
                         inset 0 -1px 2px rgba(93, 118, 169, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(93, 118, 169, 0.5),
-                        0 0 20px rgba(93, 118, 169, 0.3);
+                        0 0 20px rgba(93, 118, 169, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7101,7 +7154,7 @@
                         inset 0 -1px 2px rgba(0, 83, 140, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(0, 83, 140, 0.5),
-                        0 0 20px rgba(0, 83, 140, 0.3);
+                        0 0 20px rgba(0, 83, 140, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7144,7 +7197,7 @@
                         inset 0 -1px 2px rgba(93, 46, 140, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(93, 46, 140, 0.5),
-                        0 0 20px rgba(93, 46, 140, 0.3);
+                        0 0 20px rgba(93, 46, 140, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7187,7 +7240,7 @@
                         inset 0 -1px 2px rgba(12, 35, 64, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(12, 35, 64, 0.5),
-                        0 0 20px rgba(12, 35, 64, 0.3);
+                        0 0 20px rgba(12, 35, 64, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7230,7 +7283,7 @@
                         inset 0 -1px 2px rgba(90, 45, 129, 0.3),
                         0 0 0 1px rgba(200, 200, 200, 0.3),
                         0 4px 12px rgba(90, 45, 129, 0.5),
-                        0 0 20px rgba(90, 45, 129, 0.3);
+                        0 0 20px rgba(90, 45, 129, 0.3), 0 0 15px rgba(255,255,255,0.6);
                     border-radius: 8px;
                     margin-bottom: 10px;
                     overflow: hidden;
@@ -7254,6 +7307,773 @@
                 `;
                 kingsEntry.style.display = "none"; // HIDDEN - only for cloning
                 logContent.appendChild(kingsEntry);
+
+
+
+                // MLB Diamondbacks
+                const diamondbacksMLBEntry = document.createElement('div');
+                diamondbacksMLBEntry.className = 'log-entry mlb-permanent-example';
+                diamondbacksMLBEntry.setAttribute('data-team-name', 'D-Backs');
+                diamondbacksMLBEntry.setAttribute('data-confidence', '0');
+                diamondbacksMLBEntry.setAttribute('data-odds', '+100');
+                diamondbacksMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                diamondbacksMLBEntry.style.cssText = `
+                    display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;
+                    background:#A71930;
+                    border:3px solid #E3D4AD;
+                    outline:2px solid #E3D4AD;
+                    outline-offset:-5px;
+                    box-shadow:
+                        inset 0 1px 3px rgba(255,100,100,0.6),
+                        inset 0 -1px 2px rgba(167,25,48,0.3),
+                        0 0 0 1px rgba(227,212,173,0.3),
+                        0 4px 12px rgba(200,30,50,0.5),
+                        0 0 20px rgba(200,30,50,0.3), 0 0 15px rgba(255,255,255,0.6);
+                    border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;
+                `;
+                diamondbacksMLBEntry.innerHTML = `
+                    <div style="position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(200,50,50,0.4) 0%,rgba(255,255,255,0) 100%);pointer-events:none;"></div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/ari.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #E3D4AD;border-right:2px solid #E3D4AD;position:relative;background:linear-gradient(90deg,rgba(227,212,173,0.05) 0%,transparent 10%,transparent 90%,rgba(227,212,173,0.05) 100%);box-shadow:inset 1px 0 0 rgba(255,255,255,0.15),inset -1px 0 0 rgba(255,255,255,0.15);">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.8);">D-Backs</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #E3D4AD;position:relative;background:linear-gradient(90deg,rgba(227,212,173,0.05) 0%,transparent 10%,transparent 90%,rgba(227,212,173,0.05) 100%);box-shadow:inset -1px 0 0 rgba(255,255,255,0.15);">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.8);">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.6);border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                diamondbacksMLBEntry.style.display = 'none';
+                logContent.appendChild(diamondbacksMLBEntry);
+
+                // MLB Braves
+                const bravesMLBEntry = document.createElement('div');
+                bravesMLBEntry.className = 'log-entry mlb-permanent-example';
+                bravesMLBEntry.setAttribute('data-team-name', 'Braves');
+                bravesMLBEntry.setAttribute('data-confidence', '0');
+                bravesMLBEntry.setAttribute('data-odds', '+100');
+                bravesMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                bravesMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#CE1141;border:3px solid #13274F;outline:2px solid #13274F;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                bravesMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/atl.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #13274F;border-right:2px solid #13274F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #13274F;">Braves</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #13274F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #13274F;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#13274F;border:1px solid #13274F;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                bravesMLBEntry.style.display = 'none';
+                logContent.appendChild(bravesMLBEntry);
+
+                // MLB Orioles
+                const oriolesMLBEntry = document.createElement('div');
+                oriolesMLBEntry.className = 'log-entry mlb-permanent-example';
+                oriolesMLBEntry.setAttribute('data-team-name', 'Orioles');
+                oriolesMLBEntry.setAttribute('data-confidence', '0');
+                oriolesMLBEntry.setAttribute('data-odds', '+100');
+                oriolesMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                oriolesMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#DF4601;border:3px solid #000000;outline:2px solid #000000;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                oriolesMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/bal.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #000000;border-right:2px solid #000000;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000000;">Orioles</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #000000;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000000;">+100</span>
+                    </div>
+
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#000000;border:1px solid #000000;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                oriolesMLBEntry.style.display = 'none';
+                logContent.appendChild(oriolesMLBEntry);
+
+                // MLB Red Sox
+                const red_soxMLBEntry = document.createElement('div');
+                red_soxMLBEntry.className = 'log-entry mlb-permanent-example';
+                red_soxMLBEntry.setAttribute('data-team-name', 'Red Sox');
+                red_soxMLBEntry.setAttribute('data-confidence', '0');
+                red_soxMLBEntry.setAttribute('data-odds', '+100');
+                red_soxMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                red_soxMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#BD3039;border:3px solid #0C2340;outline:2px solid #0C2340;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                red_soxMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/bos.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #0C2340;border-right:2px solid #0C2340;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #0C2340;">Red Sox</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #0C2340;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #0C2340;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#0C2340;border:1px solid #0C2340;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                red_soxMLBEntry.style.display = 'none';
+                logContent.appendChild(red_soxMLBEntry);
+
+                // MLB Cubs
+                const cubsMLBEntry = document.createElement('div');
+                cubsMLBEntry.className = 'log-entry mlb-permanent-example';
+                cubsMLBEntry.setAttribute('data-team-name', 'Cubs');
+                cubsMLBEntry.setAttribute('data-confidence', '0');
+                cubsMLBEntry.setAttribute('data-odds', '+100');
+                cubsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                cubsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#0E3386;border:3px solid #CC3433;outline:2px solid #CC3433;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                cubsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/chc.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #CC3433;border-right:2px solid #CC3433;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #CC3433;">Cubs</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #CC3433;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #CC3433;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#CC3433;border:1px solid #CC3433;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                cubsMLBEntry.style.display = 'none';
+                logContent.appendChild(cubsMLBEntry);
+
+                // MLB White Sox
+                const white_soxMLBEntry = document.createElement('div');
+                white_soxMLBEntry.className = 'log-entry mlb-permanent-example';
+                white_soxMLBEntry.setAttribute('data-team-name', 'White Sox');
+                white_soxMLBEntry.setAttribute('data-confidence', '0');
+                white_soxMLBEntry.setAttribute('data-odds', '+100');
+                white_soxMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                white_soxMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#27251F;border:3px solid #C4CED4;outline:2px solid #C4CED4;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                white_soxMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/chw.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #C4CED4;border-right:2px solid #C4CED4;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C4CED4;">White Sox</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #C4CED4;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C4CED4;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#C4CED4;border:1px solid #C4CED4;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                white_soxMLBEntry.style.display = 'none';
+                logContent.appendChild(white_soxMLBEntry);
+
+                // MLB Reds
+                const redsMLBEntry = document.createElement('div');
+                redsMLBEntry.className = 'log-entry mlb-permanent-example';
+                redsMLBEntry.setAttribute('data-team-name', 'Reds');
+                redsMLBEntry.setAttribute('data-confidence', '0');
+                redsMLBEntry.setAttribute('data-odds', '+100');
+                redsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                redsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#C6011F;border:3px solid #000000;outline:2px solid #000000;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                redsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/cin.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #000000;border-right:2px solid #000000;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000000;">Reds</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #000000;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #000000;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#000000;border:1px solid #000000;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                redsMLBEntry.style.display = 'none';
+                logContent.appendChild(redsMLBEntry);
+
+                // MLB Guardians
+                const guardiansMLBEntry = document.createElement('div');
+                guardiansMLBEntry.className = 'log-entry mlb-permanent-example';
+                guardiansMLBEntry.setAttribute('data-team-name', 'Guardians');
+                guardiansMLBEntry.setAttribute('data-confidence', '0');
+                guardiansMLBEntry.setAttribute('data-odds', '+100');
+                guardiansMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                guardiansMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#00385D;border:3px solid #CC0000;outline:2px solid #CC0000;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                guardiansMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/cle.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #CC0000;border-right:2px solid #CC0000;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #CC0000;">Guardians</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #CC0000;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #CC0000;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#CC0000;border:1px solid #CC0000;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                guardiansMLBEntry.style.display = 'none';
+                logContent.appendChild(guardiansMLBEntry);
+
+                // MLB Rockies
+                const rockiesMLBEntry = document.createElement('div');
+                rockiesMLBEntry.className = 'log-entry mlb-permanent-example';
+                rockiesMLBEntry.setAttribute('data-team-name', 'Rockies');
+                rockiesMLBEntry.setAttribute('data-confidence', '0');
+                rockiesMLBEntry.setAttribute('data-odds', '+100');
+                rockiesMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                rockiesMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#33006F;border:3px solid #C4CED4;outline:2px solid #C4CED4;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                rockiesMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/col.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #C4CED4;border-right:2px solid #C4CED4;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C4CED4;">Rockies</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #C4CED4;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C4CED4;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#C4CED4;border:1px solid #C4CED4;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                rockiesMLBEntry.style.display = 'none';
+                logContent.appendChild(rockiesMLBEntry);
+
+                // MLB Tigers
+                const tigersMLBEntry = document.createElement('div');
+                tigersMLBEntry.className = 'log-entry mlb-permanent-example';
+                tigersMLBEntry.setAttribute('data-team-name', 'Tigers');
+                tigersMLBEntry.setAttribute('data-confidence', '0');
+                tigersMLBEntry.setAttribute('data-odds', '+100');
+                tigersMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                tigersMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#0C2340;border:3px solid #FA4616;outline:2px solid #FA4616;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                tigersMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/det.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #FA4616;border-right:2px solid #FA4616;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FA4616;">Tigers</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #FA4616;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FA4616;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#FA4616;border:1px solid #FA4616;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                tigersMLBEntry.style.display = 'none';
+                logContent.appendChild(tigersMLBEntry);
+
+                // MLB Astros
+                const astrosMLBEntry = document.createElement('div');
+                astrosMLBEntry.className = 'log-entry mlb-permanent-example';
+                astrosMLBEntry.setAttribute('data-team-name', 'Astros');
+                astrosMLBEntry.setAttribute('data-confidence', '0');
+                astrosMLBEntry.setAttribute('data-odds', '+100');
+                astrosMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                astrosMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#002D62;border:3px solid #EB6E1F;outline:2px solid #EB6E1F;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                astrosMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/hou.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #EB6E1F;border-right:2px solid #EB6E1F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EB6E1F;">Astros</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #EB6E1F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EB6E1F;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#EB6E1F;border:1px solid #EB6E1F;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                astrosMLBEntry.style.display = 'none';
+                logContent.appendChild(astrosMLBEntry);
+
+                // MLB Royals
+                const royalsMLBEntry = document.createElement('div');
+                royalsMLBEntry.className = 'log-entry mlb-permanent-example';
+                royalsMLBEntry.setAttribute('data-team-name', 'Royals');
+                royalsMLBEntry.setAttribute('data-confidence', '0');
+                royalsMLBEntry.setAttribute('data-odds', '+100');
+                royalsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                royalsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#004687;border:3px solid #BD9B60;outline:2px solid #BD9B60;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                royalsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/kc.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #BD9B60;border-right:2px solid #BD9B60;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #BD9B60;">Royals</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #BD9B60;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #BD9B60;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#BD9B60;border:1px solid #BD9B60;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                royalsMLBEntry.style.display = 'none';
+                logContent.appendChild(royalsMLBEntry);
+
+                // MLB Angels
+                const angelsMLBEntry = document.createElement('div');
+                angelsMLBEntry.className = 'log-entry mlb-permanent-example';
+                angelsMLBEntry.setAttribute('data-team-name', 'Angels');
+                angelsMLBEntry.setAttribute('data-confidence', '0');
+                angelsMLBEntry.setAttribute('data-odds', '+100');
+                angelsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                angelsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#BA0021;border:3px solid #003263;outline:2px solid #003263;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                angelsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/laa.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #003263;border-right:2px solid #003263;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #003263;">Angels</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #003263;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #003263;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#003263;border:1px solid #003263;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                angelsMLBEntry.style.display = 'none';
+                logContent.appendChild(angelsMLBEntry);
+
+                // MLB Dodgers
+                const dodgersMLBEntry = document.createElement('div');
+                dodgersMLBEntry.className = 'log-entry mlb-permanent-example';
+                dodgersMLBEntry.setAttribute('data-team-name', 'Dodgers');
+                dodgersMLBEntry.setAttribute('data-confidence', '0');
+                dodgersMLBEntry.setAttribute('data-odds', '+100');
+                dodgersMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                dodgersMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#005A9C;border:3px solid #EF3E42;outline:2px solid #EF3E42;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                dodgersMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/lad.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #EF3E42;border-right:2px solid #EF3E42;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EF3E42;">Dodgers</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #EF3E42;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EF3E42;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#EF3E42;border:1px solid #EF3E42;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                dodgersMLBEntry.style.display = 'none';
+                logContent.appendChild(dodgersMLBEntry);
+
+                // MLB Marlins
+                const marlinsMLBEntry = document.createElement('div');
+                marlinsMLBEntry.className = 'log-entry mlb-permanent-example';
+                marlinsMLBEntry.setAttribute('data-team-name', 'Marlins');
+                marlinsMLBEntry.setAttribute('data-confidence', '0');
+                marlinsMLBEntry.setAttribute('data-odds', '+100');
+                marlinsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                marlinsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#00A3E0;border:3px solid #EF3340;outline:2px solid #EF3340;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                marlinsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/mia.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #EF3340;border-right:2px solid #EF3340;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EF3340;">Marlins</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #EF3340;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EF3340;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#EF3340;border:1px solid #EF3340;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                marlinsMLBEntry.style.display = 'none';
+                logContent.appendChild(marlinsMLBEntry);
+
+                // MLB Brewers
+                const brewersMLBEntry = document.createElement('div');
+                brewersMLBEntry.className = 'log-entry mlb-permanent-example';
+                brewersMLBEntry.setAttribute('data-team-name', 'Brewers');
+                brewersMLBEntry.setAttribute('data-confidence', '0');
+                brewersMLBEntry.setAttribute('data-odds', '+100');
+                brewersMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                brewersMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#12284B;border:3px solid #FFC52F;outline:2px solid #FFC52F;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                brewersMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/mil.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #FFC52F;border-right:2px solid #FFC52F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FFC52F;">Brewers</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #FFC52F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FFC52F;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#FFC52F;border:1px solid #FFC52F;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                brewersMLBEntry.style.display = 'none';
+                logContent.appendChild(brewersMLBEntry);
+
+                // MLB Twins
+                const twinsMLBEntry = document.createElement('div');
+                twinsMLBEntry.className = 'log-entry mlb-permanent-example';
+                twinsMLBEntry.setAttribute('data-team-name', 'Twins');
+                twinsMLBEntry.setAttribute('data-confidence', '0');
+                twinsMLBEntry.setAttribute('data-odds', '+100');
+                twinsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                twinsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#002B5C;border:3px solid #D31145;outline:2px solid #D31145;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                twinsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/min.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #D31145;border-right:2px solid #D31145;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #D31145;">Twins</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #D31145;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #D31145;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#D31145;border:1px solid #D31145;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                twinsMLBEntry.style.display = 'none';
+                logContent.appendChild(twinsMLBEntry);
+
+                // MLB Mets
+                const metsMLBEntry = document.createElement('div');
+                metsMLBEntry.className = 'log-entry mlb-permanent-example';
+                metsMLBEntry.setAttribute('data-team-name', 'Mets');
+                metsMLBEntry.setAttribute('data-confidence', '0');
+                metsMLBEntry.setAttribute('data-odds', '+100');
+                metsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                metsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#002D72;border:3px solid #FF5910;outline:2px solid #FF5910;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                metsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/nym.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #FF5910;border-right:2px solid #FF5910;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FF5910;">Mets</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #FF5910;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FF5910;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#FF5910;border:1px solid #FF5910;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                metsMLBEntry.style.display = 'none';
+                logContent.appendChild(metsMLBEntry);
+
+                // MLB Yankees
+                const yankeesMLBEntry = document.createElement('div');
+                yankeesMLBEntry.className = 'log-entry mlb-permanent-example';
+                yankeesMLBEntry.setAttribute('data-team-name', 'Yankees');
+                yankeesMLBEntry.setAttribute('data-confidence', '0');
+                yankeesMLBEntry.setAttribute('data-odds', '+100');
+                yankeesMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                yankeesMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#003087;border:3px solid #C4CED4;outline:2px solid #C4CED4;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                yankeesMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #C4CED4;border-right:2px solid #C4CED4;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C4CED4;">Yankees</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #C4CED4;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C4CED4;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#C4CED4;border:1px solid #C4CED4;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                yankeesMLBEntry.style.display = 'none';
+                logContent.appendChild(yankeesMLBEntry);
+
+                // MLB Athletics
+                const athleticsMLBEntry = document.createElement('div');
+                athleticsMLBEntry.className = 'log-entry mlb-permanent-example';
+                athleticsMLBEntry.setAttribute('data-team-name', 'Athletics');
+                athleticsMLBEntry.setAttribute('data-confidence', '0');
+                athleticsMLBEntry.setAttribute('data-odds', '+100');
+                athleticsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                athleticsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#003831;border:3px solid #EFB21E;outline:2px solid #EFB21E;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                athleticsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/oak.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #EFB21E;border-right:2px solid #EFB21E;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EFB21E;">Athletics</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #EFB21E;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #EFB21E;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#EFB21E;border:1px solid #EFB21E;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                athleticsMLBEntry.style.display = 'none';
+                logContent.appendChild(athleticsMLBEntry);
+
+                // MLB Phillies
+                const philliesMLBEntry = document.createElement('div');
+                philliesMLBEntry.className = 'log-entry mlb-permanent-example';
+                philliesMLBEntry.setAttribute('data-team-name', 'Phillies');
+                philliesMLBEntry.setAttribute('data-confidence', '0');
+                philliesMLBEntry.setAttribute('data-odds', '+100');
+                philliesMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                philliesMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#E81828;border:3px solid #002D72;outline:2px solid #002D72;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                philliesMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/phi.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #002D72;border-right:2px solid #002D72;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #002D72;">Phillies</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #002D72;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #002D72;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#002D72;border:1px solid #002D72;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                philliesMLBEntry.style.display = 'none';
+                logContent.appendChild(philliesMLBEntry);
+
+                // MLB Pirates
+                const piratesMLBEntry = document.createElement('div');
+                piratesMLBEntry.className = 'log-entry mlb-permanent-example';
+                piratesMLBEntry.setAttribute('data-team-name', 'Pirates');
+                piratesMLBEntry.setAttribute('data-confidence', '0');
+                piratesMLBEntry.setAttribute('data-odds', '+100');
+                piratesMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                piratesMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#27251F;border:3px solid #FDB827;outline:2px solid #FDB827;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                piratesMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/pit.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #FDB827;border-right:2px solid #FDB827;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FDB827;">Pirates</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #FDB827;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FDB827;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#FDB827;border:1px solid #FDB827;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                piratesMLBEntry.style.display = 'none';
+                logContent.appendChild(piratesMLBEntry);
+
+                // MLB Padres
+                const padresMLBEntry = document.createElement('div');
+                padresMLBEntry.className = 'log-entry mlb-permanent-example';
+                padresMLBEntry.setAttribute('data-team-name', 'Padres');
+                padresMLBEntry.setAttribute('data-confidence', '0');
+                padresMLBEntry.setAttribute('data-odds', '+100');
+                padresMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                padresMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#2F241D;border:3px solid #FFC425;outline:2px solid #FFC425;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                padresMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/sd.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #FFC425;border-right:2px solid #FFC425;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FFC425;">Padres</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #FFC425;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #FFC425;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#FFC425;border:1px solid #FFC425;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                padresMLBEntry.style.display = 'none';
+                logContent.appendChild(padresMLBEntry);
+
+                // MLB Giants
+                const giantsMLBEntry = document.createElement('div');
+                giantsMLBEntry.className = 'log-entry mlb-permanent-example';
+                giantsMLBEntry.setAttribute('data-team-name', 'Giants');
+                giantsMLBEntry.setAttribute('data-confidence', '0');
+                giantsMLBEntry.setAttribute('data-odds', '+100');
+                giantsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                giantsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#FD5A1E;border:3px solid #27251F;outline:2px solid #27251F;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                giantsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/sf.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #27251F;border-right:2px solid #27251F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #27251F;">Giants</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #27251F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #27251F;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#27251F;border:1px solid #27251F;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                giantsMLBEntry.style.display = 'none';
+                logContent.appendChild(giantsMLBEntry);
+
+                // MLB Mariners
+                const marinersMLBEntry = document.createElement('div');
+                marinersMLBEntry.className = 'log-entry mlb-permanent-example';
+                marinersMLBEntry.setAttribute('data-team-name', 'Mariners');
+                marinersMLBEntry.setAttribute('data-confidence', '0');
+                marinersMLBEntry.setAttribute('data-odds', '+100');
+                marinersMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                marinersMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#0C2C56;border:3px solid #005C5C;outline:2px solid #005C5C;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                marinersMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/sea.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #005C5C;border-right:2px solid #005C5C;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #005C5C;">Mariners</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #005C5C;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #005C5C;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#005C5C;border:1px solid #005C5C;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                marinersMLBEntry.style.display = 'none';
+                logContent.appendChild(marinersMLBEntry);
+
+                // MLB Cardinals
+                const cardinalsMLBEntry = document.createElement('div');
+                cardinalsMLBEntry.className = 'log-entry mlb-permanent-example';
+                cardinalsMLBEntry.setAttribute('data-team-name', 'Cardinals');
+                cardinalsMLBEntry.setAttribute('data-confidence', '0');
+                cardinalsMLBEntry.setAttribute('data-odds', '+100');
+                cardinalsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                cardinalsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#C41E3A;border:3px solid #0C2340;outline:2px solid #0C2340;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                cardinalsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/stl.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #0C2340;border-right:2px solid #0C2340;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #0C2340;">Cardinals</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #0C2340;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #0C2340;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#0C2340;border:1px solid #0C2340;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                cardinalsMLBEntry.style.display = 'none';
+                logContent.appendChild(cardinalsMLBEntry);
+
+                // MLB Rays
+                const raysMLBEntry = document.createElement('div');
+                raysMLBEntry.className = 'log-entry mlb-permanent-example';
+                raysMLBEntry.setAttribute('data-team-name', 'Rays');
+                raysMLBEntry.setAttribute('data-confidence', '0');
+                raysMLBEntry.setAttribute('data-odds', '+100');
+                raysMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                raysMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#092C5C;border:3px solid #8FBCE6;outline:2px solid #8FBCE6;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                raysMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/tb.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #8FBCE6;border-right:2px solid #8FBCE6;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #8FBCE6;">Rays</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #8FBCE6;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #8FBCE6;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#8FBCE6;border:1px solid #8FBCE6;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                raysMLBEntry.style.display = 'none';
+                logContent.appendChild(raysMLBEntry);
+
+                // MLB Rangers
+                const rangersMLBEntry = document.createElement('div');
+                rangersMLBEntry.className = 'log-entry mlb-permanent-example';
+                rangersMLBEntry.setAttribute('data-team-name', 'Rangers');
+                rangersMLBEntry.setAttribute('data-confidence', '0');
+                rangersMLBEntry.setAttribute('data-odds', '+100');
+                rangersMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                rangersMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#003278;border:3px solid #C0111F;outline:2px solid #C0111F;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                rangersMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/tex.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #C0111F;border-right:2px solid #C0111F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C0111F;">Rangers</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #C0111F;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #C0111F;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#C0111F;border:1px solid #C0111F;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                rangersMLBEntry.style.display = 'none';
+                logContent.appendChild(rangersMLBEntry);
+
+                // MLB Blue Jays
+                const blue_jaysMLBEntry = document.createElement('div');
+                blue_jaysMLBEntry.className = 'log-entry mlb-permanent-example';
+                blue_jaysMLBEntry.setAttribute('data-team-name', 'Blue Jays');
+                blue_jaysMLBEntry.setAttribute('data-confidence', '0');
+                blue_jaysMLBEntry.setAttribute('data-odds', '+100');
+                blue_jaysMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                blue_jaysMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#134A8E;border:3px solid #E8291C;outline:2px solid #E8291C;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                blue_jaysMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/tor.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #E8291C;border-right:2px solid #E8291C;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #E8291C;">Blue Jays</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #E8291C;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #E8291C;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#E8291C;border:1px solid #E8291C;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                blue_jaysMLBEntry.style.display = 'none';
+                logContent.appendChild(blue_jaysMLBEntry);
+
+                // MLB Nationals
+                const nationalsMLBEntry = document.createElement('div');
+                nationalsMLBEntry.className = 'log-entry mlb-permanent-example';
+                nationalsMLBEntry.setAttribute('data-team-name', 'Nationals');
+                nationalsMLBEntry.setAttribute('data-confidence', '0');
+                nationalsMLBEntry.setAttribute('data-odds', '+100');
+                nationalsMLBEntry.setAttribute('data-bet-type', 'PLAY');
+                nationalsMLBEntry.style.cssText = 'display:grid;grid-template-columns:50px 90px 65px 80px;align-items:center;gap:0;padding:0;background:#AB0003;border:3px solid #14225A;outline:2px solid #14225A;outline-offset:-5px;box-shadow:0 0 15px rgba(255,255,255,0.6),0 4px 12px rgba(0,0,0,0.5);border-radius:8px;margin-bottom:10px;overflow:hidden;opacity:0.85;position:relative;';
+                nationalsMLBEntry.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 8px;height:100%;position:relative;">
+                        <img src="https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png" style="width:32px;height:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));object-fit:contain;">
+                    </div>
+                    <div style="display:flex;align-items:center;padding:12px 8px;height:100%;border-left:2px solid #14225A;border-right:2px solid #14225A;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #14225A;">Nationals</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;border-right:2px solid #14225A;position:relative;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px #14225A;">+100</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;padding:12px 6px;height:100%;position:relative;">
+                        <input type="text" placeholder="$00.00" disabled style="background:#14225A;border:1px solid #14225A;border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-weight:700;text-align:center;outline:none;width:65px;cursor:not-allowed;">
+                    </div>
+                `;
+                nationalsMLBEntry.style.display = 'none';
+                logContent.appendChild(nationalsMLBEntry);
 
                 // Restore saved logbook entries from Firebase (or localStorage fallback)
                 if (pendingLogbookEntries) {
@@ -8296,6 +9116,38 @@
                         saveAppState();
                         if (activeBetDay === targetDay.day) renderBetDayCards();
                         console.log('✅ MLB game saved:', selectedBBAwayTeam.name, 'vs', selectedBBHomeTeam.name, '→', pickTeam);
+
+                        // ── Also add card to GAME LOG ──
+                        const logContent = document.getElementById('logContent');
+                        if (logContent) {
+                            const pickTeamDisplay = pickTeam === 'Diamondbacks' ? 'D-Backs' : pickTeam;
+                            const mlbExamples = logContent.querySelectorAll('.log-entry.mlb-permanent-example');
+                            let matchingExample = null;
+                            mlbExamples.forEach(example => {
+                                const span = example.querySelector('span');
+                                if (span && (span.textContent.trim() === pickTeam || span.textContent.trim() === pickTeamDisplay)) {
+                                    matchingExample = example;
+                                }
+                            });
+                            if (matchingExample) {
+                                const logEntry = matchingExample.cloneNode(true);
+                                logEntry.classList.remove('mlb-permanent-example');
+                                logEntry.style.display = 'grid';
+                                logEntry.setAttribute('data-odds', pickOdds);
+                                const oddsSpans = logEntry.querySelectorAll('span');
+                                if (oddsSpans.length >= 2) oddsSpans[1].textContent = pickOdds;
+                                const betInput = logEntry.querySelector('input');
+                                if (betInput) {
+                                    betInput.removeAttribute('disabled');
+                                    betInput.classList.add('bet-amount-input');
+                                    betInput.setAttribute('readonly', 'true');
+                                    betInput.style.cursor = 'default';
+                                }
+                                logContent.insertBefore(logEntry, logContent.firstChild);
+                                setTimeout(() => { calculateBetAmounts(); }, 50);
+                            }
+                        }
+
                         gwRecordBtn.style.transform = 'scale(1.2)';
                         setTimeout(() => gwRecordBtn.style.transform = 'scale(1)', 200);
                     }
@@ -10960,7 +11812,7 @@
 
             // crack effect - border gets more intense each tap
             const crackColors = ['#333','#555','#888','#ef4444','#ff0000'];
-            const glowColors = ['none','0 0 8px rgba(239,68,68,0.2)','0 0 12px rgba(239,68,68,0.4)','0 0 20px rgba(239,68,68,0.7)','0 0 30px rgba(239,68,68,1)'];
+            const glowColors = ['none','0 0 8px rgba(239,68,68,0.2)','0 0 12px rgba(239,68,68,0.4)','0 0 20px rgba(239,68,68,0.7), 0 0 15px rgba(255,255,255,0.6)','0 0 30px rgba(239,68,68,1)'];
             block.style.borderColor = crackColors[appendTaps[dayNum] - 1] || '#ef4444';
             block.style.boxShadow = glowColors[appendTaps[dayNum] - 1] || 'none';
 
@@ -11049,7 +11901,7 @@
                     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
                     background:#0d0d0d; border:2px solid #333; border-radius:14px;
                     padding:28px 20px; margin-bottom:14px; cursor:pointer;
-                    box-shadow: 0 0 20px rgba(0,0,0,0.5); transition: all 0.15s ease;
+                    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.6); transition: all 0.15s ease;
                 ">
                     <span style="font-size:28px;">⛓️🔒⛓️</span>
                     <span style="font-size:15px;font-weight:900;color:#888;letter-spacing:3px;">APPEND</span>
@@ -11134,6 +11986,20 @@
             scrambleText(document.getElementById('logTitle'), 'game log', 1200);
             document.getElementById('logBackBtn').style.display = 'none';
             document.getElementById('logParlayBtn').style.display = '';
+
+            // Show correct cards based on sport
+            const logContent = document.getElementById('logContent');
+            if (logContent) {
+                const nbaCards = logContent.querySelectorAll('.log-entry.permanent-example:not(.mlb-permanent-example)');
+                const mlbCards = logContent.querySelectorAll('.log-entry.mlb-permanent-example');
+                if (currentSport === 'mlb') {
+                    nbaCards.forEach(el => el.style.display = 'none');
+                    mlbCards.forEach(el => { el.style.display = 'grid'; });
+                } else {
+                    mlbCards.forEach(el => el.style.display = 'none');
+                    nbaCards.forEach(el => { el.style.display = 'grid'; });
+                }
+            }
         }
 
         // Fix any bad team name abbreviations in bet log and save back to Firebase
