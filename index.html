@@ -3560,8 +3560,8 @@
 
             const awayOddsStr  = document.getElementById('bbAwayOdds')?.value.trim()  || '';
             const homeOddsStr  = document.getElementById('bbHomeOdds')?.value.trim()  || '';
-            const awayInjEl = document.getElementById('bbAwayInj');
-            const homeInjEl = document.getElementById('bbHomeInj');
+            const awayInjEl = document.getElementById('bbAwayInjDisplay');
+            const homeInjEl = document.getElementById('bbHomeInjDisplay');
             const awayInjCount = parseInt((awayInjEl?.textContent || '').replace(/[^0-9]/g,'')) || 0;
             const homeInjCount = parseInt((homeInjEl?.textContent || '').replace(/[^0-9]/g,'')) || 0;
             const seriesCount  = document.getElementById('bbSeriesCount')?.value || '0-0';
@@ -3825,14 +3825,14 @@
             setEl('bbHomeSeedPct',     homeStanding ? 'seed #' + homeStanding.rank : 'seed: —');
             setEl('bbAwayStrengthPct', awayStanding ? 'strength: #' + awayStanding.rank + ' - ' + awayInjCount + ' inj' : 'strength: —');
             setEl('bbHomeStrengthPct', homeStanding ? 'strength: #' + homeStanding.rank + ' - ' + homeInjCount + ' inj' : 'strength: —');
-            setEl('bbAwayInj', 'inj: ' + awayInjCount);
-            setEl('bbHomeInj', 'inj: ' + homeInjCount);
+            // inj display handled by fetchMLBInjuries
+            // inj display handled by fetchMLBInjuries
             setEl('bbAwayL10Pct',      awayL10W !== null ? 'last 10: ' + awayL10W + '-' + (10-awayL10W) : 'last 10: —');
             setEl('bbHomeL10Pct',      homeL10W !== null ? 'last 10: ' + homeL10W + '-' + (10-homeL10W) : 'last 10: —');
             setEl('bbAwayWLPct',       awayStanding ? 'W-L: ' + awayStanding.wins + '-' + awayStanding.losses : 'W-L: —');
             setEl('bbHomeWLPct',       homeStanding ? 'W-L: ' + homeStanding.wins + '-' + homeStanding.losses : 'W-L: —');
-            setEl('bbAwayNoVigPct',    hasOdds ? 'odds: ' + r(awayNoVig) + '%' : 'odds: —');
-            setEl('bbHomeNoVigPct',    hasOdds ? 'odds: ' + r(homeNoVig) + '%' : 'odds: —');
+            setEl('bbAwayOddsPct',    hasOdds ? 'odds: ' + r(awayNoVig) + '%' : 'odds: —');
+            setEl('bbHomeOddsPct',    hasOdds ? 'odds: ' + r(homeNoVig) + '%' : 'odds: —');
             setEl('bbAwayAbilityPct',  r(awayAbilityPct) + '%');
             setEl('bbHomeAbilityPct',  r(homeAbilityPct) + '%');
 
@@ -3869,7 +3869,7 @@
                     resultBox.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
                     if (resultTextEl) resultTextEl.innerHTML = `
                         <img src="${logo}" style="width:60px;height:60px;margin-bottom:8px;object-fit:contain;">
-                        <div>${name} ${winPct}%</div>
+                        <div>${name}</div>
                     `;
                 } else {
                     resultBox.classList.remove('highlight-winner');
@@ -9072,7 +9072,10 @@
                         return;
                     }
 
-                    const pickIsHome = winnerText.includes(selectedBBHomeTeam.name);
+                    // Use winner determined by Core 4 math directly
+                    const awayWinPctEl = document.getElementById('bbFinalEdge');
+                    const bbResultBox = document.getElementById('bbWinnerResultBox');
+                    const pickIsHome = bbResultBox && bbResultBox.classList.contains('highlight-home');
                     const pickTeam   = pickIsHome ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                     const pickOdds   = pickIsHome ? homeOdds : awayOdds;
 
@@ -9089,8 +9092,8 @@
                         const hL10  = homeStand?.last10 || [];
                         const aL10w = aL10.filter(r=>r==='W').length;
                         const hL10w = hL10.filter(r=>r==='W').length;
-                        const awayInjEl = document.getElementById('bbAwayInj');
-                        const homeInjEl = document.getElementById('bbHomeInj');
+                        const awayInjEl = document.getElementById('bbAwayInjDisplay');
+                        const homeInjEl = document.getElementById('bbHomeInjDisplay');
                         const aInj = parseInt((awayInjEl?.textContent||'').replace(/[^0-9]/g,'')) || 0;
                         const hInj = parseInt((homeInjEl?.textContent||'').replace(/[^0-9]/g,'')) || 0;
                         const betId = Date.now();
