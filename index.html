@@ -3865,7 +3865,10 @@
                     const logo   = winnerTeamObj.logo   || '';
                     const name   = (isHomeWinner ? homeTeamName : awayTeamName).toUpperCase();
 
+                    resultBox.classList.remove('highlight-home', 'highlight-away');
                     resultBox.classList.add('highlight-winner');
+                    if (isHomeWinner) resultBox.classList.add('highlight-home');
+                    else resultBox.classList.add('highlight-away');
                     resultBox.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
                     if (resultTextEl) resultTextEl.innerHTML = `
                         <img src="${logo}" style="width:60px;height:60px;margin-bottom:8px;object-fit:contain;">
