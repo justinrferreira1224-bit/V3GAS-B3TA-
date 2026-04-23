@@ -11092,7 +11092,7 @@
                 const d = await r.json();
                 const count = d ? (d.count || 0) : 0;
                 console.log('✅ MLB ' + teamName + ' (' + fullName + ') injuries from Firebase: ' + count);
-                const injEl = document.getElementById(side === 'away' ? 'bbAwayInj' : 'bbHomeInj');
+                const injEl = document.getElementById(side === 'away' ? 'bbAwayInjDisplay' : 'bbHomeInjDisplay');
                 if (injEl) { injEl.textContent = 'inj: ' + count; calculateBaseballEdge(); }
             } catch(e) {
                 console.warn('MLB injury Firebase fetch failed for', teamName, e);
