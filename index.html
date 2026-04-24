@@ -12015,12 +12015,12 @@
                 const conf = game.conf || 0;
                 const sport = game.sport || 'nba';
 
-                // Find the template card
+                // Find the template card by data-team-name or text content
                 const allTemplates = logContent.querySelectorAll('.permanent-example, .mlb-permanent-example');
                 let template = null;
                 allTemplates.forEach(el => {
-                    const name = el.getAttribute('data-team-name') || '';
-                    if (name.toLowerCase() === pickName.toLowerCase()) template = el;
+                    const name = el.getAttribute('data-team-name') || el.textContent || '';
+                    if (name.toLowerCase().includes(pickName.toLowerCase())) template = el;
                 });
 
                 if (template) {
