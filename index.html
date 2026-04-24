@@ -2280,6 +2280,11 @@
                     </div>
                 </div>
                 <div class="log-panel-content" id="logPanelContent">
+                    <!-- GAME LOG SORT TABS -->
+                    <div id="gameLogTabs" style="display:flex;gap:6px;padding:10px 14px 0;width:100%;box-sizing:border-box;">
+                        <div onclick="sortGameLog('confidence')" id="tabConfidence" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);">CONFIDENCE</div>
+                        <div onclick="sortGameLog('odds')" id="tabOdds" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:transparent;color:#555;border:1px solid transparent;">BEST ODDS</div>
+                    </div>
                     <div id="logContent" style="padding:12px 14px;"></div>
                 </div>
                 <div class="log-panel-content" id="standingsContent" style="display:none; padding:0; overflow-y:auto; flex-direction:column;">
@@ -11607,6 +11612,7 @@
             saveAppState();
             updateBetLogSubtitle();
             renderBetDayCards();
+            renderGameLogForDay(dayNum);
         }
 
         const appendTaps = {};
@@ -11990,8 +11996,81 @@
             input.dispatchEvent(new Event('input'));
         }
 
+        let currentLogSort = 'confidence';
+
+        function renderGameLogForDay(dayNum) {
+            const logContent = document.getElementById('logContent');
+            if (!logContent) return;
+
+            // Remove all non-permanent cards
+            const existing = logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)');
+            existing.forEach(el => el.remove());
+
+            const day = betLog.find(d => d.day === dayNum);
+            if (!day || !day.games) return;
+
+            day.games.forEach(game => {
+                const pickName = game.pick;
+                const pickOdds = game.pick === game.t1 ? game.o1 : game.o2;
+                const conf = game.conf || 0;
+                const sport = game.sport || 'nba';
+
+                // Find the template card
+                const allTemplates = logContent.querySelectorAll('.permanent-example, .mlb-permanent-example');
+                let template = null;
+                allTemplates.forEach(el => {
+                    const name = el.getAttribute('data-team-name') || '';
+                    if (name.toLowerCase() === pickName.toLowerCase()) template = el;
+                });
+
+                if (template) {
+                    const card = template.cloneNode(true);
+                    card.classList.remove('permanent-example', 'mlb-permanent-example');
+                    card.style.display = 'grid';
+                    card.setAttribute('data-confidence', conf);
+                    card.setAttribute('data-odds', pickOdds || '+100');
+                    // Update odds display
+                    const spans = card.querySelectorAll('span');
+                    if (spans.length >= 2) spans[1].textContent = pickOdds || '+100';
+                    logContent.appendChild(card);
+                }
+            });
+
+            sortGameLog(currentLogSort);
+        }
+        function sortGameLog(type) {
+            currentLogSort = type;
+            // Update tab styles
+            document.getElementById('tabConfidence').style.background = type === 'confidence' ? 'rgba(255,255,255,0.15)' : 'transparent';
+            document.getElementById('tabConfidence').style.color = type === 'confidence' ? '#fff' : '#555';
+            document.getElementById('tabConfidence').style.border = type === 'confidence' ? '1px solid rgba(255,255,255,0.4)' : '1px solid transparent';
+            document.getElementById('tabOdds').style.background = type === 'odds' ? 'rgba(255,255,255,0.15)' : 'transparent';
+            document.getElementById('tabOdds').style.color = type === 'odds' ? '#fff' : '#555';
+            document.getElementById('tabOdds').style.border = type === 'odds' ? '1px solid rgba(255,255,255,0.4)' : '1px solid transparent';
+
+            const logContent = document.getElementById('logContent');
+            const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
+
+            cards.sort((a, b) => {
+                if (type === 'confidence') {
+                    const ca = parseInt(a.getAttribute('data-confidence') || '0');
+                    const cb = parseInt(b.getAttribute('data-confidence') || '0');
+                    return cb - ca;
+                } else {
+                    // Best odds = highest + number first
+                    const parseOdds = el => {
+                        const o = (el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'');
+                        return parseInt(o) || 0;
+                    };
+                    return parseOdds(b) - parseOdds(a);
+                }
+            });
+
+            cards.forEach(card => logContent.appendChild(card));
+        }
+
         function goToLogbook() {
-            document.getElementById('logPanelContent').style.display = 'flex';
+            document.getElementById('logPanelContent').style.display = 'block';
             document.getElementById('standingsContent').style.display = 'none';
             document.getElementById('betLogContent').style.display = 'none';
             document.getElementById('moneyContent').style.display = 'none';
@@ -12009,19 +12088,16 @@
             scrambleText(document.getElementById('logTitle'), 'game log', 1200);
             document.getElementById('logBackBtn').style.display = 'none';
             document.getElementById('logParlayBtn').style.display = '';
+            renderGameLogForDay(activeBetDay);
 
             // Show correct cards based on sport
             const logContent = document.getElementById('logContent');
             if (logContent) {
                 const nbaCards = logContent.querySelectorAll('.log-entry.permanent-example:not(.mlb-permanent-example)');
                 const mlbCards = logContent.querySelectorAll('.log-entry.mlb-permanent-example');
-                if (currentSport === 'mlb') {
-                    nbaCards.forEach(el => el.style.display = 'none');
-                    mlbCards.forEach(el => { el.style.display = 'grid'; });
-                } else {
-                    mlbCards.forEach(el => el.style.display = 'none');
-                    nbaCards.forEach(el => { el.style.display = 'grid'; });
-                }
+                // Always hide permanent template cards - only show saved bets
+                nbaCards.forEach(el => el.style.display = 'none');
+                mlbCards.forEach(el => el.style.display = 'none');
             }
         }
 
