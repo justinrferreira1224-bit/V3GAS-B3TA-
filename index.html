@@ -2693,7 +2693,7 @@
             { name: 'Orioles', color1: '#DF4601', color2: '#000000',      prefix: 'BAL', espn: 'bal',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png', park: 'Camden Yards' },
             { name: 'Red Sox', color1: '#BD3039', color2: '#0C2340',      prefix: 'BOS', espn: 'bos',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png', park: 'Fenway Park' },
             { name: 'Cubs', color1: '#0E3386', color2: '#CC3433',         prefix: 'CHC', espn: 'chc',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png', park: 'Wrigley Field' },
-            { name: 'White Sox', color1: '#27251F', color2: '#C4CED4',    prefix: 'CWS', espn: 'chw',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png', park: 'Rate Field' },
+            { name: 'White Sox', color1: '#27251F', color2: '#C4CED4',    prefix: 'CHW', espn: 'chw',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png', park: 'Rate Field' },
             { name: 'Reds', color1: '#C6011F', color2: '#000000',         prefix: 'CIN', espn: 'cin',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png', park: 'Great American Ball Park' },
             { name: 'Guardians', color1: '#00385D', color2: '#CC0000',    prefix: 'CLE', espn: 'cle',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png', park: 'Progressive Field' },
             { name: 'Rockies', color1: '#33006F', color2: '#C4CED4',      prefix: 'COL', espn: 'col',  logo: 'https://a.espncdn.com/i/teamlogos/mlb/500/col.png', park: 'Coors Field' },
@@ -10929,6 +10929,11 @@
             .then(data => {
                 if (data && data.al && data.nl) {
                     mlbStandings = data;
+                    // Assign rank by wins within each league
+                    ['al','nl'].forEach(lg => {
+                        mlbStandings[lg].sort((a,b) => b.wins - a.wins || a.losses - b.losses);
+                        mlbStandings[lg].forEach((t,i) => t.rank = i + 1);
+                    });
                     console.log('✅ MLB standings loaded:', data.al.length, 'AL teams,', data.nl.length, 'NL teams');
                     reapplyMLBStandingsFromBetLog();
                     renderStandings(currentMLBLeague || 'al');
