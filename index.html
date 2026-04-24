@@ -2100,9 +2100,10 @@
                         <div style="flex:1;background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbAwayTeamName">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">away</div>
                             <div style="font-size:11px;font-weight:700;color:#fff;">AWAY TEAM</div>
+                            <div id="bbAwayPitcherName" style="font-size:9px;font-weight:500;color:#aaa;display:none;"></div>
                         </div>
                         <div style="flex:0 0 50px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;">
-                            <input type="text" id="bbAwayOdds" placeholder="odds" oninput="calculateBaseballEdge()" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;">
+                            <input type="text" id="bbAwayOdds" placeholder="odds" readonly onclick="openCustomKeypad('bbAwayOdds')" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;cursor:pointer;">
                         </div>
                         <div style="flex:0 0 38px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:700;color:#fff;" id="bbAwayInjDisplay">0</div>
                     </div>
@@ -2112,15 +2113,22 @@
                         <div style="flex:1;background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbHomeTeamName">
                             <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">home</div>
                             <div style="font-size:11px;font-weight:700;color:#fff;">HOME TEAM</div>
+                            <div id="bbHomePitcherName" style="font-size:9px;font-weight:500;color:#aaa;display:none;"></div>
                         </div>
                         <div style="flex:0 0 50px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;">
-                            <input type="text" id="bbHomeOdds" placeholder="odds" oninput="calculateBaseballEdge()" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;">
+                            <input type="text" id="bbHomeOdds" placeholder="odds" readonly onclick="openCustomKeypad('bbHomeOdds')" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;cursor:pointer;">
                         </div>
                         <div style="flex:0 0 38px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:700;color:#fff;" id="bbHomeInjDisplay">0</div>
                     </div>
 
                     <!-- DETAIL ROWS (hidden by default) -->
                     <div id="mlbDetailRows" style="display:none;flex-direction:column;gap:5px;">
+
+                        <!-- PITCHER NAMES -->
+                        <div style="display:flex;gap:6px;">
+                            <div id="bbAwayPitcherBox" style="flex:1;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:11px;font-weight:700;text-align:center;padding:5px;">—</div>
+                            <div id="bbHomePitcherBox" style="flex:1;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:11px;font-weight:700;text-align:center;padding:5px;">—</div>
+                        </div>
 
                         <!-- PITCHING ROW -->
                         <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
@@ -11060,6 +11068,10 @@
                 const labelId = prefix + 'PitchPct';
                 const el = document.getElementById(labelId);
                 if (el) el.textContent = stats.starterName + ' — ' + stats.starterERA + ' ERA';
+                // Always-visible pitcher box
+                const pitcherBoxId = prefix === 'bbAway' ? 'bbAwayPitcherBox' : 'bbHomePitcherBox';
+                const pitcherBox = document.getElementById(pitcherBoxId);
+                if (pitcherBox) pitcherBox.textContent = stats.starterName;
             }
             calculateBaseballEdge();
         }
@@ -12390,14 +12402,14 @@
         function openCustomKeypad(target) {
             keypadTarget = target;
             // odds: always clear on open. inj: pre-fill current value
-            if (target === 'awayOdds' || target === 'homeOdds') keypadValue = '';
+            if (target === 'awayOdds' || target === 'homeOdds' || target === 'bbAwayOdds' || target === 'bbHomeOdds') keypadValue = '';
             else if (target === 'awayInj') keypadValue = String(awayInjuries || 0);
             else if (target === 'homeInj') keypadValue = String(homeInjuries || 0);
             updateKeypadDisplay();
             document.getElementById('customKeypad').style.display = 'block';
             document.getElementById('customKeypadOverlay').style.display = 'block';
             // show +/- only for odds
-            document.getElementById('kbtnSign').style.display = (target === 'awayOdds' || target === 'homeOdds') ? '' : 'none';
+            document.getElementById('kbtnSign').style.display = (target === 'awayOdds' || target === 'homeOdds' || target === 'bbAwayOdds' || target === 'bbHomeOdds') ? '' : 'none';
         }
 
         function closeCustomKeypad() {
@@ -12451,6 +12463,13 @@
                 const n = Math.max(0, parseInt(val) || 0);
                 homeInjuries = n;
                 document.getElementById('homeTeamInjDisplay').textContent = n;
+            }
+            if (keypadTarget === 'bbAwayOdds') {
+                const el = document.getElementById('bbAwayOdds');
+                if (el) { el.value = val; calculateBaseballEdge(); }
+            } else if (keypadTarget === 'bbHomeOdds') {
+                const el = document.getElementById('bbHomeOdds');
+                if (el) { el.value = val; calculateBaseballEdge(); }
             }
             calculateGameWinnerEdge();
             closeCustomKeypad();
