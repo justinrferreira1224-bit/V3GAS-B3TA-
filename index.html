@@ -12047,9 +12047,10 @@
                 // Find the template card by data-team-name or text content
                 const allTemplates = logContent.querySelectorAll('.permanent-example, .mlb-permanent-example');
                 let template = null;
+                const pickNameLower = pickName.toLowerCase().replace('diamondbacks', 'd-backs');
                 allTemplates.forEach(el => {
-                    const name = el.getAttribute('data-team-name') || el.textContent || '';
-                    if (name.toLowerCase().includes(pickName.toLowerCase())) template = el;
+                    const name = (el.getAttribute('data-team-name') || el.textContent || '').toLowerCase();
+                    if (name.includes(pickNameLower) || pickNameLower.includes(name.split(' ')[0])) template = el;
                 });
 
                 if (template) {
