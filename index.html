@@ -8742,6 +8742,8 @@
                 
                 // Update sport settings (quarter length, etc.)
                 updateSportSettings();
+                // Re-render game log for new sport
+                renderGameLogForDay(activeBetDay);
                 
                 // Remove gold highlight from nav
                 navSports.classList.remove('active');
@@ -9310,7 +9312,7 @@
                                 i2: homeInjuries||0,
                                 wl2: `${hWins}-${hLoss}`,
                                 l2: `${hL10w}-${10-hL10w}`,
-                                pick: winnerName, res: null, _id: betId
+                                pick: winnerName, res: null, _id: betId, conf: confScore, sport: currentSport
                             });
                             saveAppState();
                             if (activeBetDay === targetDay.day) renderBetDayCards();
@@ -12009,11 +12011,38 @@
             const day = betLog.find(d => d.day === dayNum);
             if (!day || !day.games) return;
 
-            day.games.forEach(game => {
+            day.games.filter(g => (g.sport || "nba") === currentSport).forEach(game => {
                 const pickName = game.pick;
-                const pickOdds = game.pick === game.t1 ? game.o1 : game.o2;
-                const conf = game.conf || 0;
+                const pickIsHome = game.pick === game.t2;
+                const pickOdds = pickIsHome ? game.o2 : game.o1;
+                const oppOdds  = pickIsHome ? game.o1 : game.o2;
                 const sport = game.sport || 'nba';
+
+                // Recalculate confidence from matchup data
+                const pickSeed = pickIsHome ? (game.s2||0) : (game.s1||0);
+                const oppSeed  = pickIsHome ? (game.s1||0) : (game.s2||0);
+                const pickWL   = (pickIsHome ? game.wl2 : game.wl1) || '0-0';
+                const oppWL    = (pickIsHome ? game.wl1 : game.wl2) || '0-0';
+                const pickL10  = (pickIsHome ? game.l2 : game.l1) || '0-0';
+                const oppL10   = (pickIsHome ? game.l1 : game.l2) || '0-0';
+                const pickInj  = pickIsHome ? (game.i2||0) : (game.i1||0);
+                const oppInj   = pickIsHome ? (game.i1||0) : (game.i2||0);
+
+                const parseWins = wl => parseInt((wl||'0-0').split('-')[0]) || 0;
+                const parseLoss = wl => parseInt((wl||'0-0').split('-')[1]) || 0;
+                const parseOddsVal = o => { const n = parseInt((o||'0').replace(/[^0-9\-]/g,'')); return isNaN(n)?0:n; };
+
+                const seedGap = (oppSeed - pickSeed);
+                const seedScore = Math.min(25, Math.max(-25, seedGap * 2));
+                const pickWins = parseWins(pickWL); const pickLoss = parseLoss(pickWL);
+                const oppWins  = parseWins(oppWL);  const oppLoss  = parseLoss(oppWL);
+                const recordScore = Math.min(20, Math.max(-20, (pickWins - oppWins) * 0.5));
+                const pickL10w = parseWins(pickL10); const oppL10w = parseWins(oppL10);
+                const l10Score = Math.min(15, Math.max(-15, (pickL10w - oppL10w) * 1.5));
+                const pickOddsV = parseOddsVal(pickOdds);
+                const oddsScore = pickOddsV < 0 ? Math.min(15, Math.abs(pickOddsV)/20) : Math.max(-15, -pickOddsV/20);
+                const injScore = Math.min(10, Math.max(-10, (oppInj - pickInj) * 1.5));
+                const conf = Math.max(0, Math.min(100, Math.round(50 + seedScore + recordScore + l10Score + oddsScore + injScore)));
 
                 // Find the template card by data-team-name or text content
                 const allTemplates = logContent.querySelectorAll('.permanent-example, .mlb-permanent-example');
@@ -12066,6 +12095,8 @@
                 }
             });
 
+            // Remove and re-append in sorted order
+            cards.forEach(card => logContent.removeChild(card));
             cards.forEach(card => logContent.appendChild(card));
         }
 
@@ -12089,16 +12120,6 @@
             document.getElementById('logBackBtn').style.display = 'none';
             document.getElementById('logParlayBtn').style.display = '';
             renderGameLogForDay(activeBetDay);
-
-            // Show correct cards based on sport
-            const logContent = document.getElementById('logContent');
-            if (logContent) {
-                const nbaCards = logContent.querySelectorAll('.log-entry.permanent-example:not(.mlb-permanent-example)');
-                const mlbCards = logContent.querySelectorAll('.log-entry.mlb-permanent-example');
-                // Always hide permanent template cards - only show saved bets
-                nbaCards.forEach(el => el.style.display = 'none');
-                mlbCards.forEach(el => el.style.display = 'none');
-            }
         }
 
         // Fix any bad team name abbreviations in bet log and save back to Firebase
