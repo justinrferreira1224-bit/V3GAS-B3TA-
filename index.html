@@ -4364,24 +4364,71 @@
                 const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
                 const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
                 if (targetDay) {
+                    // Grab all MLB stats at time of save
+                    const _awayStarterERA  = parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0;
+                    const _awayStarterIP   = parseFloat(document.getElementById('bbAwayStarterIP')?.value)  || 0;
+                    const _awayBullpenERA  = parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0;
+                    const _homeStarterERA  = parseFloat(document.getElementById('bbHomeStarterERA')?.value) || 0;
+                    const _homeStarterIP   = parseFloat(document.getElementById('bbHomeStarterIP')?.value)  || 0;
+                    const _homeBullpenERA  = parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || 0;
+                    const _awayAvg  = parseFloat(document.getElementById('bbAwayAvg')?.value)  || 0;
+                    const _awayOBP  = parseFloat(document.getElementById('bbAwayOBP')?.value)  || 0;
+                    const _awaySLG  = parseFloat(document.getElementById('bbAwaySLG')?.value)  || 0;
+                    const _homeAvg  = parseFloat(document.getElementById('bbHomeAvg')?.value)  || 0;
+                    const _homeOBP  = parseFloat(document.getElementById('bbHomeOBP')?.value)  || 0;
+                    const _homeSLG  = parseFloat(document.getElementById('bbHomeSLG')?.value)  || 0;
+                    const _awayInjCount = parseInt((document.getElementById('bbAwayInjDisplay')?.textContent || '').replace(/[^0-9]/g,'')) || 0;
+                    const _homeInjCount = parseInt((document.getElementById('bbHomeInjDisplay')?.textContent || '').replace(/[^0-9]/g,'')) || 0;
+                    const _seriesCount  = document.getElementById('bbSeriesCount')?.value || '0-0';
+                    const _seriesGames  = parseInt(document.getElementById('bbSeriesGames')?.value) || 4;
+                    const _parkHome     = document.getElementById('bbParkHome')?.value || '';
+                    const _parkAway     = document.getElementById('bbParkAway')?.value || '';
+                    const _awayStarterName = document.getElementById('bbAwayPitcherBox')?.textContent || '';
+                    const _homeStarterName = document.getElementById('bbHomePitcherBox')?.textContent || '';
+                    const _awayWL = selectedBBAwayTeam ? (selectedBBAwayTeam.wins + '-' + selectedBBAwayTeam.losses) : '';
+                    const _homeWL = selectedBBHomeTeam ? (selectedBBHomeTeam.wins + '-' + selectedBBHomeTeam.losses) : '';
+                    const _awayL10 = selectedBBAwayTeam?.last10Results ? selectedBBAwayTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBAwayTeam.last10Results.filter(r=>r==='L').length : '';
+                    const _homeL10 = selectedBBHomeTeam?.last10Results ? selectedBBHomeTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBHomeTeam.last10Results.filter(r=>r==='L').length : '';
+
                     const newGame = {
                         t1: selectedBBAwayTeam.name,
                         o1: awayOdds,
                         s1: selectedBBAwayTeam.rank || 0,
-                        i1: 0,
-                        wl1: '',
-                        l1: '',
+                        i1: _awayInjCount,
+                        wl1: _awayWL,
+                        l1: _awayL10,
                         t2: selectedBBHomeTeam.name,
                         o2: homeOdds,
                         s2: selectedBBHomeTeam.rank || 0,
-                        i2: 0,
-                        wl2: '',
-                        l2: '',
+                        i2: _homeInjCount,
+                        wl2: _homeWL,
+                        l2: _homeL10,
                         pick: pickTeam,
                         res: null,
                         edge: edge,
                         sport: 'mlb',
-                        _id: Date.now()
+                        _id: Date.now(),
+                        // Pitching
+                        awayStarterName: _awayStarterName,
+                        awayStarterERA: _awayStarterERA,
+                        awayStarterIP: _awayStarterIP,
+                        awayBullpenERA: _awayBullpenERA,
+                        homeStarterName: _homeStarterName,
+                        homeStarterERA: _homeStarterERA,
+                        homeStarterIP: _homeStarterIP,
+                        homeBullpenERA: _homeBullpenERA,
+                        // Batting
+                        awayAvg: _awayAvg,
+                        awayOBP: _awayOBP,
+                        awaySLG: _awaySLG,
+                        homeAvg: _homeAvg,
+                        homeOBP: _homeOBP,
+                        homeSLG: _homeSLG,
+                        // Park & Series
+                        parkAway: _parkAway,
+                        parkHome: _parkHome,
+                        seriesCount: _seriesCount,
+                        seriesGames: _seriesGames,
                     };
                     targetDay.games.push(newGame);
                     saveAppState();
@@ -10849,18 +10896,116 @@
             {_id:1776291287334,t1:'Heat',o1:'+205',s1:10,i1:3,wl1:'43-39',l1:'5-5',t2:'Hornets',o2:'-250',s2:9,i2:1,wl2:'43-39',l2:'5-5',pick:'Hornets',res:'W'},
             {_id:1776291313943,t1:'Blazers',o1:'+135',s1:8,i1:0,wl1:'43-39',l1:'7-3',t2:'Suns',o2:'-160',s2:7,i2:1,wl2:'45-37',l2:'5-5',pick:'Suns',res:'L'},
           ]},
-          { day:68, date:'4/15', type:'', overall:'', games:[] },
+          { day:68, date:'4/15', type:'', overall:'', unlocked:true, games:[
+            {_id:1776365135989,t1:'Magic',o1:'+105',s1:7,i1:3,wl1:'45-37',l1:'7-3',t2:'76ers',o2:'-125',s2:8,i2:4,wl2:'44-38',l2:'6-4',pick:'Magic',res:'L'},
+            {_id:1776365150433,t1:'Warriors',o1:'+180',s1:10,i1:4,wl1:'37-45',l1:'3-7',t2:'Clippers',o2:'-220',s2:9,i2:2,wl2:'41-41',l2:'6-4',pick:'Clippers',res:'L'},
+          ]},
           { day:69, date:'4/16', type:'', overall:'', games:[] },
-          { day:70, date:'4/17', type:'', overall:'', games:[] },
-          { day:71, date:'4/18', type:'', overall:'', games:[] },
-          { day:72, date:'4/19', type:'', overall:'', games:[] },
-          { day:73, date:'4/20', type:'', overall:'', games:[] },
-          { day:74, date:'4/21', type:'', overall:'', games:[] },
-          { day:75, date:'4/22', type:'', overall:'', games:[] },
-          { day:76, date:'4/23', type:'', overall:'', games:[] },
-          { day:77, date:'4/24', type:'', overall:'', games:[] },
-          { day:78, date:'4/25', type:'', overall:'', games:[] },
-          { day:79, date:'4/26', type:'', overall:'', games:[] },
+          { day:70, date:'4/17', type:'', overall:'', unlocked:true, games:[
+            {_id:1776490543026,t1:'Hornets',o1:'-150',s1:9,i1:1,wl1:'44-39',l1:'6-4',t2:'Magic',o2:'+125',s2:8,i2:1,wl2:'45-38',l2:'6-4',pick:'Magic',res:'W'},
+            {_id:1776490704643,t1:'Warriors',o1:'+115',s1:10,i1:4,wl1:'38-45',l1:'3-7',t2:'Suns',o2:'-135',s2:7,i2:1,wl2:'45-38',l2:'5-5',pick:'Suns',res:'W'},
+          ]},
+          { day:71, date:'4/18', type:'', overall:'', unlocked:true, games:[
+            {_id:1776498937831,t1:'Raptors',o1:'+290',s1:5,i1:2,wl1:'46-36',l1:'6-4',t2:'Cavaliers',o2:'-375',s2:4,i2:1,wl2:'52-30',l2:'7-3',pick:'Cavaliers',res:'W'},
+            {_id:1776498964512,t1:'Wolves',o1:'+210',s1:6,i1:0,wl1:'49-33',l1:'5-5',t2:'Nuggets',o2:'-260',s2:3,i2:2,wl2:'54-28',l2:'10-0',pick:'Nuggets',res:'W'},
+            {_id:1776499007433,t1:'Hawks',o1:'+185',s1:6,i1:1,wl1:'46-36',l1:'6-4',t2:'Knicks',o2:'-225',s2:3,i2:0,wl2:'55-27',l2:'7-3',pick:'Knicks',res:'W'},
+            {_id:1776499080288,t1:'Rockets',o1:'-210',s1:5,i1:3,wl1:'52-30',l1:'9-1',t2:'Lakers',o2:'+175',s2:4,i2:2,wl2:'53-29',l2:'7-3',pick:'Rockets',res:'L'},
+          ]},
+          { day:72, date:'4/19', type:'', overall:'', unlocked:true, games:[
+            {_id:1776616558667,t1:'76ers',o1:'+575',s1:8,i1:1,wl1:'45-38',l1:'6-4',t2:'Celtics',o2:'-850',s2:2,i2:1,wl2:'56-26',l2:'8-2',pick:'Celtics',res:'W'},
+            {_id:1776616622093,t1:'Suns',o1:'+750',s1:7,i1:2,wl1:'46-38',l1:'5-5',t2:'Thunder',o2:'-1200',s2:1,i2:1,wl2:'64-18',l2:'7-3',pick:'Thunder',res:'W'},
+            {_id:1776616655931,t1:'Magic',o1:'+320',s1:7,i1:2,wl1:'46-38',l1:'7-3',t2:'Pistons',o2:'-400',s2:1,i2:0,wl2:'60-22',l2:'8-2',pick:'Pistons',res:'L'},
+            {_id:1776616677183,t1:'Blazers',o1:'+450',s1:8,i1:0,wl1:'44-39',l1:'6-4',t2:'Spurs',o2:'-600',s2:2,i2:9,wl2:'62-20',l2:'8-2',pick:'Spurs',res:'W'},
+          ]},
+          { day:73, date:'4/20', type:'', overall:'', unlocked:true, games:[
+            {_id:1776719615489,t1:'Raptors',o1:'+325',s1:6,i1:2,wl1:'46-37',l1:'5-5',t2:'Cavaliers',o2:'-435',s2:4,i2:1,wl2:'53-30',l2:'8-2',pick:'Cavaliers',res:'W'},
+            {_id:1776719631533,t1:'Hawks',o1:'+210',s1:7,i1:2,wl1:'46-37',l1:'5-5',t2:'Knicks',o2:'-250',s2:3,i2:1,wl2:'56-27',l2:'7-3',pick:'Knicks',res:'L'},
+            {_id:1776719649985,t1:'Wolves',o1:'+255',s1:6,i1:0,wl1:'49-34',l1:'4-6',t2:'Nuggets',o2:'-310',s2:3,i2:1,wl2:'55-28',l2:'10-0',pick:'Nuggets',res:'L'},
+          ]},
+          { day:74, date:'4/21', type:'', overall:'', unlocked:true, games:[
+            {_id:1776896611135,t1:'76ers',o1:'+575',s1:8,i1:0,wl1:'45-39',l1:'5-5',t2:'Celtics',o2:'-850',s2:2,i2:0,wl2:'57-26',l2:'8-2',pick:'Celtics',res:'L'},
+            {_id:1776896636232,t1:'Blazers',o1:'+475',s1:8,i1:0,wl1:'44-40',l1:'6-4',t2:'Spurs',o2:'-650',s2:2,i2:9,wl2:'63-20',l2:'8-2',pick:'Spurs',res:'L'},
+            {_id:1776896661283,t1:'Rockets',o1:'-240',s1:5,i1:0,wl1:'52-31',l1:'8-2',t2:'Lakers',o2:'+195',s2:4,i2:0,wl2:'54-29',l2:'7-3',pick:'Rockets',res:'L'},
+          ]},
+          { day:75, date:'4/22', type:'', overall:'', unlocked:true, games:[
+            {_id:1776896772276,t1:'Magic',o1:'+310',s1:6,i1:1,wl1:'47-38',l1:'7-3',t2:'Pistons',o2:'-390',s2:1,i2:0,wl2:'60-23',l2:'7-3',pick:'Pistons',res:'W'},
+            {_id:1776896793077,t1:'Suns',o1:'+950',s1:7,i1:3,wl1:'46-39',l1:'3-7',t2:'Thunder',o2:'-1700',s2:1,i2:1,wl2:'65-18',l2:'8-2',pick:'Thunder',res:'W'},
+          ]},
+          { day:76, date:'4/23', type:'', overall:'', unlocked:true, games:[
+            {_id:1776969007890,sport:'mlb',t1:'Phillies',o1:'-125',s1:14,i1:6,wl1:'8-16',l1:'0-10',t2:'Cubs',o2:'+105',s2:5,i2:10,wl2:'15-9',l2:'0-10',pick:'Cubs',res:'W',edge:'55.00%'},
+            {_id:1776969199835,sport:'mlb',t1:'Padres',o1:'-155',s1:2,i1:8,wl1:'16-8',l1:'0-10',t2:'Rockies',o2:'+130',s2:13,i2:6,wl2:'10-15',l2:'0-10',pick:'Rockies',res:'L',edge:'52.00%'},
+            {_id:1776969299172,sport:'mlb',t1:'White Sox',o1:'+135',s1:0,i1:9,wl1:'0-0',l1:'0-10',t2:'Diamondbacks',o2:'-160',s2:6,i2:11,wl2:'14-10',l2:'0-10',pick:'Diamondbacks',res:'L',edge:'52.00%'},
+            {_id:1776980063213,t1:'Knicks',o1:'-115',s1:3,i1:0,wl1:'56-28',l1:'6-4',t2:'Hawks',o2:'-105',s2:5,i2:2,wl2:'47-37',l2:'6-4',pick:'Knicks',res:'L'},
+            {_id:1776980117115,t1:'Cavaliers',o1:'-155',s1:4,i1:1,wl1:'54-30',l1:'8-2',t2:'Raptors',o2:'+130',s2:7,i2:1,wl2:'46-38',l2:'4-6',pick:'Cavaliers',res:'L'},
+            {_id:1776980146534,t1:'Nuggets',o1:'-130',s1:3,i1:2,wl1:'55-29',l1:'9-1',t2:'Wolves',o2:'+110',s2:6,i2:0,wl2:'50-34',l2:'5-5',pick:'Nuggets',res:'L'},
+            {_id:1776987948365,sport:'mlb',t1:'Dodgers',o1:'-155',s1:3,i1:13,wl1:'17-8',l1:'0-10',t2:'Giants',o2:'+130',s2:11,i2:11,wl2:'11-14',l2:'0-10',pick:'Dodgers',res:'W',edge:'56.00%'},
+            {_id:1776987988943,sport:'mlb',t1:'Pirates',o1:'+135',s1:7,i1:2,wl1:'14-10',l1:'0-10',t2:'Rangers',o2:'-160',s2:6,i2:8,wl2:'12-12',l2:'0-10',pick:'Rangers',res:'W',edge:'52.00%'},
+            {_id:1776988018721,sport:'mlb',t1:'Yankees',o1:'-155',s1:1,i1:4,wl1:'15-9',l1:'0-10',t2:'Red Sox',o2:'+130',s2:14,i2:8,wl2:'9-15',l2:'0-10',pick:'Yankees',res:'L',edge:'57.00%'},
+            {_id:1776988056291,sport:'mlb',t1:'Twins',o1:'-105',s1:7,i1:5,wl1:'12-12',l1:'0-10',t2:'Mets',o2:'-115',s2:14,i2:9,wl2:'8-16',l2:'0-10',pick:'Twins',res:'L',edge:'53.00%'},
+            {_id:1776988087707,sport:'mlb',t1:'Braves',o1:'-135',s1:1,i1:11,wl1:'18-8',l1:'0-10',t2:'Nationals',o2:'+115',s2:12,i2:5,wl2:'11-15',l2:'0-10',pick:'Braves',res:'W',edge:'55.00%'},
+            {_id:1776988118322,sport:'mlb',t1:'Brewers',o1:'+195',s1:9,i1:7,wl1:'13-11',l1:'0-10',t2:'Tigers',o2:'-240',s2:3,i2:9,wl2:'14-12',l2:'0-10',pick:'Tigers',res:'W',edge:'57.00%'},
+          ]},
+          { day:77, date:'4/24', type:'', overall:'', unlocked:true, games:[
+            {_id:1777060177253,sport:'mlb',t1:'Tigers',o1:'-125',s1:3,i1:9,wl1:'14-12',l1:'1-9',t2:'Reds',o2:'+105',s2:4,i2:4,wl2:'16-9',l2:'0-10',pick:'Tigers',res:'L',edge:'51.00%'},
+            {_id:1777060203859,sport:'mlb',t1:'Red Sox',o1:'+105',s1:14,i1:8,wl1:'9-16',l1:'1-9',t2:'Orioles',o2:'-125',s2:7,i2:13,wl2:'12-13',l2:'0-10',pick:'Orioles',res:'W',edge:'57.00%'},
+            {_id:1777060228895,sport:'mlb',t1:'Guardians',o1:'-125',s1:4,i1:2,wl1:'14-12',l1:'0-10',t2:'Blue Jays',o2:'+105',s2:11,i2:11,wl2:'10-14',l2:'0-10',pick:'Guardians',res:'W',edge:'56.00%'},
+            {_id:1777060264994,sport:'mlb',t1:'Twins',o1:'+115',s1:8,i1:5,wl1:'12-13',l1:'0-10',t2:'Rays',o2:'-135',s2:2,i2:9,wl2:'13-11',l2:'0-10',pick:'Rays',res:'W',edge:'52.00%'},
+            {_id:1777060289782,sport:'mlb',t1:'Rockies',o1:'+180',s1:13,i1:6,wl1:'10-16',l1:'0-10',t2:'Mets',o2:'-220',s2:14,i2:9,wl2:'9-16',l2:'1-9',pick:'Mets',res:'L',edge:'54.00%'},
+            {_id:1777060309652,sport:'mlb',t1:'Phillies',o1:'+125',s1:15,i1:6,wl1:'8-17',l1:'0-10',t2:'Braves',o2:'-150',s2:1,i2:11,wl2:'18-8',l2:'1-9',pick:'Braves',res:'W',edge:'60.00%'},
+            {_id:1777060326703,sport:'mlb',t1:'Pirates',o1:'-120',s1:8,i1:2,wl1:'14-11',l1:'0-10',t2:'Brewers',o2:'+100',s2:9,i2:7,wl2:'13-11',l2:'0-10',pick:'Pirates',res:'W',edge:'51.00%'},
+            {_id:1777060361507,sport:'mlb',t1:'Angels',o1:'-110',s1:9,i1:7,wl1:'12-14',l1:'0-10',t2:'Royals',o2:'-110',s2:15,i2:6,wl2:'8-17',l2:'0-10',pick:'Angels',res:'L',edge:'52.00%'},
+            {_id:1777060380975,sport:'mlb',t1:'Athletics',o1:'+120',s1:6,i1:3,wl1:'13-12',l1:'0-10',t2:'Rangers',o2:'-140',s2:5,i2:8,wl2:'13-12',l2:'1-9',pick:'Rangers',res:'L',edge:'52.00%'},
+            {_id:1777060406735,sport:'mlb',t1:'Yankees',o1:'-155',s1:1,i1:4,wl1:'16-9',l1:'0-10',t2:'Astros',o2:'+130',s2:13,i2:16,wl2:'10-16',l2:'0-10',pick:'Yankees',res:'W',edge:'57.00%'},
+            {_id:1777060431504,sport:'mlb',t1:'Mariners',o1:'-150',s1:10,i1:7,wl1:'11-15',l1:'0-10',t2:'Cardinals',o2:'+125',s2:6,i2:3,wl2:'14-10',l2:'0-10',pick:'Mariners',res:'W',edge:'50.00%'},
+            {_id:1777060447371,sport:'mlb',t1:'Marlins',o1:'-115',s1:10,i1:4,wl1:'12-13',l1:'0-10',t2:'Giants',o2:'-105',s2:11,i2:11,wl2:'11-14',l2:'0-10',pick:'Marlins',res:'W',edge:'55.00%'},
+            {_id:1777060464157,sport:'mlb',t1:'Cubs',o1:'+135',s1:5,i1:10,wl1:'16-9',l1:'1-9',t2:'Dodgers',o2:'-160',s2:3,i2:13,wl2:'17-8',l2:'1-9',pick:'Dodgers',res:'W',edge:'51.00%'},
+            {_id:1777061883678,t1:'Celtics',o1:'-340',s1:2,i1:0,wl1:'57-27',l1:'7-3',t2:'76ers',o2:'+270',s2:8,i2:1,wl2:'46-39',l2:'7-3',pick:'Celtics',res:'W'},
+            {_id:1777061922150,t1:'Lakers',o1:'+265',s1:3,i1:2,wl1:'55-29',l1:'7-3',t2:'Rockets',o2:'-330',s2:5,i2:3,wl2:'52-32',l2:'7-3',pick:'Rockets',res:'L'},
+            {_id:1777061965921,t1:'Spurs',o1:'-135',s1:2,i1:9,wl1:'63-21',l1:'7-3',t2:'Blazers',o2:'+115',s2:8,i2:0,wl2:'45-40',l2:'7-3',pick:'Spurs',res:'W'},
+            {_id:1777063119971,sport:'mlb',t1:'Nationals',o1:'+105',s1:12,i1:5,wl1:'11-15',l1:'0-10',t2:'White Sox',o2:'-125',s2:12,i2:9,wl2:'10-15',l2:'1-9',pick:'White Sox',res:'W',edge:'56.00%'},
+          ]},
+          { day:78, date:'4/25', type:'', overall:'', unlocked:true, games:[
+            {_id:1777111414514,sport:'nba',t1:'Pistons',o1:'-150',s1:1,i1:0,wl1:'61-23',l1:'7-3',t2:'Magic',o2:'+125',s2:7,i2:1,wl2:'47-39',l2:'7-3',pick:'Pistons',res:'L',conf:60},
+            {_id:1777111453732,sport:'nba',t1:'Thunder',o1:'-450',s1:1,i1:3,wl1:'66-18',l1:'8-2',t2:'Suns',o2:'+350',s2:7,i2:3,wl2:'46-40',l2:'4-6',pick:'Thunder',res:'W',conf:74},
+            {_id:1777111478583,sport:'nba',t1:'Knicks',o1:'-130',s1:3,i1:0,wl1:'56-29',l1:'6-4',t2:'Hawks',o2:'+110',s2:5,i2:0,wl2:'48-37',l2:'6-4',pick:'Knicks',res:'W',conf:38},
+            {_id:1777111498736,sport:'nba',t1:'Nuggets',o1:'-120',s1:4,i1:2,wl1:'55-30',l1:'8-2',t2:'Wolves',o2:'+100',s2:6,i2:0,wl2:'51-34',l2:'5-5',pick:'Nuggets',res:'L',conf:31},
+            {_id:1777111765171,sport:'mlb',t1:'Red Sox',o1:'-105',s1:15,i1:8,wl1:'9-17',l1:'1-9',t2:'Orioles',o2:'-115',s2:7,i2:11,wl2:'13-13',l2:'1-9',pick:'Orioles',res:'L',edge:'59.00%'},
+            {_id:1777111831519,sport:'mlb',t1:'Mariners',o1:'-150',s1:10,i1:7,wl1:'12-15',l1:'1-9',t2:'Cardinals',o2:'+125',s2:8,i2:3,wl2:'14-11',l2:'0-10',pick:'Mariners',res:'W',edge:'53.00%'},
+            {_id:1777111896006,sport:'mlb',t1:'Guardians',o1:'+120',s1:3,i1:2,wl1:'15-12',l1:'1-9',t2:'Blue Jays',o2:'-140',s2:12,i2:11,wl2:'10-15',l2:'0-10',pick:'Guardians',res:'L',edge:'54.00%'},
+            {_id:1777111935525,sport:'mlb',t1:'Marlins',o1:'+100',s1:10,i1:4,wl1:'13-13',l1:'1-9',t2:'Giants',o2:'-120',s2:11,i2:11,wl2:'11-15',l2:'0-10',pick:'Marlins',res:'L',edge:'52.00%'},
+            {_id:1777112042633,sport:'mlb',t1:'Twins',o1:'+115',s1:8,i1:5,wl1:'12-14',l1:'0-10',t2:'Rays',o2:'-135',s2:2,i2:9,wl2:'14-11',l2:'1-9',pick:'Rays',res:'W',edge:'54.00%'},
+            {_id:1777112061951,sport:'mlb',t1:'Nationals',o1:'+120',s1:13,i1:5,wl1:'11-16',l1:'0-10',t2:'White Sox',o2:'-140',s2:11,i2:9,wl2:'11-15',l2:'2-8',pick:'White Sox',res:'L',edge:'56.00%'},
+            {_id:1777112102121,sport:'mlb',t1:'Padres',o1:'+105',s1:2,i1:8,wl1:'17-8',l1:'1-9',t2:'Diamondbacks',o2:'-125',s2:7,i2:11,wl2:'14-11',l2:'0-10',pick:'Padres',res:'W',edge:'51.00%'},
+            {_id:1777112125773,sport:'mlb',t1:'Athletics',o1:'+120',s1:4,i1:3,wl1:'14-12',l1:'1-9',t2:'Rangers',o2:'-140',s2:6,i2:8,wl2:'13-13',l2:'1-9',pick:'Athletics',res:'L',edge:'51.00%'},
+            {_id:1777112143424,sport:'mlb',t1:'Pirates',o1:'+115',s1:6,i1:2,wl1:'15-11',l1:'1-9',t2:'Brewers',o2:'-135',s2:9,i2:7,wl2:'13-12',l2:'0-10',pick:'Pirates',res:'W',edge:'53.00%'},
+            {_id:1777112172647,sport:'mlb',t1:'Yankees',o1:'-155',s1:1,i1:4,wl1:'17-9',l1:'1-9',t2:'Astros',o2:'+130',s2:13,i2:16,wl2:'10-17',l2:'0-10',pick:'Yankees',res:'W',edge:'61.00%'},
+            {_id:1777112197101,sport:'mlb',t1:'Angels',o1:'+135',s1:9,i1:7,wl1:'12-15',l1:'0-10',t2:'Royals',o2:'-160',s2:14,i2:6,wl2:'9-17',l2:'1-9',pick:'Angels',res:'L',edge:'53.00%'},
+            {_id:1777112217117,sport:'mlb',t1:'Tigers',o1:'-110',s1:5,i1:9,wl1:'14-13',l1:'1-9',t2:'Reds',o2:'-110',s2:3,i2:4,wl2:'17-9',l2:'1-9',pick:'Tigers',res:'L',edge:'50.00%'},
+            {_id:1777112233835,sport:'mlb',t1:'Cubs',o1:'+125',s1:4,i1:11,wl1:'17-9',l1:'1-9',t2:'Dodgers',o2:'-150',s2:5,i2:13,wl2:'17-9',l2:'2-8',pick:'Dodgers',res:'W',edge:'51.00%'},
+            {_id:1777112251336,sport:'mlb',t1:'Phillies',o1:'+115',s1:15,i1:6,wl1:'8-18',l1:'0-10',t2:'Braves',o2:'-135',s2:1,i2:11,wl2:'19-8',l2:'2-8',pick:'Braves',res:'L',edge:'64.00%'},
+          ]},
+          { day:79, date:'4/26', type:'', overall:'', unlocked:true, games:[
+            {_id:1777253673588,sport:'nba',t1:'Lakers',o1:'+145',s1:3,i1:2,wl1:'56-29',l1:'7-3',t2:'Rockets',o2:'-170',s2:5,i2:3,wl2:'52-33',l2:'6-4',pick:'Rockets',res:'pending',conf:19},
+            {_id:1777253692907,sport:'nba',t1:'Cavaliers',o1:'-180',s1:4,i1:0,wl1:'54-31',l1:'7-3',t2:'Raptors',o2:'+150',s2:7,i2:2,wl2:'47-38',l2:'5-5',pick:'Cavaliers',res:'L',conf:45},
+            {_id:1777253710443,sport:'nba',t1:'Spurs',o1:'-220',s1:2,i1:9,wl1:'64-21',l1:'7-3',t2:'Blazers',o2:'+180',s2:8,i2:0,wl2:'45-41',l2:'6-4',pick:'Spurs',res:'W',conf:58},
+            {_id:1777253726977,sport:'nba',t1:'Celtics',o1:'-230',s1:2,i1:0,wl1:'58-27',l1:'8-2',t2:'76ers',o2:'+190',s2:8,i2:1,wl2:'46-40',l2:'5-5',pick:'Celtics',res:'W',conf:63},
+            {_id:1777253898266,sport:'mlb',t1:'Red Sox',o1:'+120',s1:13,i1:8,wl1:'11-17',l1:'2-8',t2:'Orioles',o2:'-140',s2:8,i2:10,wl2:'13-15',l2:'1-9',pick:'Orioles',res:'L',edge:'53.00%'},
+            {_id:1777253915499,sport:'mlb',t1:'Phillies',o1:'+180',s1:14,i1:5,wl1:'9-19',l1:'1-9',t2:'Braves',o2:'-220',s2:1,i2:11,wl2:'20-9',l2:'2-8',pick:'Braves',res:'W',edge:'59.00%'},
+            {_id:1777253934650,sport:'mlb',t1:'Guardians',o1:'+105',s1:5,i1:3,wl1:'15-14',l1:'1-9',t2:'Blue Jays',o2:'-125',s2:9,i2:12,wl2:'12-15',l2:'1-9',pick:'Guardians',res:'L',edge:'52.00%'},
+            {_id:1777253961170,sport:'mlb',t1:'Rockies',o1:'+220',s1:12,i1:7,wl1:'13-16',l1:'1-9',t2:'Mets',o2:'-260',s2:15,i2:9,wl2:'9-19',l2:'1-9',pick:'Rockies',res:'W',edge:'51.00%'},
+            {_id:1777253974753,sport:'mlb',t1:'Tigers',o1:'-110',s1:4,i1:10,wl1:'15-14',l1:'1-9',t2:'Reds',o2:'-110',s2:4,i2:4,wl2:'18-10',l2:'2-8',pick:'Reds',res:'L',edge:'55.00%'},
+            {_id:1777253989423,sport:'mlb',t1:'Twins',o1:'+125',s1:10,i1:5,wl1:'12-16',l1:'0-10',t2:'Rays',o2:'-150',s2:2,i2:9,wl2:'16-11',l2:'2-8',pick:'Rays',res:'W',edge:'59.00%'},
+            {_id:1777254009177,sport:'mlb',t1:'Pirates',o1:'+100',s1:6,i1:2,wl1:'16-12',l1:'2-8',t2:'Brewers',o2:'-120',s2:9,i2:7,wl2:'14-13',l2:'0-10',pick:'Pirates',res:'L',edge:'55.00%'},
+            {_id:1777254031193,sport:'mlb',t1:'Yankees',o1:'-135',s1:1,i1:5,wl1:'18-10',l1:'2-8',t2:'Astros',o2:'+115',s2:14,i2:15,wl2:'11-18',l2:'0-10',pick:'Yankees',res:'L',edge:'63.00%'},
+            {_id:1777254052120,sport:'mlb',t1:'Nationals',o1:'+100',s1:13,i1:6,wl1:'13-16',l1:'1-9',t2:'White Sox',o2:'-120',s2:12,i2:9,wl2:'11-17',l2:'2-8',pick:'White Sox',res:'L',edge:'51.00%'},
+            {_id:1777254071608,sport:'mlb',t1:'Mariners',o1:'-130',s1:7,i1:7,wl1:'14-15',l1:'2-8',t2:'Cardinals',o2:'+110',s2:8,i2:3,wl2:'14-13',l2:'0-10',pick:'Mariners',res:'W',edge:'56.00%'},
+            {_id:1777254090595,sport:'mlb',t1:'Athletics',o1:'-105',s1:3,i1:2,wl1:'15-13',l1:'1-9',t2:'Rangers',o2:'-115',s2:6,i2:8,wl2:'14-14',l2:'2-8',pick:'Athletics',res:'W',edge:'50.00%'},
+            {_id:1777254114147,sport:'mlb',t1:'Padres',o1:'-135',s1:8,i1:8,wl1:'18-9',l1:'2-8',t2:'Diamondbacks',o2:'+115',s2:3,i2:11,wl2:'15-12',l2:'0-10',pick:'Padres',res:'L',edge:'56.00%'},
+            {_id:1777254132857,sport:'mlb',t1:'Marlins',o1:'+105',s1:11,i1:4,wl1:'13-15',l1:'1-9',t2:'Giants',o2:'-125',s2:10,i2:11,wl2:'13-15',l2:'1-9',pick:'Giants',res:'W',edge:'52.00%'},
+            {_id:1777254147925,sport:'mlb',t1:'Cubs',o1:'+100',s1:12,i1:12,wl1:'17-11',l1:'1-9',t2:'Dodgers',o2:'-120',s2:5,i2:13,wl2:'19-9',l2:'3-7',pick:'Dodgers',res:'W',edge:'61.00%'},
+            {_id:1777254165269,sport:'mlb',t1:'Angels',o1:'-110',s1:11,i1:8,wl1:'12-16',l1:'0-10',t2:'Royals',o2:'-110',s2:15,i2:6,wl2:'10-17',l2:'2-8',pick:'Royals',res:'W',edge:'53.00%'},
+            {_id:1777254187172,sport:'mlb',t1:'Rockies',o1:'+150',s1:12,i1:7,wl1:'13-16',l1:'1-9',t2:'Mets',o2:'-165',s2:15,i2:9,wl2:'9-19',l2:'1-9',pick:'Rockies',res:'W',edge:'52.00%'},
+          ]},
           { day:80, date:'4/27', type:'', overall:'', games:[] },
           { day:81, date:'4/28', type:'', overall:'', games:[] },
           { day:82, date:'4/29', type:'', overall:'', games:[] },
