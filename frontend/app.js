@@ -1840,6 +1840,42 @@
                     const _awayL10 = selectedBBAwayTeam?.last10Results ? selectedBBAwayTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBAwayTeam.last10Results.filter(r=>r==='L').length : '';
                     const _homeL10 = selectedBBHomeTeam?.last10Results ? selectedBBHomeTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBHomeTeam.last10Results.filter(r=>r==='L').length : '';
 
+                    const _domF = (id) => parseFloat(document.getElementById(id)?.value) || 0;
+                    const _domS = (id) => (document.getElementById(id)?.value || '').trim();
+                    const snap = {};
+                    const _aERA = _domF('bbAwayStarterERA') || _awayStarterERA;
+                    const _aIP  = _domF('bbAwayStarterIP')  || _awayStarterIP;
+                    const _aBP  = _domF('bbAwayBullpenERA') || _awayBullpenERA;
+                    const _hERA = _domF('bbHomeStarterERA') || _homeStarterERA;
+                    const _hIP  = _domF('bbHomeStarterIP')  || _homeStarterIP;
+                    const _hBP  = _domF('bbHomeBullpenERA') || _homeBullpenERA;
+                    const _aAvg = _domF('bbAwayAvg') || _awayAvg;
+                    const _aOBP = _domF('bbAwayOBP') || _awayOBP;
+                    const _aSLG = _domF('bbAwaySLG') || _awaySLG;
+                    const _hAvg = _domF('bbHomeAvg') || _homeAvg;
+                    const _hOBP = _domF('bbHomeOBP') || _homeOBP;
+                    const _hSLG = _domF('bbHomeSLG') || _homeSLG;
+                    const _aSN  = _domS('bbAwayPitcherBox') || _awayStarterName;
+                    const _hSN  = _domS('bbHomePitcherBox') || _homeStarterName;
+                    if (_aERA) snap.awayERA = _aERA;
+                    if (_aIP)  snap.awayIP  = _aIP;
+                    if (_aBP)  snap.awayBullERA = _aBP;
+                    if (_hERA) snap.homeERA = _hERA;
+                    if (_hIP)  snap.homeIP  = _hIP;
+                    if (_hBP)  snap.homeBullERA = _hBP;
+                    if (_aAvg) snap.awayAvg = _aAvg;
+                    if (_aOBP) snap.awayOBP = _aOBP;
+                    if (_aSLG) snap.awaySLG = _aSLG;
+                    if (_hAvg) snap.homeAvg = _hAvg;
+                    if (_hOBP) snap.homeOBP = _hOBP;
+                    if (_hSLG) snap.homeSLG = _hSLG;
+                    if (_aSN)  snap.awayStarter = _aSN;
+                    if (_hSN)  snap.homeStarter = _hSN;
+                    if (_parkAway)    snap.parkAway    = _parkAway;
+                    if (_parkHome)    snap.parkHome    = _parkHome;
+                    if (_seriesCount) snap.series      = _seriesCount;
+                    if (_seriesGames) snap.seriesGames = _seriesGames;
+
                     const newGame = {
                         t1: selectedBBAwayTeam.name,
                         o1: awayOdds,
@@ -1858,27 +1894,7 @@
                         edge: edge,
                         sport: 'mlb',
                         _id: Date.now(),
-                        // Pitching
-                        awayStarterName: _awayStarterName,
-                        awayStarterERA: _awayStarterERA,
-                        awayStarterIP: _awayStarterIP,
-                        awayBullpenERA: _awayBullpenERA,
-                        homeStarterName: _homeStarterName,
-                        homeStarterERA: _homeStarterERA,
-                        homeStarterIP: _homeStarterIP,
-                        homeBullpenERA: _homeBullpenERA,
-                        // Batting
-                        awayAvg: _awayAvg,
-                        awayOBP: _awayOBP,
-                        awaySLG: _awaySLG,
-                        homeAvg: _homeAvg,
-                        homeOBP: _homeOBP,
-                        homeSLG: _homeSLG,
-                        // Park & Series
-                        parkAway: _parkAway,
-                        parkHome: _parkHome,
-                        seriesCount: _seriesCount,
-                        seriesGames: _seriesGames,
+                        snap: Object.keys(snap).length ? snap : undefined,
                     };
                     targetDay.games.push(newGame);
                     saveAppState();
@@ -8001,11 +8017,11 @@
             {_id:1773021252629,t1:'Hornets',o1:'-195',s1:9,i1:1,wl1:'32-32',l1:'7-3',t2:'Suns',o2:'+165',s2:7,i2:3,wl2:'36-27',l2:'5-5',pick:'Hornets',res:'L'},
           ]},
           { day:31, date:'3/9', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773096084509,t1:'76ers',o1:'+575',s1:6,i1:4,wl1:'34-28',l1:'4-6',t2:'Cavaliers',o2:'-900',s2:4,i2:4,wl2:'39-24',l2:'7-3',pick:'Cavaliers',res:null},
-            {_id:1773096139310,t1:'Nuggets',o1:'+165',s1:6,i1:2,wl1:'39-25',l1:'5-5',t2:'Thunder',o2:'-165',s2:1,i2:6,wl2:'49-15',l2:'8-2',pick:'Thunder',res:null},
-            {_id:1773096198177,t1:'Grizzlies',o1:'-105',s1:11,i1:10,wl1:'23-38',l1:'3-7',t2:'Nets',o2:'-115',s2:14,i2:2,wl2:'15-47',l2:'0-10',pick:'Grizzlies',res:null},
-            {_id:1773096259971,t1:'Warriors',o1:'-290',s1:8,i1:6,wl1:'32-30',l1:'4-6',t2:'Jazz',o2:'+240',s2:14,i2:7,wl2:'19-44',l2:'3-7',pick:'Warriors',res:null},
-            {_id:1773096308038,t1:'Knicks',o1:'-130',s1:3,i1:2,wl1:'41-23',l1:'7-3',t2:'Clippers',o2:'+110',s2:9,i2:3,wl2:'30-32',l2:'5-5',pick:'Knicks',res:null},
+            {_id:1773096084509,t1:'76ers',o1:'+575',s1:6,i1:4,wl1:'34-28',l1:'4-6',t2:'Cavaliers',o2:'-900',s2:4,i2:4,wl2:'39-24',l2:'7-3',pick:'Cavaliers',res:'W'},
+            {_id:1773096139310,t1:'Nuggets',o1:'+165',s1:6,i1:2,wl1:'39-25',l1:'5-5',t2:'Thunder',o2:'-165',s2:1,i2:6,wl2:'49-15',l2:'8-2',pick:'Thunder',res:'W'},
+            {_id:1773096198177,t1:'Grizzlies',o1:'-105',s1:11,i1:10,wl1:'23-38',l1:'3-7',t2:'Nets',o2:'-115',s2:14,i2:2,wl2:'15-47',l2:'0-10',pick:'Grizzlies',res:'L'},
+            {_id:1773096259971,t1:'Warriors',o1:'-290',s1:8,i1:6,wl1:'32-30',l1:'4-6',t2:'Jazz',o2:'+240',s2:14,i2:7,wl2:'19-44',l2:'3-7',pick:'Warriors',res:'L'},
+            {_id:1773096308038,t1:'Knicks',o1:'-130',s1:3,i1:2,wl1:'41-23',l1:'7-3',t2:'Clippers',o2:'+110',s2:9,i2:3,wl2:'30-32',l2:'5-5',pick:'Knicks',res:'W'},
           ]},
           { day:32, date:'3/10', type:'REAL 💰', overall:'', unlocked:true, games:[
             {_id:1773172329874,t1:'Grizzlies',o1:'+130',s1:11,i1:4,wl1:'23-40',l1:'3-7',t2:'76ers',o2:'-150',s2:8,i2:4,wl2:'34-30',l2:'4-6',pick:'76ers',res:'W'},
@@ -8435,7 +8451,7 @@
             {_id:1777112251336,sport:'mlb',t1:'Phillies',o1:'+115',s1:15,i1:6,wl1:'8-18',l1:'0-10',t2:'Braves',o2:'-135',s2:1,i2:11,wl2:'19-8',l2:'2-8',pick:'Braves',res:'L',edge:'64.00%'},
           ]},
           { day:79, date:'4/26', type:'', overall:'', unlocked:true, games:[
-            {_id:1777253673588,sport:'nba',t1:'Lakers',o1:'+145',s1:3,i1:2,wl1:'56-29',l1:'7-3',t2:'Rockets',o2:'-170',s2:5,i2:3,wl2:'52-33',l2:'6-4',pick:'Rockets',res:'pending',conf:19},
+            {_id:1777253673588,sport:'nba',t1:'Lakers',o1:'+145',s1:3,i1:2,wl1:'56-29',l1:'7-3',t2:'Rockets',o2:'-170',s2:5,i2:3,wl2:'52-33',l2:'6-4',pick:'Rockets',res:'W',conf:19},
             {_id:1777253692907,sport:'nba',t1:'Cavaliers',o1:'-180',s1:4,i1:0,wl1:'54-31',l1:'7-3',t2:'Raptors',o2:'+150',s2:7,i2:2,wl2:'47-38',l2:'5-5',pick:'Cavaliers',res:'L',conf:45},
             {_id:1777253710443,sport:'nba',t1:'Spurs',o1:'-220',s1:2,i1:9,wl1:'64-21',l1:'7-3',t2:'Blazers',o2:'+180',s2:8,i2:0,wl2:'45-41',l2:'6-4',pick:'Spurs',res:'W',conf:58},
             {_id:1777253726977,sport:'nba',t1:'Celtics',o1:'-230',s1:2,i1:0,wl1:'58-27',l1:'8-2',t2:'76ers',o2:'+190',s2:8,i2:1,wl2:'46-40',l2:'5-5',pick:'Celtics',res:'W',conf:63},
