@@ -4364,27 +4364,32 @@
                 const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
                 const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
                 if (targetDay) {
-                    // Grab all MLB stats at time of save
-                    const _awayStarterERA  = parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0;
-                    const _awayStarterIP   = parseFloat(document.getElementById('bbAwayStarterIP')?.value)  || 0;
-                    const _awayBullpenERA  = parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0;
-                    const _homeStarterERA  = parseFloat(document.getElementById('bbHomeStarterERA')?.value) || 0;
-                    const _homeStarterIP   = parseFloat(document.getElementById('bbHomeStarterIP')?.value)  || 0;
-                    const _homeBullpenERA  = parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || 0;
-                    const _awayAvg  = parseFloat(document.getElementById('bbAwayAvg')?.value)  || 0;
-                    const _awayOBP  = parseFloat(document.getElementById('bbAwayOBP')?.value)  || 0;
-                    const _awaySLG  = parseFloat(document.getElementById('bbAwaySLG')?.value)  || 0;
-                    const _homeAvg  = parseFloat(document.getElementById('bbHomeAvg')?.value)  || 0;
-                    const _homeOBP  = parseFloat(document.getElementById('bbHomeOBP')?.value)  || 0;
-                    const _homeSLG  = parseFloat(document.getElementById('bbHomeSLG')?.value)  || 0;
+                    // Grab stats from cache (most reliable) with DOM as fallback
+                    const _awayCache = cachedMLBStats[selectedBBAwayTeam.name] || {};
+                    const _homeCache = cachedMLBStats[selectedBBHomeTeam.name] || {};
+                    const _awayBatCache = cachedMLBBatting[selectedBBAwayTeam.name] || {};
+                    const _homeBatCache = cachedMLBBatting[selectedBBHomeTeam.name] || {};
+
+                    const _awayStarterERA  = _awayCache.starterERA  || parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0;
+                    const _awayStarterIP   = _awayCache.starterIP   || parseFloat(document.getElementById('bbAwayStarterIP')?.value)  || 0;
+                    const _awayBullpenERA  = _awayCache.bullpenERA  || parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0;
+                    const _homeStarterERA  = _homeCache.starterERA  || parseFloat(document.getElementById('bbHomeStarterERA')?.value) || 0;
+                    const _homeStarterIP   = _homeCache.starterIP   || parseFloat(document.getElementById('bbHomeStarterIP')?.value)  || 0;
+                    const _homeBullpenERA  = _homeCache.bullpenERA  || parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || 0;
+                    const _awayAvg  = _awayBatCache.avg || parseFloat(document.getElementById('bbAwayAvg')?.value)  || 0;
+                    const _awayOBP  = _awayBatCache.obp || parseFloat(document.getElementById('bbAwayOBP')?.value)  || 0;
+                    const _awaySLG  = _awayBatCache.slg || parseFloat(document.getElementById('bbAwaySLG')?.value)  || 0;
+                    const _homeAvg  = _homeBatCache.avg || parseFloat(document.getElementById('bbHomeAvg')?.value)  || 0;
+                    const _homeOBP  = _homeBatCache.obp || parseFloat(document.getElementById('bbHomeOBP')?.value)  || 0;
+                    const _homeSLG  = _homeBatCache.slg || parseFloat(document.getElementById('bbHomeSLG')?.value)  || 0;
                     const _awayInjCount = parseInt((document.getElementById('bbAwayInjDisplay')?.textContent || '').replace(/[^0-9]/g,'')) || 0;
                     const _homeInjCount = parseInt((document.getElementById('bbHomeInjDisplay')?.textContent || '').replace(/[^0-9]/g,'')) || 0;
                     const _seriesCount  = document.getElementById('bbSeriesCount')?.value || '0-0';
                     const _seriesGames  = parseInt(document.getElementById('bbSeriesGames')?.value) || 4;
                     const _parkHome     = document.getElementById('bbParkHome')?.value || '';
                     const _parkAway     = document.getElementById('bbParkAway')?.value || '';
-                    const _awayStarterName = document.getElementById('bbAwayPitcherBox')?.textContent || '';
-                    const _homeStarterName = document.getElementById('bbHomePitcherBox')?.textContent || '';
+                    const _awayStarterName = _awayCache.starterName || document.getElementById('bbAwayPitcherBox')?.textContent || '';
+                    const _homeStarterName = _homeCache.starterName || document.getElementById('bbHomePitcherBox')?.textContent || '';
                     const _awayWL = selectedBBAwayTeam ? (selectedBBAwayTeam.wins + '-' + selectedBBAwayTeam.losses) : '';
                     const _homeWL = selectedBBHomeTeam ? (selectedBBHomeTeam.wins + '-' + selectedBBHomeTeam.losses) : '';
                     const _awayL10 = selectedBBAwayTeam?.last10Results ? selectedBBAwayTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBAwayTeam.last10Results.filter(r=>r==='L').length : '';
@@ -11111,6 +11116,7 @@
         };
 
         const cachedMLBStats = {};
+        const cachedMLBBatting = {};
 
         async function fetchMLBPitchingStats(teamName, side) {
             try {
@@ -11125,6 +11131,8 @@
                     bullpenERA: d.bullpenERA || 4.00,
                     starterName: d.starter || ''
                 };
+                // Cache by team name
+                cachedMLBStats[teamName] = result;
                 console.log('✅ MLB pitching from Firebase:', teamName, result);
                 applyMLBPitchingStats(result, side);
             } catch(e) {
@@ -11301,6 +11309,8 @@
                 const r = await fetch(BACKEND_URL + '/api/mlb/batting/' + encodeURIComponent(cleanName));
                 const d = await r.json();
                 if (!d) { console.warn('No Firebase batting data for', teamName); return; }
+                // Cache the batting data
+                cachedMLBBatting[teamName] = { avg: d.avg || 0, obp: d.obp || 0, slg: d.slg || 0 };
                 const prefix = side === 'away' ? 'bbAway' : 'bbHome';
                 const avgEl = document.getElementById(prefix + 'Avg');
                 const obpEl = document.getElementById(prefix + 'OBP');
