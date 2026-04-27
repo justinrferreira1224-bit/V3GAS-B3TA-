@@ -11118,6 +11118,24 @@
         const cachedMLBStats = {};
         const cachedMLBBatting = {};
 
+        const MLB_FULL_NAMES = {
+            'Diamondbacks': 'Arizona Diamondbacks', 'Braves': 'Atlanta Braves',
+            'Orioles': 'Baltimore Orioles', 'Red Sox': 'Boston Red Sox',
+            'Cubs': 'Chicago Cubs', 'White Sox': 'Chicago White Sox',
+            'Reds': 'Cincinnati Reds', 'Guardians': 'Cleveland Guardians',
+            'Rockies': 'Colorado Rockies', 'Tigers': 'Detroit Tigers',
+            'Astros': 'Houston Astros', 'Royals': 'Kansas City Royals',
+            'Angels': 'Los Angeles Angels', 'Dodgers': 'Los Angeles Dodgers',
+            'Marlins': 'Miami Marlins', 'Brewers': 'Milwaukee Brewers',
+            'Twins': 'Minnesota Twins', 'Mets': 'New York Mets',
+            'Yankees': 'New York Yankees', 'Athletics': 'Athletics',
+            'Phillies': 'Philadelphia Phillies', 'Pirates': 'Pittsburgh Pirates',
+            'Padres': 'San Diego Padres', 'Giants': 'San Francisco Giants',
+            'Mariners': 'Seattle Mariners', 'Cardinals': 'St_ Louis Cardinals',
+            'Rays': 'Tampa Bay Rays', 'Rangers': 'Texas Rangers',
+            'Blue Jays': 'Toronto Blue Jays', 'Nationals': 'Washington Nationals'
+        };
+
         async function fetchMLBPitchingStats(teamName, side) {
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
@@ -11254,23 +11272,6 @@
             'Kings': '26', 'Spurs': '23', 'Raptors': '28', 'Jazz': '27', 'Wizards': '24'
         };
 
-        const MLB_FULL_NAMES = {
-            'Diamondbacks': 'Arizona Diamondbacks', 'Braves': 'Atlanta Braves',
-            'Orioles': 'Baltimore Orioles', 'Red Sox': 'Boston Red Sox',
-            'Cubs': 'Chicago Cubs', 'White Sox': 'Chicago White Sox',
-            'Reds': 'Cincinnati Reds', 'Guardians': 'Cleveland Guardians',
-            'Rockies': 'Colorado Rockies', 'Tigers': 'Detroit Tigers',
-            'Astros': 'Houston Astros', 'Royals': 'Kansas City Royals',
-            'Angels': 'Los Angeles Angels', 'Dodgers': 'Los Angeles Dodgers',
-            'Marlins': 'Miami Marlins', 'Brewers': 'Milwaukee Brewers',
-            'Twins': 'Minnesota Twins', 'Mets': 'New York Mets',
-            'Yankees': 'New York Yankees', 'Athletics': 'Athletics',
-            'Phillies': 'Philadelphia Phillies', 'Pirates': 'Pittsburgh Pirates',
-            'Padres': 'San Diego Padres', 'Giants': 'San Francisco Giants',
-            'Mariners': 'Seattle Mariners', 'Cardinals': 'St_ Louis Cardinals',
-            'Rays': 'Tampa Bay Rays', 'Rangers': 'Texas Rangers',
-            'Blue Jays': 'Toronto Blue Jays', 'Nationals': 'Washington Nationals'
-        };
         async function fetchMLBInjuries(teamName, side) {
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
