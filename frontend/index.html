@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>VEGAS B3TA - e-NBA</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="phone-wrapper">
+            <div class="container">
+                <div class="header">
+                    <div class="quarter-box" id="qBox">Q1</div>
+                    <div class="time-display paused" id="timeDisplay">5:00</div>
+                    <div class="control-buttons">
+                        <button class="timer-btn play-pause-btn" id="playPauseBtn"></button>
+                        <button class="timer-btn save-bet-btn" id="saveBetBtn">+</button>
+                    </div>
+                </div>
+                
+                <!-- Game Winner Header (hidden by default) -->
+                <div class="gw-header" id="gwHeader" style="display: none;">
+                    <div class="gw-header-top">
+                        <div class="quarter-box" id="gwBankroll" contenteditable="true">$100</div>
+                        <div class="gw-logbook" id="gwLogbook">log book</div>
+                        <div class="control-buttons">
+                            <button class="timer-btn play-pause-btn" id="gwRecordBtn">📝</button>
+                            <button class="timer-btn save-bet-btn" id="gwSaveBtn">+</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Baseball header (hidden by default) -->
+                <div class="baseball-header" id="baseballHeader" style="display: none;">
+                    <div class="baseball-left-section">
+                        <div class="inning-row">
+                            <div class="inning-box" id="inningBox">1▲</div>
+                            <div class="ball-strike-count" id="ballStrikeCount" contenteditable="true">0-0</div>
+                        </div>
+                        <div class="outs-circles">
+                            <div class="out-circle" data-out="0"></div>
+                            <div class="out-circle" data-out="1"></div>
+                            <div class="out-circle" data-out="2"></div>
+                        </div>
+                    </div>
+                    <div class="baseball-center-section">
+                        <div class="bases-container">
+                            <div class="base-square" data-base="1"></div>
+                            <div class="bases-bottom">
+                                <div class="base-square" data-base="2"></div>
+                                <div class="base-square" data-base="0"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="baseball-right-section">
+                        <div class="pitch-controls-col">
+                            <div class="controls-row">
+                                <button class="baseball-control-btn save-icon" id="baseballSaveBtn">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scoreboard" style="display: none;">
+                    <div class="team-label team-left" id="teamLeftLabel">team name</div>
+                    <div class="team-label team-right" id="teamRightLabel">team name</div>
+                    <div class="score-box" id="scoreLeft">0</div>
+                    <div class="score-box" id="scoreRight">0</div>
+                </div>
+                <div class="controls" style="display: none;">
+                    <button class="control-btn btn-1" data-points="1">+1</button>
+                    <button class="control-btn btn-2" data-points="2">+2</button>
+                    <button class="control-btn btn-3" data-points="3">+3</button>
+                </div>
+                <!-- Over/Under Stats Container -->
+                <div class="stats-container" style="display: none;">
+                <!-- Row 1: Total Points | O/U Line -->
+                <div class="stats-main">
+                    <div class="stat-box" id="totalPointsBox">
+                        <div class="stat-label">total points</div>
+                        <div class="stat-value" id="totalPoints">0</div>
+                    </div>
+                    <div class="stat-box" id="ouLineBox">
+                        <div class="stat-label">o/u line</div>
+                        <div class="stat-value" id="ouLine">—</div>
+                    </div>
+                </div>
+                <!-- Row 2: Edge | Projection -->
+                <div class="stats-sub">
+                    <div class="stat-box" id="edgeBox">
+                        <div class="stat-label">edge</div>
+                        <div class="stat-value" id="edge">—</div>
+                    </div>
+                    <div class="stat-box" id="ouProjectionBox">
+                        <div class="stat-label">projection</div>
+                        <div class="stat-value" id="ouProjection">—</div>
+                    </div>
+                </div>
+                <!-- Row 3: Game Pace | O/U Pace -->
+                <div class="stats-projection">
+                    <div class="stat-box" id="gamePaceBox">
+                        <div class="stat-label">game pace</div>
+                        <div class="stat-value" id="gamePace">—</div>
+                    </div>
+                    <div class="stat-box" id="ouPaceBox">
+                        <div class="stat-label">o/u pace</div>
+                        <div class="stat-value" id="ouPace">—</div>
+                    </div>
+                </div>
+                <!-- Row 4: Bet Type | Time Weight -->
+                <div class="stats-extra">
+                    <div class="stat-box" id="betTypeBox">
+                        <div class="stat-label">bet type</div>
+                        <div class="stat-value" id="betType">—</div>
+                    </div>
+                    <div class="stat-box" id="timeWeightBox">
+                        <div class="stat-label">time weight</div>
+                        <div class="stat-value" id="timeWeight">—</div>
+                    </div>
+                </div>
+                <!-- Hidden confidence -->
+                <div class="stat-box" id="confidenceBox" style="display: none;">
+                    <div class="stat-label">confidence</div>
+                    <div class="stat-value" id="confidence">—</div>
+                </div>
+                </div>
+                
+                <!-- Player Props empty container -->
+                <div class="empty-mode-container" id="playerPropsContainer">
+                    <!-- Player Props interface will go here -->
+                </div>
+                
+                <!-- Game Winner Section -->
+                <!-- TOP ROW = AWAY TEAM | BOTTOM ROW = HOME TEAM -->
+                <div class="game-winner-container" id="gameWinnerContainer" style="display: flex;">
+                    <!-- Input rows -->
+                    <div class="winner-input-rows" style="margin-top:-10px;">
+                        <!-- Column labels -->
+                        <div style="display:flex;gap:6px;margin-bottom:6px;">
+                            <div style="flex:1;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">matchup</div>
+                            <div style="flex:0 0 50px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">odds</div>
+                            <div style="flex:0 0 38px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">inj</div>
+                        </div>
+                        <!-- Away team row (TOP) -->
+                        <div class="winner-team-row">
+                            <input type="text" class="winner-input winner-seed" id="awayTeamSeed" placeholder="seed" style="display:none;">
+                            <div class="winner-input winner-team-name winner-team-select" id="awayTeamNameLabel">
+                                <div class="winner-team-name-content" id="awayTeamNameContent">team name</div>
+                                <div class="winner-team-record-overlay" id="awayTeamRecord">0-0</div>
+                            </div>
+                            <input type="text" class="winner-input winner-odds" id="awayTeamOdds" placeholder="odds">
+                            <div class="winner-inj-display" id="awayTeamInjDisplay">0</div>
+                        </div>
+                        <!-- Home team row (BOTTOM) -->
+                        <div class="winner-team-row">
+                            <input type="text" class="winner-input winner-seed" id="homeTeamSeed" placeholder="seed" style="display:none;">
+                            <div class="winner-input winner-team-name winner-team-select" id="homeTeamNameLabel">
+                                <div class="winner-team-name-content" id="homeTeamNameContent">team name</div>
+                                <div class="winner-team-record-overlay" id="homeTeamRecord">0-0</div>
+                            </div>
+                            <input type="text" class="winner-input winner-odds" id="homeTeamOdds" placeholder="odds">
+                            <div class="winner-inj-display" id="homeTeamInjDisplay">0</div>
+                        </div>
+                    </div>
+                    
+
+                    
+
+
+                    <!-- Display boxes -->
+                    <div class="winner-edge-box" id="winnerEdgeBox">
+                        <div class="winner-edge-label">FINAL EDGE</div>
+                        <div class="winner-edge-value" id="finalEdgeValue">—</div>
+                    </div>
+                    
+                    <div class="winner-result-box" id="winnerResultBox">
+                        <div class="winner-result-label">GAME WINNER</div>
+                        <div class="winner-result-text">TEAM NAME WINNER</div>
+                    </div>
+                    
+                    <div class="winner-extra-box" id="winnerExtraBox">
+                        <div class="winner-extra-text">EXTRA BOX<br>JUSTIN CASE</div>
+                    </div>
+                </div>
+                
+                <!-- Game Winner empty container -->
+                <div class="empty-mode-container" id="gameWinnerContainer">
+                    <!-- Game Winner interface will go here -->
+                </div>
+
+                <!-- MLB GAME WINNER CONTAINER -->
+                <div id="mlbGameWinnerContainer" style="display:none; flex-direction:column; gap:5px; padding-top:0; min-height:560px; max-height:560px; overflow-y:auto; flex:1;">
+
+                    <!-- COLUMN LABELS ROW with STATS toggle top right -->
+                    <div style="display:flex;align-items:center;margin-bottom:2px;">
+                        <div style="flex:1;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">matchup</div>
+                        <div style="flex:0 0 50px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">odds</div>
+                        <div style="flex:0 0 38px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">inj</div>
+                        <!-- STATS TOGGLE TOP RIGHT -->
+                        <div onclick="toggleMLBDetailView()" id="mlbDetailToggle" style="margin-left:8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:4px 10px;">
+                            <div style="font-size:8px;font-weight:900;color:#aaa;letter-spacing:2px;text-transform:uppercase;">stats</div>
+                            <div id="mlbToggleTrack" style="width:28px;height:14px;background:rgba(255,255,255,0.15);border-radius:8px;position:relative;transition:background 0.2s;">
+                                <div id="mlbToggleThumb" style="width:10px;height:10px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AWAY ROW -->
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <div style="flex:1;background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbAwayTeamName">
+                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">away</div>
+                            <div style="font-size:11px;font-weight:700;color:#fff;">AWAY TEAM</div>
+                            <div id="bbAwayPitcherName" style="font-size:9px;font-weight:500;color:#aaa;display:none;"></div>
+                        </div>
+                        <div style="flex:0 0 50px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;">
+                            <input type="text" id="bbAwayOdds" placeholder="odds" readonly onclick="openCustomKeypad('bbAwayOdds')" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;cursor:pointer;">
+                        </div>
+                        <div style="flex:0 0 38px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:700;color:#fff;" id="bbAwayInjDisplay">0</div>
+                    </div>
+
+                    <!-- HOME ROW -->
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <div style="flex:1;background:rgba(60,60,70,0.95);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);cursor:pointer;min-height:44px;" id="bbHomeTeamName">
+                            <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;">home</div>
+                            <div style="font-size:11px;font-weight:700;color:#fff;">HOME TEAM</div>
+                            <div id="bbHomePitcherName" style="font-size:9px;font-weight:500;color:#aaa;display:none;"></div>
+                        </div>
+                        <div style="flex:0 0 50px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;">
+                            <input type="text" id="bbHomeOdds" placeholder="odds" readonly onclick="openCustomKeypad('bbHomeOdds')" style="background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:700;text-align:center;width:100%;padding:6px;font-family:-apple-system,sans-serif;cursor:pointer;">
+                        </div>
+                        <div style="flex:0 0 38px;background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:700;color:#fff;" id="bbHomeInjDisplay">0</div>
+                    </div>
+
+                    <!-- DETAIL ROWS (hidden by default) -->
+                    <div id="mlbDetailRows" style="display:none;flex-direction:column;gap:5px;">
+
+                        <!-- PITCHER NAMES -->
+                        <div style="display:flex;gap:6px;">
+                            <div id="bbAwayPitcherBox" style="flex:1;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:11px;font-weight:700;text-align:center;padding:5px;">—</div>
+                            <div id="bbHomePitcherBox" style="flex:1;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:11px;font-weight:700;text-align:center;padding:5px;">—</div>
+                        </div>
+
+                        <!-- PITCHING ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <div id="bbAwayPitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbAwayStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwayStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwayBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbAwayPitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">pitching</div>
+                                <div onclick="togglePitchView()" id="pitchToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">%</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <div id="bbHomePitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbHomeStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbHomePitchPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                        <!-- BATTING ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <div id="bbAwayBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbAwayAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwayOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbAwaySLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbAwayBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">batting</div>
+                                <div onclick="toggleBatView()" id="batToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">%</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <div id="bbHomeBatVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="number" id="bbHomeAvg" placeholder="AVG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeOBP" placeholder="OBP" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                    <input type="number" id="bbHomeSLG" placeholder="SLG" step="0.001" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                </div>
+                                <div id="bbHomeBatPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                        <!-- ABILITY ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <div id="bbAwayAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
+                                    <div id="bbAwaySeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
+                                    <div id="bbAwayStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
+                                    <div id="bbAwayL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
+                                    <div id="bbAwayWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
+                                    <div id="bbAwayL5SeriesPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
+                                    <div id="bbAwayInjPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
+                                    <div id="bbAwayOddsPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                                </div>
+                                <div id="bbAwayAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">ability</div>
+                                <div id="abilityStatsBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">stats</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <div id="bbHomeAbilityVerbose" style="display:flex;flex-direction:column;gap:3px;">
+                                    <div id="bbHomeSeedPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">seed: —</div>
+                                    <div id="bbHomeStrengthPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">strength: —</div>
+                                    <div id="bbHomeL10Pct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 10: —</div>
+                                    <div id="bbHomeWLPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">W-L: —</div>
+                                    <div id="bbHomeL5SeriesPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">last 5 series: 0-0</div>
+                                    <div id="bbHomeInjPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">inj: —</div>
+                                    <div id="bbHomeOddsPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">odds: —%</div>
+                                </div>
+                                <div id="bbHomeAbilityPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                        <!-- FACTORS ROW -->
+                        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:5px;align-items:stretch;">
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
+                                <input type="text" id="bbSeriesCount" placeholder="series e.g. 1-0" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <select id="bbSeriesGames" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
+                                <select id="bbParkAway" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">away park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
+                                <div id="bbAwayParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
+                                <div id="bbAwaySeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
+                                <div id="bbAwayBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
+                                <div id="bbAwayGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                                <div style="font-size:8px;font-weight:900;color:#555;letter-spacing:2px;text-align:center;text-transform:uppercase;">factors</div>
+                                <div onclick="toggleFactorsView()" id="factorsToggleBtn" style="background:rgba(60,60,70,0.95);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:3px 8px;font-size:8px;font-weight:700;color:#aaa;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">%</div>
+                            </div>
+                            <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:3px;">
+                                <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
+                                <input type="text" id="bbSeriesCount2" placeholder="series e.g. 1-0" oninput="document.getElementById('bbSeriesCount').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
+                                <select id="bbSeriesGames2" onchange="document.getElementById('bbSeriesGames').value=this.value;calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="4">4-game series</option><option value="3">3-game series</option><option value="2">2-game series</option></select>
+                                <select id="bbParkHome" onchange="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:10px;text-align:center;padding:4px;outline:none;width:100%;"><option value="">home park</option><option>T-Mobile Park</option><option>Oracle Park</option><option>Wrigley Field</option><option>Petco Park</option><option>Citi Field</option><option>Chase Field</option><option>PNC Park</option><option>Dodger Stadium</option><option>Busch Stadium</option><option>Camden Yards</option><option>Progressive Field</option><option>Nationals Park</option><option>Truist Park</option><option>Daikin Park</option><option>Target Field</option><option>Globe Life Field</option><option>Comerica Park</option><option>Rogers Centre</option><option>Rate Field</option><option>Citizens Bank Park</option><option>Angel Stadium</option><option>American Family Field</option><option>Yankee Stadium</option><option>loanDepot Park</option><option>Fenway Park</option><option>Kauffman Stadium</option><option>Great American Ball Park</option><option>Sutter Health Park</option><option>Tropicana Field</option><option>Coors Field</option></select>
+                                <div id="bbHomeParkPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">park: —%</div>
+                                <div id="bbHomeSeriesCountPct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">series: —%</div>
+                                <div id="bbHomeBasePct" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#aaa;font-size:9px;text-align:center;padding:3px;">base: —%</div>
+                                <div id="bbHomeGFPct" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:6px;color:#22c55e;font-size:12px;font-weight:700;text-align:center;padding:4px;">—%</div>
+                            </div>
+                        </div>
+
+                    </div><!-- end mlbDetailRows -->
+
+                    <!-- FINAL EDGE — using same class as NBA -->
+                    <div class="winner-edge-box" id="bbWinnerEdgeBox" style="flex:1;">
+                        <div class="winner-edge-label">FINAL EDGE</div>
+                        <div class="winner-edge-value" id="bbFinalEdge">—</div>
+                    </div>
+
+                    <!-- GAME WINNER — using same class as NBA -->
+                    <div class="winner-result-box" id="bbWinnerResultBox" style="flex:2;margin-top:5px;">
+                        <div class="winner-result-label">GAME WINNER</div>
+                        <div class="winner-result-text" id="bbWinnerBox">—</div>
+                    </div>
+
+                </div>                </div>
+            </div>
+            
+            <div class="bottom-nav">
+                <button class="nav-btn" id="navMenu">💵</button>
+                <button class="nav-btn active" id="navHome">🏆🥇</button>
+                <button class="nav-btn" id="navSports">🏀</button>
+            </div>
+            
+            <!-- Log panel inside phone -->
+            <div class="log-overlay" id="logOverlay"></div>
+            <div class="log-panel" id="logPanel">
+                <div class="log-panel-header">
+                    <div class="quarter-box" id="logBankroll" contenteditable="true">$0</div>
+                    <div class="gw-logbook" id="logTitle">game log</div>
+                    <div class="control-buttons">
+                        <button class="timer-btn save-bet-btn" id="logBackBtn" style="display:none;">←</button>
+                        <button class="timer-btn save-bet-btn" id="logParlayBtn">+</button>
+                        <button class="timer-btn save-bet-btn" id="logCloseBtn">✕</button>
+                    </div>
+                </div>
+                <div class="log-panel-content" id="logPanelContent">
+                    <!-- GAME LOG SORT TABS -->
+                    <div id="gameLogTabs" style="display:flex;gap:6px;padding:10px 14px 0;width:100%;box-sizing:border-box;">
+                        <div onclick="sortGameLog('confidence')" id="tabConfidence" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);">CONFIDENCE</div>
+                        <div onclick="sortGameLog('odds')" id="tabOdds" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:transparent;color:#555;border:1px solid transparent;">BEST ODDS</div>
+                    </div>
+                    <div id="logContent" style="padding:12px 14px;"></div>
+                </div>
+                <div class="log-panel-content" id="standingsContent" style="display:none; padding:0; overflow-y:auto; flex-direction:column;">
+                    <div style="display:flex; align-items:center; border-bottom:1px solid #2a2a2a; background:#000;">
+                        <div id="eastTab" onclick="showConference(currentSport==='mlb'?'al':'east')" style="flex:1; padding:12px; text-align:center; font-size:13px; font-weight:700; color:#fff; cursor:pointer; border-bottom:2px solid #1D428A; letter-spacing:1px;">EAST</div>
+                        <img id="standingsLeagueLogo" src="https://upload.wikimedia.org/wikipedia/en/0/03/National_Basketball_Association_logo.svg" style="height:32px;width:auto;opacity:0.9;flex-shrink:0;" />
+                        <div id="westTab" onclick="showConference(currentSport==='mlb'?'nl':'west')" style="flex:1; padding:12px; text-align:center; font-size:13px; font-weight:700; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">WEST</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:24px 1fr 52px 38px 44px; padding:8px 14px 4px 14px;">
+                        <div style="font-size:10px; color:#444;"></div>
+                        <div style="font-size:10px; color:#444; font-weight:600;">TEAM</div>
+                        <div style="font-size:10px; color:#444; font-weight:600; text-align:center;">W-L</div>
+                        <div style="font-size:10px; color:#444; font-weight:600; text-align:center;">L10</div>
+                        <div style="font-size:10px; color:#444; font-weight:600; text-align:center;">PCT</div>
+                    </div>
+                    <div id="standingsList" style="padding:4px 14px 14px 14px;"></div>
+                </div>
+                <div class="log-panel-content" id="moneyContent" style="display:none; padding:0; overflow-y:auto; flex-direction:column;">
+                    <div style="position:sticky; top:0; z-index:10; background:#000; border-bottom:1px solid #2a2a2a;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px 6px;">
+                            <div style="display:flex;flex-direction:column;">
+                                <div style="font-size:9px;color:#555;letter-spacing:2px;font-weight:700;">START</div>
+                                <div id="monthStartInput" contenteditable="true" style="font-size:20px;font-weight:900;color:#22c55e;font-family:monospace;outline:none;">$100.00</div>
+                            </div>
+                            <div id="monthHeaderProgress" style="text-align:right;"></div>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 14px;">
+                            <div onclick="prevMonth()" style="font-size:20px; color:#22c55e; cursor:pointer; font-weight:900; padding:4px 8px;">&#8592;</div>
+                            <div id="monthLabel" style="font-size:13px; font-weight:900; color:#fff; letter-spacing:2px;">MARCH</div>
+                            <div onclick="nextMonth()" style="font-size:20px; color:#22c55e; cursor:pointer; font-weight:900; padding:4px 8px;">&#8594;</div>
+                        </div>
+                        <div style="display:flex; border-top:1px solid #1a1a1a;">
+                            <div id="subTabRobego" onclick="showMoneySubTab('robego')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#ef4444; cursor:pointer; border-bottom:2px solid #ef4444; letter-spacing:1px;">ROB</div>
+                            <div id="subTabJustin" onclick="showMoneySubTab('justin')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">JUSTIN</div>
+                        </div>
+                    </div>
+                    <div id="monthChartContent" style="flex:1; padding:16px 14px; display:flex; flex-direction:column; gap:12px;">
+                        <div id="monthSummary" style="text-align:center; margin-bottom:4px;"></div>
+                        <canvas id="monthChart" height="200"></canvas>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+                            <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:10px;text-align:center;">
+                                <div style="font-size:9px;color:#555;letter-spacing:1px;">PEAK</div>
+                                <div id="monthStatPeak" style="font-size:16px;font-weight:900;color:#22c55e;font-family:monospace;">—</div>
+                                <div id="monthStatPeakDay" style="font-size:9px;color:#444;">—</div>
+                            </div>
+                            <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:10px;text-align:center;">
+                                <div style="font-size:9px;color:#555;letter-spacing:1px;">BEST DAY</div>
+                                <div id="monthStatBest" style="font-size:16px;font-weight:900;color:#22c55e;font-family:monospace;">—</div>
+                                <div id="monthStatBestDay" style="font-size:9px;color:#444;">—</div>
+                            </div>
+                        </div>
+                        <div id="monthBreakdown" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;"></div>
+                    </div>
+                </div>
+                <div class="log-panel-content" id="betLogContent" style="display:none; padding:0; overflow-y:auto; flex-direction:column;">
+                    <div id="betLogDayNav" style="display:flex; overflow-x:auto; padding:10px 14px; gap:8px; border-bottom:1px solid #2a2a2a; background:#000; scrollbar-width:none; position:sticky; top:0; z-index:10; flex-shrink:0;"></div>
+                    <div id="betLogSubtitle" style="padding:4px 14px 6px; background:#000; border-bottom:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center; position:sticky; top:52px; z-index:9; flex-shrink:0;">
+                        <span id="betLogSubDate" style="font-size:11px;font-weight:800;color:#fff;"></span>
+                        <span id="betLogSubOverall" style="font-size:10px;font-weight:600;color:#555;"></span>
+                    </div>
+                    <div id="betLogCards" style="padding:12px 14px; overflow-y:auto; overflow-x:visible;"></div>
+                </div>
+                <div class="bottom-nav">
+                    <button class="nav-btn" id="logNavBetLog" style="font-size:18px; font-weight:700;">📋</button>
+                    <button class="nav-btn" id="logNavStandings" style="font-size:20px;">🏆</button>
+                    <button class="nav-btn" id="logNavMoney" style="font-size:20px; font-weight:900; color:#22c55e; text-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;">$</button>
+                </div>
+            </div>
+    </div>
+
+    <div class="panel-overlay" id="panelOverlay"></div>
+    <div class="side-panel" id="sidePanel">
+        <div class="panel-header">
+            <div class="bankroll-display">
+                <div class="bankroll-label">my bankroll</div>
+                <div class="bankroll-amount" id="bankrollAmount" contenteditable="true">$100</div>
+                <div class="bankroll-goal">
+                    <span class="goal-label">goal:</span>
+                    <span class="goal-amount" id="goalAmount" contenteditable="true">$0</span>
+                </div>
+            </div>
+            <div class="panel-title">bet history</div>
+            <div class="record-display">
+                <span class="record-wins" id="recordWins">0</span>
+                <span class="record-separator">-</span>
+                <span class="record-losses" id="recordLosses">0</span>
+            </div>
+        </div>
+        <div id="betHistoryContent">
+            <div class="create-new-bet" id="createNewBet" style="
+                background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                border: 2px solid #3a3a3a;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            ">
+                <div style="font-size: 28px; margin-bottom: 8px;">➕</div>
+                <div style="color: #fff; font-weight: 700; font-size: 15px; letter-spacing: 0.5px;">CREATE NEW BET</div>
+                <div style="color: #888; font-size: 12px; margin-top: 4px;">track your games</div>
+            </div>
+            <div class="empty-state">
+                <div class="empty-state-icon">💰</div>
+                <div>no bets yet</div>
+                <div style="font-size: 12px; margin-top: 8px;">start tracking your wins!</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bet-type-overlay" id="betTypeOverlay"></div>
+    <div class="bet-type-popup" id="betTypePopup">
+        <div class="bet-type-inner">
+            <div class="bet-type-title">select bet type</div>
+            <button class="bet-type-btn" data-type="ou">
+                <div class="bet-type-icon">⇅</div>
+                <div class="bet-type-label">over/under</div>
+            </button>
+            <button class="bet-type-btn" data-type="player">
+                <div class="bet-type-icon">👤📈</div>
+                <div class="bet-type-label">player props</div>
+            </button>
+            <button class="bet-type-btn active" data-type="winner">
+                <div class="bet-type-icon">🏆🥇</div>
+                <div class="bet-type-label">game winner</div>
+            </button>
+        </div>
+    </div>
+
+    <div class="sports-overlay" id="sportsOverlay"></div>
+    <div class="sports-popup" id="sportsPopup">
+        <div class="sports-inner">
+            <div class="sports-title">select sport</div>
+            <button class="sport-btn" data-sport="enba">
+                <div class="sport-icon">🏀🎮</div>
+                <div class="sport-label">e-NBA</div>
+            </button>
+            <button class="sport-btn active" data-sport="nba">
+                <div class="sport-icon">🏀</div>
+                <div class="sport-label">NBA</div>
+            </button>
+            <button class="sport-btn" data-sport="cbb">
+                <div class="sport-icon">🏀🎓</div>
+                <div class="sport-label">college basketball</div>
+            </button>
+            <button class="sport-btn" data-sport="nfl">
+                <div class="sport-icon">🏈</div>
+                <div class="sport-label">NFL</div>
+            </button>
+            <button class="sport-btn" data-sport="cfb">
+                <div class="sport-icon">🏈🎓</div>
+                <div class="sport-label">college football</div>
+            </button>
+            <button class="sport-btn" data-sport="mlb">
+                <div class="sport-icon">⚾</div>
+                <div class="sport-label">MLB</div>
+            </button>
+            <button class="sport-btn" data-sport="nhl">
+                <div class="sport-icon">🏒</div>
+                <div class="sport-label">hockey</div>
+            </button>
+            <button class="sport-btn" data-sport="soccer">
+                <div class="sport-icon">⚽</div>
+                <div class="sport-label">soccer</div>
+            </button>
+        </div>
+    </div>
+
+    <div class="team-overlay" id="teamOverlay"></div>
+    <!-- CUSTOM KEYPAD -->
+    <div id="customKeypadOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);" onclick="closeCustomKeypad()"></div>
+    <div id="customKeypad" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;background:#111;border-top:1px solid #333;padding:12px 12px 28px;border-radius:20px 20px 0 0;">
+        <!-- display -->
+        <div id="keypadDisplay" style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:10px 16px;font-size:28px;font-weight:800;color:#fff;text-align:right;margin-bottom:12px;min-height:52px;letter-spacing:2px;">—</div>
+        <!-- rows -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <button onclick="keypadPress('1')" class="kbtn">1</button>
+            <button onclick="keypadPress('2')" class="kbtn">2</button>
+            <button onclick="keypadPress('3')" class="kbtn">3</button>
+            <button onclick="keypadPress('4')" class="kbtn">4</button>
+            <button onclick="keypadPress('5')" class="kbtn">5</button>
+            <button onclick="keypadPress('6')" class="kbtn">6</button>
+            <button onclick="keypadPress('7')" class="kbtn">7</button>
+            <button onclick="keypadPress('8')" class="kbtn">8</button>
+            <button onclick="keypadPress('9')" class="kbtn">9</button>
+            <button onclick="keypadToggleSign()" class="kbtn" id="kbtnSign" style="background:#1e1e1e;color:#f59e0b;font-size:20px;">+/−</button>
+            <button onclick="keypadPress('0')" class="kbtn">0</button>
+            <button onclick="keypadBackspace()" class="kbtn" style="background:#1e1e1e;font-size:20px;">⌫</button>
+            <button onclick="keypadConfirm()" class="kbtn" style="grid-column:span 3;background:#22c55e;color:#000;font-size:16px;font-weight:900;letter-spacing:2px;">CONFIRM</button>
+        </div>
+    </div>
+
+    <div class="team-popup" id="teamPopup">
+        <div class="team-inner">
+            <div class="team-title">select nba team</div>
+            <input type="text" class="team-search" id="teamSearch" placeholder="search teams..." readonly>
+            <div class="team-list" id="teamList"></div>
+            <div id="fatKeyboard" style="padding:10px 4px 16px;background:#111;border-top:1px solid #2a2a2a;flex-shrink:0;">
+                <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-bottom:5px;">
+                    <button ontouchstart="fatKeyPress('1')" onclick="fatKeyPress('1')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">1</button>
+                    <button ontouchstart="fatKeyPress('2')" onclick="fatKeyPress('2')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">2</button>
+                    <button ontouchstart="fatKeyPress('3')" onclick="fatKeyPress('3')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">3</button>
+                    <button ontouchstart="fatKeyPress('4')" onclick="fatKeyPress('4')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">4</button>
+                    <button ontouchstart="fatKeyPress('5')" onclick="fatKeyPress('5')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">5</button>
+                    <button ontouchstart="fatKeyPress('6')" onclick="fatKeyPress('6')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">6</button>
+                    <button ontouchstart="fatKeyPress('7')" onclick="fatKeyPress('7')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">7</button>
+                    <button ontouchstart="fatKeyPress('8')" onclick="fatKeyPress('8')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">8</button>
+                    <button ontouchstart="fatKeyPress('9')" onclick="fatKeyPress('9')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">9</button>
+                    <button ontouchstart="fatKeyPress('0')" onclick="fatKeyPress('0')" style="height:44px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">0</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-bottom:5px;">
+                    <button ontouchstart="fatKeyPress('Q')" onclick="fatKeyPress('Q')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">Q</button>
+                    <button ontouchstart="fatKeyPress('W')" onclick="fatKeyPress('W')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">W</button>
+                    <button ontouchstart="fatKeyPress('E')" onclick="fatKeyPress('E')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">E</button>
+                    <button ontouchstart="fatKeyPress('R')" onclick="fatKeyPress('R')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">R</button>
+                    <button ontouchstart="fatKeyPress('T')" onclick="fatKeyPress('T')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">T</button>
+                    <button ontouchstart="fatKeyPress('Y')" onclick="fatKeyPress('Y')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">Y</button>
+                    <button ontouchstart="fatKeyPress('U')" onclick="fatKeyPress('U')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">U</button>
+                    <button ontouchstart="fatKeyPress('I')" onclick="fatKeyPress('I')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">I</button>
+                    <button ontouchstart="fatKeyPress('O')" onclick="fatKeyPress('O')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">O</button>
+                    <button ontouchstart="fatKeyPress('P')" onclick="fatKeyPress('P')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">P</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-bottom:5px;padding:0 3%;">
+                    <button ontouchstart="fatKeyPress('A')" onclick="fatKeyPress('A')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">A</button>
+                    <button ontouchstart="fatKeyPress('S')" onclick="fatKeyPress('S')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">S</button>
+                    <button ontouchstart="fatKeyPress('D')" onclick="fatKeyPress('D')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">D</button>
+                    <button ontouchstart="fatKeyPress('F')" onclick="fatKeyPress('F')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">F</button>
+                    <button ontouchstart="fatKeyPress('G')" onclick="fatKeyPress('G')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">G</button>
+                    <button ontouchstart="fatKeyPress('H')" onclick="fatKeyPress('H')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">H</button>
+                    <button ontouchstart="fatKeyPress('J')" onclick="fatKeyPress('J')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">J</button>
+                    <button ontouchstart="fatKeyPress('K')" onclick="fatKeyPress('K')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">K</button>
+                    <button ontouchstart="fatKeyPress('L')" onclick="fatKeyPress('L')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">L</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1.5fr;gap:5px;margin-bottom:5px;">
+                    <button ontouchstart="fatKeyPress('⌫')" onclick="fatKeyPress('⌫')" style="height:52px;background:#3a3a3a;border:1px solid #444;border-radius:8px;color:#fff;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;">⌫</button>
+                    <button ontouchstart="fatKeyPress('Z')" onclick="fatKeyPress('Z')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">Z</button>
+                    <button ontouchstart="fatKeyPress('X')" onclick="fatKeyPress('X')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">X</button>
+                    <button ontouchstart="fatKeyPress('C')" onclick="fatKeyPress('C')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">C</button>
+                    <button ontouchstart="fatKeyPress('V')" onclick="fatKeyPress('V')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">V</button>
+                    <button ontouchstart="fatKeyPress('B')" onclick="fatKeyPress('B')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">B</button>
+                    <button ontouchstart="fatKeyPress('N')" onclick="fatKeyPress('N')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">N</button>
+                    <button ontouchstart="fatKeyPress('M')" onclick="fatKeyPress('M')" style="height:52px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">M</button>
+                    <button ontouchstart="fatKeyPress('⌫')" onclick="fatKeyPress('⌫')" style="height:52px;background:#3a3a3a;border:1px solid #444;border-radius:8px;color:#fff;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;">⌫</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr;gap:5px;">
+                    <button ontouchstart="fatKeyPress(' ')" onclick="fatKeyPress(' ')" style="height:48px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;">SPACE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-modal-title">hey dumbass 🤦</div>
+        <div class="confirm-modal-text">⚠️ you sure you wanna delete this? ⚠️</div>
+        <div class="confirm-modal-buttons">
+            <button class="confirm-btn cancel" id="cancelDelete">nah</button>
+            <button class="confirm-btn delete" id="confirmDelete">yeah delete it</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
