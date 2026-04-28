@@ -9755,7 +9755,13 @@
 
             if (type === 'confidence') {
                 // EQUAL: restore insertion order from logEntryOrder
-                logEntryOrder.forEach(entry => { if (entry.parentNode) logContent.appendChild(entry); });
+                if (logEntryOrder.length > 0) {
+                    logEntryOrder.forEach(entry => logContent.appendChild(entry));
+                } else {
+                    cards.sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
+                    cards.forEach(card => logContent.removeChild(card));
+                    cards.forEach(card => logContent.appendChild(card));
+                }
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
