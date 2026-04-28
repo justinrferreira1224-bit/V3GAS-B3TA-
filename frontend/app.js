@@ -9738,17 +9738,11 @@
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
             if (type === 'confidence') {
-                // EQUAL: restore exact insertion order using logEntryOrder array
-                if (logEntryOrder.length > 0) {
-                    logEntryOrder.forEach(entry => {
-                        if (entry.isConnected) logContent.appendChild(entry);
-                    });
-                } else {
-                    // fallback: sort by data-order descending
-                    cards.sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
-                    cards.forEach(card => logContent.removeChild(card));
-                    cards.forEach(card => logContent.appendChild(card));
-                }
+                // EQUAL: restore insertion order — append each in order (moves them in DOM)
+                const ordered = logEntryOrder.length > 0
+                    ? logEntryOrder
+                    : cards.slice().sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
+                ordered.forEach(entry => { try { logContent.appendChild(entry); } catch(e){} });
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
