@@ -6679,6 +6679,7 @@
                                     betInput.setAttribute('readonly', 'true');
                                     betInput.style.cursor = 'default';
                                 }
+                                logEntry.setAttribute('data-order', Date.now());
                                 logContent.insertBefore(logEntry, logContent.firstChild);
                                 setTimeout(() => { calculateBetAmounts(); }, 50);
                             }
@@ -6796,7 +6797,7 @@
                             betInput.style.cursor = 'default';
                         }
                         
-                        // Add to top of log then re-sort by confidence
+                        logEntry.setAttribute('data-order', Date.now());
                         logContent.insertBefore(logEntry, logContent.firstChild);
                         sortLogByConfidence();
                         
@@ -8973,7 +8974,7 @@
             const logContent = document.getElementById('logContent');
             if (!logContent) return;
             const permanentExamples = logContent.querySelectorAll('.log-entry.permanent-example');
-            entries.forEach(saved => {
+            entries.forEach((saved, idx) => {
                 // Skip if this team was deleted
                 if (deletedLogbookTeams.includes(saved.teamName)) return;
                 let matchingExample = null;
@@ -8989,6 +8990,7 @@
                 logEntry.setAttribute('data-odds', saved.odds);
                 logEntry.setAttribute('data-confidence', saved.confidence);
                 logEntry.setAttribute('data-kelly', calcKelly(saved.odds, parseInt(saved.confidence) / 100).toFixed(4));
+                logEntry.setAttribute('data-order', saved.savedAt || (Date.now() - idx));
                 const oddsSpans = logEntry.querySelectorAll('span');
                 if (oddsSpans.length >= 2) oddsSpans[1].textContent = saved.odds;
                 const betInput = logEntry.querySelector('input');
@@ -9732,7 +9734,7 @@
 
             cards.sort((a, b) => {
                 if (type === 'confidence') {
-                    return 0; // equal tab — keep insertion order, no sort
+                    return parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0');
                 } else if (type === 'kelly') {
                     return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
                 } else {
