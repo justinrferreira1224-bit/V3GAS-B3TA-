@@ -6679,7 +6679,7 @@
                                     betInput.setAttribute('readonly', 'true');
                                     betInput.style.cursor = 'default';
                                 }
-                                logEntry.setAttribute('data-order', Date.now());
+                                logEntry.setAttribute('data-order', ++logEntryCounter);
                                 logContent.insertBefore(logEntry, logContent.firstChild);
                                 setTimeout(() => { calculateBetAmounts(); }, 50);
                             }
@@ -6797,7 +6797,7 @@
                             betInput.style.cursor = 'default';
                         }
                         
-                        logEntry.setAttribute('data-order', Date.now());
+                        logEntry.setAttribute('data-order', ++logEntryCounter);
                         logContent.insertBefore(logEntry, logContent.firstChild);
                         sortLogByConfidence();
                         
@@ -8990,7 +8990,7 @@
                 logEntry.setAttribute('data-odds', saved.odds);
                 logEntry.setAttribute('data-confidence', saved.confidence);
                 logEntry.setAttribute('data-kelly', calcKelly(saved.odds, parseInt(saved.confidence) / 100).toFixed(4));
-                logEntry.setAttribute('data-order', saved.savedAt || (Date.now() - idx));
+                logEntry.setAttribute('data-order', ++logEntryCounter);
                 const oddsSpans = logEntry.querySelectorAll('span');
                 if (oddsSpans.length >= 2) oddsSpans[1].textContent = saved.odds;
                 const betInput = logEntry.querySelector('input');
@@ -9647,6 +9647,7 @@
         }
 
         let currentLogSort = 'confidence';
+        let logEntryCounter = 0;
 
         function renderGameLogForDay(dayNum) {
             const logContent = document.getElementById('logContent');
@@ -9734,7 +9735,7 @@
 
             cards.sort((a, b) => {
                 if (type === 'confidence') {
-                    return parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0');
+                    return parseInt(b.getAttribute('data-order') || '0') - parseInt(a.getAttribute('data-order') || '0');
                 } else if (type === 'kelly') {
                     return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
                 } else {
