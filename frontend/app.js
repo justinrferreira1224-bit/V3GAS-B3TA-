@@ -9728,7 +9728,7 @@
                 if (type === 'confidence') {
                     return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
                 } else if (type === 'kelly') {
-                    return parseFloat(b.getAttribute('data-kelly') || '0') - parseFloat(a.getAttribute('data-kelly') || '0');
+                    return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
                 } else {
                     const parseOdds = el => parseInt((el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'')) || 0;
                     return parseOdds(b) - parseOdds(a);
@@ -9877,12 +9877,12 @@
                     const c = g.conf || (g.edge ? parseFloat(g.edge) : 0);
                     return sum + c;
                 }, 0);
-                if (!totalConf) return;
+                const useEqualWeight = totalConf === 0;
                 let newBankroll = bankroll;
                 decided.forEach(g => {
                     const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
                     const conf = g.conf || (g.edge ? parseFloat(g.edge) : 0);
-                    const stake = bankroll * (conf / totalConf);
+                    const stake = bankroll * (useEqualWeight ? 1 / decided.length : conf / totalConf);
                     const o = parseInt(oddsStr);
                     if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
                     else newBankroll -= stake;
