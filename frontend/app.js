@@ -7187,20 +7187,37 @@
             const entries = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example)'));
             if (entries.length === 0) return;
 
-            const totalConf = entries.reduce((sum, e) => sum + parseInt(e.getAttribute('data-confidence') || '0'), 0);
-            const useEqual = totalConf === 0;
+            const sorted = [...entries].sort((a,b) => parseInt(b.getAttribute('data-confidence')||'0') - parseInt(a.getAttribute('data-confidence')||'0'));
 
-            entries.forEach(entry => {
-                const betInput = entry.querySelector('input');
-                if (!betInput) return;
-                const conf = parseInt(entry.getAttribute('data-confidence') || '0');
-                const odds = entry.getAttribute('data-odds') || '0';
-                const fraction = useEqual ? 1 / entries.length : conf / totalConf;
-                const amount = bankroll * fraction;
-                const edge = calcKellyEdge(odds, conf / 100);
-                betInput.removeAttribute('disabled');
-                betInput.value = '$' + amount.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
-            });
+            if (currentLogSort === 'kelly') {
+                // Raw Kelly fraction per pick using confidence + odds
+                const rawFracs = entries.map(entry => {
+                    const conf = parseInt(entry.getAttribute('data-confidence')||'0');
+                    const odds = entry.getAttribute('data-odds')||'0';
+                    const f = calcKellyEdge(odds, conf / 100);
+                    return Math.max(0, f);
+                });
+                const totalFrac = rawFracs.reduce((s,f) => s + f, 0);
+                entries.forEach((entry, i) => {
+                    const betInput = entry.querySelector('input');
+                    if (!betInput) return;
+                    const conf = parseInt(entry.getAttribute('data-confidence')||'0');
+                    const odds = entry.getAttribute('data-odds')||'0';
+                    const edge = calcKellyEdge(odds, conf / 100);
+                    const frac = totalFrac > 0 ? rawFracs[i] / totalFrac : 1 / entries.length;
+                    betInput.removeAttribute('disabled');
+                    betInput.value = '$' + (bankroll * frac).toFixed(2) + (edge < 0 ? ' ⚠️' : '');
+                });
+            } else {
+                // Confidence tab: equal split (Rob logic), still shows CONF badges
+                const stake = bankroll / entries.length;
+                entries.forEach(entry => {
+                    const betInput = entry.querySelector('input');
+                    if (!betInput) return;
+                    betInput.removeAttribute('disabled');
+                    betInput.value = '$' + stake.toFixed(2);
+                });
+            }
 
             renderConfChips();
         }
@@ -8985,23 +9002,7 @@
                 logContent.insertBefore(logEntry, logContent.firstChild);
             });
             sortLogByConfidence();
-            // Calculate bet amounts inline after all entries are in DOM
-            const allEntries = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example)'));
-            const br = parseFloat(document.getElementById('gwBankroll')?.textContent?.replace(/[^0-9.]/g,'')) || 100;
-            const totalConf = allEntries.reduce((s,e) => s + parseInt(e.getAttribute('data-confidence')||'0'), 0);
-            const useEqual = totalConf === 0;
-            allEntries.forEach(entry => {
-                const inp = entry.querySelector('input');
-                if (!inp) return;
-                const conf = parseInt(entry.getAttribute('data-confidence')||'0');
-                const odds = entry.getAttribute('data-odds')||'0';
-                const frac = useEqual ? 1/allEntries.length : conf/totalConf;
-                const amt = br * frac;
-                const edge = calcKellyEdge(odds, conf/100);
-                inp.removeAttribute('disabled');
-                inp.value = '$' + amt.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
-            });
-            setTimeout(() => renderConfChips(), 50);
+            setTimeout(() => { calculateBetAmounts(); renderConfChips(); }, 50);
         }
 
         function reapplyMLBStandingsFromBetLog() {
