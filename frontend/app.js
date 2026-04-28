@@ -7211,8 +7211,21 @@
                     betInput.removeAttribute('disabled');
                     betInput.value = '$' + (bankroll * frac).toFixed(2) + (edge < 0 ? ' ⚠️' : '');
                 });
+            } else if (currentLogSort === 'odds') {
+                // Best Odds: Justin logic — top 5 by odds, 20% each
+                const byOdds = [...entries].sort((a,b) => {
+                    const toNum = el => parseInt((el.getAttribute('data-odds')||'0').replace(/[^0-9+\-]/g,'')) || 0;
+                    return toNum(b) - toNum(a);
+                });
+                const top5 = new Set(byOdds.slice(0, 5));
+                entries.forEach(entry => {
+                    const betInput = entry.querySelector('input');
+                    if (!betInput) return;
+                    betInput.removeAttribute('disabled');
+                    betInput.value = top5.has(entry) ? '$' + (bankroll * 0.20).toFixed(2) : '$0.00';
+                });
             } else {
-                // Confidence tab: equal split (Rob logic), still shows CONF badges
+                // Equal tab: equal split (Rob logic)
                 const stake = bankroll / entries.length;
                 entries.forEach(entry => {
                     const betInput = entry.querySelector('input');
