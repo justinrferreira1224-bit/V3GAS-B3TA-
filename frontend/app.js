@@ -9584,7 +9584,7 @@
                     </div>
                 </div>
                 ${(()=>{
-                    const br = parseFloat((document.getElementById('logBankroll') || document.getElementById('bankrollAmount'))?.textContent?.replace(/[^0-9.]/g,'')) || 100;
+                    const br = parseFloat(localStorage.getItem('bankroll')?.replace(/[^0-9.]/g,'')) || parseFloat(document.getElementById('bankrollAmount')?.textContent?.replace(/[^0-9.]/g,'')) || 100;
                     const totalConf = filteredGames.reduce((s,x) => s + (x.conf || (x.edge ? parseFloat(x.edge) : 0)), 0);
                     const useEqual = totalConf === 0;
                     return filteredGames.map(g => {
