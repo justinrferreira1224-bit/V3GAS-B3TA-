@@ -1840,6 +1840,10 @@
                     const _awayL10 = selectedBBAwayTeam?.last10Results ? selectedBBAwayTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBAwayTeam.last10Results.filter(r=>r==='L').length : '';
                     const _homeL10 = selectedBBHomeTeam?.last10Results ? selectedBBHomeTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBHomeTeam.last10Results.filter(r=>r==='L').length : '';
 
+                    console.log('📊 MLB Save - Away Stats:', {ERA: _awayStarterERA, IP: _awayStarterIP, BullERA: _awayBullpenERA, AVG: _awayAvg, OBP: _awayOBP, SLG: _awaySLG, Pitcher: _awayStarterName});
+                    console.log('📊 MLB Save - Home Stats:', {ERA: _homeStarterERA, IP: _homeStarterIP, BullERA: _homeBullpenERA, AVG: _homeAvg, OBP: _homeOBP, SLG: _homeSLG, Pitcher: _homeStarterName});
+                    console.log('📊 MLB Save - Other:', {parkAway: _parkAway, parkHome: _parkHome, series: _seriesCount, seriesGames: _seriesGames});
+
                     const snap = {};
                     if (_awayStarterERA)  snap.awayERA      = _awayStarterERA;
                     if (_awayStarterIP)   snap.awayIP       = _awayStarterIP;
