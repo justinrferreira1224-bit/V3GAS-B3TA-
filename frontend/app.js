@@ -9754,12 +9754,8 @@
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
             if (type === 'confidence') {
-                // EQUAL: re-insert from original Firebase data for guaranteed correct order
-                if (savedLogbookEntries) {
-                    restoreLogbookEntries(savedLogbookEntries, true);
-                } else {
-                    logEntryOrder.forEach(entry => { if (entry.parentNode) logContent.appendChild(entry); });
-                }
+                // EQUAL: restore insertion order from logEntryOrder
+                logEntryOrder.forEach(entry => { if (entry.parentNode) logContent.appendChild(entry); });
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
