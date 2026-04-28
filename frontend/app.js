@@ -8624,11 +8624,14 @@
         };
 
         async function fetchMLBPitchingStats(teamName, side) {
+            console.log('🔄 Fetching MLB pitching for:', teamName, '(side:', side + ')');
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
+                console.log('🔄 Requesting:', BACKEND_URL + '/api/mlb/pitching/' + encodeURIComponent(cleanName));
                 const r = await fetch(BACKEND_URL + '/api/mlb/pitching/' + encodeURIComponent(cleanName));
                 const d = await r.json();
+                console.log('📥 Received pitching data for', teamName, ':', d);
                 if (!d) { console.warn('No Firebase starter data for', teamName); return; }
                 const result = {
                     starterERA: d.starterERA || 4.00,
@@ -8794,11 +8797,13 @@
         }
 
         async function fetchMLBBatting(teamName, side) {
+            console.log('🔄 Fetching MLB batting for:', teamName, '(side:', side + ')');
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
                 const r = await fetch(BACKEND_URL + '/api/mlb/batting/' + encodeURIComponent(cleanName));
                 const d = await r.json();
+                console.log('📥 Received batting data for', teamName, ':', d);
                 if (!d) { console.warn('No Firebase batting data for', teamName); return; }
                 // Cache the batting data
                 cachedMLBBatting[teamName] = { avg: d.avg || 0, obp: d.obp || 0, slg: d.slg || 0 };
