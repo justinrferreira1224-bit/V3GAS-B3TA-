@@ -9732,7 +9732,7 @@
 
             cards.sort((a, b) => {
                 if (type === 'confidence') {
-                    return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
+                    return 0; // equal tab — keep insertion order, no sort
                 } else if (type === 'kelly') {
                     return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
                 } else {
