@@ -3412,7 +3412,7 @@
                     // Sync bankroll
                     const logBankroll = document.getElementById('logBankroll');
                     if (logBankroll && gwBankroll) logBankroll.textContent = gwBankroll.textContent;
-                    setTimeout(() => calculateBetAmounts(), 100);
+                    setTimeout(() => calculateBetAmounts(), 300);
                 } else {
                     scrambleText(gwLogbook, 'log book', 1200);
                 }
@@ -7191,13 +7191,14 @@
             const useEqual = totalConf === 0;
 
             entries.forEach(entry => {
-                const betInput = entry.querySelector('.bet-amount-input');
+                const betInput = entry.querySelector('.bet-amount-input') || entry.querySelector('input[type="text"]') || entry.querySelector('input');
                 if (!betInput) return;
                 const conf = parseInt(entry.getAttribute('data-confidence') || '0');
                 const odds = entry.getAttribute('data-odds') || '0';
                 const fraction = useEqual ? 1 / entries.length : conf / totalConf;
                 const amount = bankroll * fraction;
                 const edge = calcKellyEdge(odds, conf / 100);
+                betInput.removeAttribute('disabled');
                 betInput.value = '$' + amount.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
             });
 
