@@ -6680,6 +6680,7 @@
                                     betInput.style.cursor = 'default';
                                 }
                                 logEntry.setAttribute('data-order', ++logEntryCounter);
+                                logEntryOrder.unshift(logEntry);
                                 logContent.insertBefore(logEntry, logContent.firstChild);
                                 setTimeout(() => { calculateBetAmounts(); }, 50);
                             }
@@ -6798,6 +6799,7 @@
                         }
                         
                         logEntry.setAttribute('data-order', ++logEntryCounter);
+                        logEntryOrder.unshift(logEntry);
                         logContent.insertBefore(logEntry, logContent.firstChild);
                         sortLogByConfidence();
                         
@@ -8991,6 +8993,7 @@
                 logEntry.setAttribute('data-confidence', saved.confidence);
                 logEntry.setAttribute('data-kelly', calcKelly(saved.odds, parseInt(saved.confidence) / 100).toFixed(4));
                 logEntry.setAttribute('data-order', ++logEntryCounter);
+                logEntryOrder.unshift(logEntry);
                 const oddsSpans = logEntry.querySelectorAll('span');
                 if (oddsSpans.length >= 2) oddsSpans[1].textContent = saved.odds;
                 const betInput = logEntry.querySelector('input');
@@ -9648,6 +9651,7 @@
 
         let currentLogSort = 'confidence';
         let logEntryCounter = 0;
+        let logEntryOrder = [];
 
         function renderGameLogForDay(dayNum) {
             const logContent = document.getElementById('logContent');
@@ -9733,27 +9737,26 @@
             const logContent = document.getElementById('logContent');
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
-            // Calculate Kelly amounts first so we can sort by them
-            if (type === 'kelly') calculateBetAmounts();
-
-            cards.sort((a, b) => {
-                if (type === 'confidence') {
-                    // EQUAL: insertion order, most recently entered first
-                    return parseInt(b.getAttribute('data-order') || '0') - parseInt(a.getAttribute('data-order') || '0');
-                } else if (type === 'kelly') {
-                    // KELLY: highest bet amount first
-                    const amtA = parseFloat((a.querySelector('input')?.value || '0').replace(/[^0-9.]/g,'')) || 0;
-                    const amtB = parseFloat((b.querySelector('input')?.value || '0').replace(/[^0-9.]/g,'')) || 0;
-                    return amtB - amtA;
-                } else {
-                    // BEST ODDS: most positive odds first
-                    const toNum = el => parseInt((el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'')) || 0;
-                    return toNum(b) - toNum(a);
-                }
-            });
-
-            cards.forEach(card => logContent.removeChild(card));
-            cards.forEach(card => logContent.appendChild(card));
+            if (type === 'confidence') {
+                // EQUAL: restore exact insertion order using logEntryOrder array
+                logEntryOrder.forEach(entry => {
+                    if (logContent.contains(entry)) logContent.appendChild(entry);
+                });
+            } else {
+                if (type === 'kelly') calculateBetAmounts();
+                cards.sort((a, b) => {
+                    if (type === 'kelly') {
+                        const amtA = parseFloat((a.querySelector('input')?.value || '0').replace(/[^0-9.]/g,'')) || 0;
+                        const amtB = parseFloat((b.querySelector('input')?.value || '0').replace(/[^0-9.]/g,'')) || 0;
+                        return amtB - amtA;
+                    } else {
+                        const toNum = el => parseInt((el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'')) || 0;
+                        return toNum(b) - toNum(a);
+                    }
+                });
+                cards.forEach(card => logContent.removeChild(card));
+                cards.forEach(card => logContent.appendChild(card));
+            }
             if (type !== 'kelly') calculateBetAmounts();
         }
 
