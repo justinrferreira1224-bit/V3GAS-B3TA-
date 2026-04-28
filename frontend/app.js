@@ -3412,7 +3412,7 @@
                     // Sync bankroll
                     const logBankroll = document.getElementById('logBankroll');
                     if (logBankroll && gwBankroll) logBankroll.textContent = gwBankroll.textContent;
-                    setTimeout(() => calculateBetAmounts(), 300);
+                    calculateBetAmounts();
                 } else {
                     scrambleText(gwLogbook, 'log book', 1200);
                 }
@@ -7191,7 +7191,7 @@
             const useEqual = totalConf === 0;
 
             entries.forEach(entry => {
-                const betInput = entry.querySelector('.bet-amount-input') || entry.querySelector('input[type="text"]') || entry.querySelector('input');
+                const betInput = entry.querySelector('input');
                 if (!betInput) return;
                 const conf = parseInt(entry.getAttribute('data-confidence') || '0');
                 const odds = entry.getAttribute('data-odds') || '0';
@@ -8985,7 +8985,23 @@
                 logContent.insertBefore(logEntry, logContent.firstChild);
             });
             sortLogByConfidence();
-            setTimeout(() => { calculateBetAmounts(); renderConfChips(); }, 50);
+            // Calculate bet amounts inline after all entries are in DOM
+            const allEntries = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example)'));
+            const br = parseFloat(document.getElementById('gwBankroll')?.textContent?.replace(/[^0-9.]/g,'')) || 100;
+            const totalConf = allEntries.reduce((s,e) => s + parseInt(e.getAttribute('data-confidence')||'0'), 0);
+            const useEqual = totalConf === 0;
+            allEntries.forEach(entry => {
+                const inp = entry.querySelector('input');
+                if (!inp) return;
+                const conf = parseInt(entry.getAttribute('data-confidence')||'0');
+                const odds = entry.getAttribute('data-odds')||'0';
+                const frac = useEqual ? 1/allEntries.length : conf/totalConf;
+                const amt = br * frac;
+                const edge = calcKellyEdge(odds, conf/100);
+                inp.removeAttribute('disabled');
+                inp.value = '$' + amt.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
+            });
+            setTimeout(() => renderConfChips(), 50);
         }
 
         function reapplyMLBStandingsFromBetLog() {
