@@ -7187,15 +7187,16 @@
             if (entries.length === 0) return;
 
             if (currentLogSort === 'kelly') {
+                const totalConf = entries.reduce((sum, e) => sum + parseInt(e.getAttribute('data-confidence') || '0'), 0);
                 entries.forEach(entry => {
                     const betInput = entry.querySelector('.bet-amount-input');
                     if (!betInput) return;
                     const conf = parseInt(entry.getAttribute('data-confidence') || '0');
                     const odds = entry.getAttribute('data-odds') || '0';
-                    const winProb = conf / 100;
-                    const f = calcKelly(odds, winProb);
-                    const amount = f > 0 ? bankroll * f : 0;
-                    betInput.value = f > 0 ? '$' + amount.toFixed(2) : '$0.00';
+                    const fraction = totalConf > 0 ? conf / totalConf : 0;
+                    const amount = bankroll * fraction;
+                    const edge = calcKellyEdge(odds, conf / 100);
+                    betInput.value = '$' + amount.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
                 });
             } else {
                 entries.sort((a, b) => parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0'));
@@ -9610,7 +9611,7 @@
                             <div style="background:#0a0a0a;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
                                 <div style="display:flex;flex-direction:column;gap:2px;">
                                     <span style="font-size:11px;color:#444;">🩹${g.i1}/${g.i2}</span>
-                                    ${(()=>{const winProb=g.conf?g.conf/100:(g.edge?parseFloat(g.edge)/100:0);const f=calcKelly(pickOdds,winProb);const br=parseFloat((document.getElementById('gwBankroll')||document.getElementById('bankrollAmount'))?.textContent?.replace('$','')||'100');return f>0?`<span style="font-size:10px;font-weight:800;color:#22c55e;">kelly: $${(br*f).toFixed(2)} (${(f*100).toFixed(1)}%)</span>`:`<span style="font-size:10px;color:#444;">kelly: no edge</span>`})()}
+                                    ${(()=>{const conf=g.conf||(g.edge?parseFloat(g.edge):0);const totalConf=filteredGames.reduce((s,x)=>s+(x.conf||(x.edge?parseFloat(x.edge):0)),0);const fraction=totalConf>0?conf/totalConf:0;const br=parseFloat((document.getElementById('gwBankroll')||document.getElementById('bankrollAmount'))?.textContent?.replace('$','')||'100');const amount=br*fraction;const edge=calcKellyEdge(pickOdds,conf/100);const warn=edge<0?' ⚠️':'';return conf>0?`<span style="font-size:10px;font-weight:800;color:#22c55e;">kelly: $${amount.toFixed(2)} (${(fraction*100).toFixed(1)}%)${warn}</span>`:`<span style="font-size:10px;color:#444;">kelly: no conf data</span>`})()}
                                 </div>
                                 ${g.res === null ? `
                                 <div style="display:flex;gap:8px;">
@@ -9851,13 +9852,16 @@
             } catch(e) {}
         }
 
-        function calcKelly(oddsStr, winProb) {
+        function calcKellyEdge(oddsStr, winProb) {
             if (!winProb || winProb <= 0 || winProb >= 1) return 0;
             const odds = parseInt(oddsStr);
             if (!odds) return 0;
             const b = odds > 0 ? odds / 100 : 100 / Math.abs(odds);
-            const f = (b * winProb - (1 - winProb)) / b;
-            return Math.max(0, Math.min(f, 0.25));
+            return (b * winProb - (1 - winProb)) / b;
+        }
+
+        function calcKelly(oddsStr, winProb) {
+            return Math.max(0, Math.min(calcKellyEdge(oddsStr, winProb), 0.25));
         }
 
         function calcKellyData(month) {
@@ -9869,14 +9873,16 @@
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
                 if (decided.length === 0) return;
                 if (bankroll <= 0) bankroll = 100;
+                const totalConf = decided.reduce((sum, g) => {
+                    const c = g.conf || (g.edge ? parseFloat(g.edge) : 0);
+                    return sum + c;
+                }, 0);
+                if (!totalConf) return;
                 let newBankroll = bankroll;
                 decided.forEach(g => {
                     const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
-                    const winProb = g.conf ? g.conf / 100 : (g.edge ? parseFloat(g.edge) / 100 : 0);
-                    if (!winProb) return;
-                    const f = calcKelly(oddsStr, winProb);
-                    if (f <= 0) return;
-                    const stake = bankroll * f;
+                    const conf = g.conf || (g.edge ? parseFloat(g.edge) : 0);
+                    const stake = bankroll * (conf / totalConf);
                     const o = parseInt(oddsStr);
                     if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
                     else newBankroll -= stake;
