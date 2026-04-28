@@ -1849,29 +1849,42 @@
                     const _awayL10 = selectedBBAwayTeam?.last10Results ? selectedBBAwayTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBAwayTeam.last10Results.filter(r=>r==='L').length : '';
                     const _homeL10 = selectedBBHomeTeam?.last10Results ? selectedBBHomeTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBHomeTeam.last10Results.filter(r=>r==='L').length : '';
 
-                    console.log('📊 MLB Save - Away Stats:', {ERA: _awayStarterERA, IP: _awayStarterIP, BullERA: _awayBullpenERA, AVG: _awayAvg, OBP: _awayOBP, SLG: _awaySLG, Pitcher: _awayStarterName});
-                    console.log('📊 MLB Save - Home Stats:', {ERA: _homeStarterERA, IP: _homeStarterIP, BullERA: _homeBullpenERA, AVG: _homeAvg, OBP: _homeOBP, SLG: _homeSLG, Pitcher: _homeStarterName});
-                    console.log('📊 MLB Save - Other:', {parkAway: _parkAway, parkHome: _parkHome, series: _seriesCount, seriesGames: _seriesGames});
-
                     const snap = {};
-                    if (_awayStarterERA)  snap.awayERA      = _awayStarterERA;
-                    if (_awayStarterIP)   snap.awayIP       = _awayStarterIP;
-                    if (_awayBullpenERA)  snap.awayBullERA  = _awayBullpenERA;
-                    if (_homeStarterERA)  snap.homeERA      = _homeStarterERA;
-                    if (_homeStarterIP)   snap.homeIP       = _homeStarterIP;
-                    if (_homeBullpenERA)  snap.homeBullERA  = _homeBullpenERA;
-                    if (_awayAvg)         snap.awayAvg      = _awayAvg;
-                    if (_awayOBP)         snap.awayOBP      = _awayOBP;
-                    if (_awaySLG)         snap.awaySLG      = _awaySLG;
-                    if (_homeAvg)         snap.homeAvg      = _homeAvg;
-                    if (_homeOBP)         snap.homeOBP      = _homeOBP;
-                    if (_homeSLG)         snap.homeSLG      = _homeSLG;
-                    if (_awayStarterName) snap.awayStarter  = _awayStarterName;
-                    if (_homeStarterName) snap.homeStarter  = _homeStarterName;
-                    if (_parkAway)        snap.parkAway     = _parkAway;
-                    if (_parkHome)        snap.parkHome     = _parkHome;
-                    if (_seriesCount)     snap.series       = _seriesCount;
-                    if (_seriesGames)     snap.seriesGames  = _seriesGames;
+                    const domERA_a = parseFloat(document.getElementById('bbAwayStarterERA')?.value);
+                    const domIP_a  = parseFloat(document.getElementById('bbAwayStarterIP')?.value);
+                    const domBP_a  = parseFloat(document.getElementById('bbAwayBullpenERA')?.value);
+                    const domERA_h = parseFloat(document.getElementById('bbHomeStarterERA')?.value);
+                    const domIP_h  = parseFloat(document.getElementById('bbHomeStarterIP')?.value);
+                    const domBP_h  = parseFloat(document.getElementById('bbHomeBullpenERA')?.value);
+                    const domAvg_a = parseFloat(document.getElementById('bbAwayAvg')?.value);
+                    const domOBP_a = parseFloat(document.getElementById('bbAwayOBP')?.value);
+                    const domSLG_a = parseFloat(document.getElementById('bbAwaySLG')?.value);
+                    const domAvg_h = parseFloat(document.getElementById('bbHomeAvg')?.value);
+                    const domOBP_h = parseFloat(document.getElementById('bbHomeOBP')?.value);
+                    const domSLG_h = parseFloat(document.getElementById('bbHomeSLG')?.value);
+                    const domPit_a = document.getElementById('bbAwayPitcherBox')?.textContent?.trim();
+                    const domPit_h = document.getElementById('bbHomePitcherBox')?.textContent?.trim();
+
+                    if (domERA_a && !isNaN(domERA_a)) snap.awayERA = domERA_a;
+                    if (domIP_a && !isNaN(domIP_a))   snap.awayIP = domIP_a;
+                    if (domBP_a && !isNaN(domBP_a))   snap.awayBullERA = domBP_a;
+                    if (domERA_h && !isNaN(domERA_h)) snap.homeERA = domERA_h;
+                    if (domIP_h && !isNaN(domIP_h))   snap.homeIP = domIP_h;
+                    if (domBP_h && !isNaN(domBP_h))   snap.homeBullERA = domBP_h;
+                    if (domAvg_a && !isNaN(domAvg_a)) snap.awayAvg = domAvg_a;
+                    if (domOBP_a && !isNaN(domOBP_a)) snap.awayOBP = domOBP_a;
+                    if (domSLG_a && !isNaN(domSLG_a)) snap.awaySLG = domSLG_a;
+                    if (domAvg_h && !isNaN(domAvg_h)) snap.homeAvg = domAvg_h;
+                    if (domOBP_h && !isNaN(domOBP_h)) snap.homeOBP = domOBP_h;
+                    if (domSLG_h && !isNaN(domSLG_h)) snap.homeSLG = domSLG_h;
+                    if (domPit_a) snap.awayStarter = domPit_a;
+                    if (domPit_h) snap.homeStarter = domPit_h;
+                    if (_parkAway) snap.parkAway = _parkAway;
+                    if (_parkHome) snap.parkHome = _parkHome;
+                    if (_seriesCount) snap.series = _seriesCount;
+                    if (_seriesGames) snap.seriesGames = _seriesGames;
+
+                    console.log('📸 Snap before save:', snap);
 
                     const newGame = {
                         t1: selectedBBAwayTeam.name,
