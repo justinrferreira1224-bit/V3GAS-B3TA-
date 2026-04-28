@@ -9739,9 +9739,16 @@
 
             if (type === 'confidence') {
                 // EQUAL: restore exact insertion order using logEntryOrder array
-                logEntryOrder.forEach(entry => {
-                    if (logContent.contains(entry)) logContent.appendChild(entry);
-                });
+                if (logEntryOrder.length > 0) {
+                    logEntryOrder.forEach(entry => {
+                        if (entry.isConnected) logContent.appendChild(entry);
+                    });
+                } else {
+                    // fallback: sort by data-order descending
+                    cards.sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
+                    cards.forEach(card => logContent.removeChild(card));
+                    cards.forEach(card => logContent.appendChild(card));
+                }
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
