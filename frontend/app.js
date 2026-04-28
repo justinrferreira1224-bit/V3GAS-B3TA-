@@ -9733,20 +9733,28 @@
             const logContent = document.getElementById('logContent');
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
+            // Calculate Kelly amounts first so we can sort by them
+            if (type === 'kelly') calculateBetAmounts();
+
             cards.sort((a, b) => {
                 if (type === 'confidence') {
+                    // EQUAL: insertion order, most recently entered first
                     return parseInt(b.getAttribute('data-order') || '0') - parseInt(a.getAttribute('data-order') || '0');
                 } else if (type === 'kelly') {
-                    return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
+                    // KELLY: highest bet amount first
+                    const amtA = parseFloat((a.querySelector('input')?.value || '0').replace(/[^0-9.]/g,'')) || 0;
+                    const amtB = parseFloat((b.querySelector('input')?.value || '0').replace(/[^0-9.]/g,'')) || 0;
+                    return amtB - amtA;
                 } else {
-                    const parseOdds = el => parseInt((el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'')) || 0;
-                    return parseOdds(b) - parseOdds(a);
+                    // BEST ODDS: most positive odds first
+                    const toNum = el => parseInt((el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'')) || 0;
+                    return toNum(b) - toNum(a);
                 }
             });
 
             cards.forEach(card => logContent.removeChild(card));
             cards.forEach(card => logContent.appendChild(card));
-            calculateBetAmounts();
+            if (type !== 'kelly') calculateBetAmounts();
         }
 
         function goToLogbook() {
