@@ -9583,10 +9583,22 @@
                         <span style="font-size:11px;font-weight:700;color:${dW>dL?'#22c55e':dL>dW?'#ef4444':'#aaa'};">daily: ${dW}-${dL}</span>
                     </div>
                 </div>
-                ${filteredGames.map(g => {
+                ${(()=>{
+                    const br = parseFloat((document.getElementById('logBankroll') || document.getElementById('bankrollAmount'))?.textContent?.replace(/[^0-9.]/g,'')) || 100;
+                    const totalConf = filteredGames.reduce((s,x) => s + (x.conf || (x.edge ? parseFloat(x.edge) : 0)), 0);
+                    const useEqual = totalConf === 0;
+                    return filteredGames.map(g => {
                     const won = g.res === 'W';
                     const pickOdds = g.pick === g.t1 ? g.o1 : g.o2;
                     const gid = g._id || '';
+                    const gConf = g.conf || (g.edge ? parseFloat(g.edge) : 0);
+                    const gFrac = useEqual ? 1 / filteredGames.length : (totalConf > 0 ? gConf / totalConf : 0);
+                    const kellyAmt = (br * gFrac).toFixed(2);
+                    const kellyPct = (gFrac * 100).toFixed(1);
+                    const kellyEdge = gConf > 0 ? calcKellyEdge(pickOdds, gConf / 100) : null;
+                    const kellyHtml = gConf > 0
+                        ? `<span style="font-size:10px;font-weight:800;color:#22c55e;">kelly: $${kellyAmt} (${kellyPct}%)${kellyEdge < 0 ? ' ⚠️' : ''}</span>`
+                        : `<span style="font-size:10px;color:#555;">kelly: $${kellyAmt} (${kellyPct}%)</span>`;
                     return `<div style="position:relative;margin-bottom:8px;overflow:hidden;border-radius:10px;">
                         <div style="position:absolute;right:0;top:0;bottom:0;width:80px;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:0 10px 10px 0;">🗑️</div>
                         <div id="betCard${gid}" style="position:relative;background:#111;border-radius:10px;touch-action:pan-y;"
@@ -9611,7 +9623,7 @@
                             <div style="background:#0a0a0a;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
                                 <div style="display:flex;flex-direction:column;gap:2px;">
                                     <span style="font-size:11px;color:#444;">🩹${g.i1}/${g.i2}</span>
-                                    ${(()=>{const conf=g.conf||(g.edge?parseFloat(g.edge):0);const totalConf=filteredGames.reduce((s,x)=>s+(x.conf||(x.edge?parseFloat(x.edge):0)),0);const fraction=totalConf>0?conf/totalConf:0;const br=parseFloat((document.getElementById('gwBankroll')||document.getElementById('bankrollAmount'))?.textContent?.replace('$','')||'100');const amount=br*fraction;const edge=calcKellyEdge(pickOdds,conf/100);const warn=edge<0?' ⚠️':'';return conf>0?`<span style="font-size:10px;font-weight:800;color:#22c55e;">kelly: $${amount.toFixed(2)} (${(fraction*100).toFixed(1)}%)${warn}</span>`:`<span style="font-size:10px;color:#444;">kelly: no conf data</span>`})()}
+                                    ${kellyHtml}
                                 </div>
                                 ${g.res === null ? `
                                 <div style="display:flex;gap:8px;">
@@ -9621,7 +9633,7 @@
                             </div>
                         </div>
                     </div>`;
-                }).join('')}` : ''}
+                }).join(''); })()}` : ''}
             `;
         }
 
