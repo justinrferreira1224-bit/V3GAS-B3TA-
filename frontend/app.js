@@ -9876,6 +9876,12 @@
             return Math.max(0, Math.min(calcKellyEdge(oddsStr, winProb), 0.25));
         }
 
+        function oddsImpliedProb(oddsStr) {
+            const o = parseInt(oddsStr);
+            if (!o) return 0.5;
+            return o > 0 ? 100 / (o + 100) : Math.abs(o) / (Math.abs(o) + 100);
+        }
+
         function calcKellyData(month) {
             const range = MONTH_RANGES[month];
             let bankroll = 100;
@@ -9885,16 +9891,18 @@
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
                 if (decided.length === 0) return;
                 if (bankroll <= 0) bankroll = 100;
-                const totalConf = decided.reduce((sum, g) => {
-                    const c = g.conf || (g.edge ? parseFloat(g.edge) : 0);
-                    return sum + c;
-                }, 0);
-                const useEqualWeight = totalConf === 0;
-                let newBankroll = bankroll;
-                decided.forEach(g => {
+                const kellyFracs = decided.map(g => {
                     const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
                     const conf = g.conf || (g.edge ? parseFloat(g.edge) : 0);
-                    const stake = bankroll * (useEqualWeight ? 1 / decided.length : conf / totalConf);
+                    const winProb = conf > 0 ? conf / 100 : oddsImpliedProb(oddsStr) + 0.05;
+                    return Math.max(0, calcKellyEdge(oddsStr, Math.min(winProb, 0.99)));
+                });
+                const totalFrac = kellyFracs.reduce((s, f) => s + f, 0);
+                let newBankroll = bankroll;
+                decided.forEach((g, i) => {
+                    const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
+                    const frac = totalFrac > 0 ? kellyFracs[i] / totalFrac : 1 / decided.length;
+                    const stake = bankroll * Math.min(frac, 0.4);
                     const o = parseInt(oddsStr);
                     if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
                     else newBankroll -= stake;
