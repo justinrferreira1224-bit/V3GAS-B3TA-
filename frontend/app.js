@@ -1788,7 +1788,7 @@
         if (resetBtn) {
             resetBtn.addEventListener('click', resetTimer);
         }
-        saveBetBtn.addEventListener('click', () => {
+        saveBetBtn.addEventListener('click', async () => {
             // MLB Game Winner mode — save differently
             if (currentSport === 'mlb' && currentBetType === 'winner') {
                 if (!selectedBBAwayTeam || !selectedBBHomeTeam) {
@@ -1805,6 +1805,14 @@
                 // Determine pick — whoever the winner box shows
                 const pickTeam = winner.includes(selectedBBHomeTeam.name) ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                 const pickOdds = winner.includes(selectedBBHomeTeam.name) ? homeOdds : awayOdds;
+
+                // Wait for both team stats to finish loading
+                await Promise.all([
+                    fetchMLBPitchingStats(selectedBBAwayTeam.name, 'away'),
+                    fetchMLBPitchingStats(selectedBBHomeTeam.name, 'home'),
+                    fetchMLBBatting(selectedBBAwayTeam.name, 'away'),
+                    fetchMLBBatting(selectedBBHomeTeam.name, 'home')
+                ]);
 
                 const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
                 const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
