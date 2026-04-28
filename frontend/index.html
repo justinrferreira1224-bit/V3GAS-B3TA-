@@ -399,6 +399,7 @@
                     <div id="gameLogTabs" style="display:flex;gap:6px;padding:10px 14px 0;width:100%;box-sizing:border-box;">
                         <div onclick="sortGameLog('confidence')" id="tabConfidence" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);">CONFIDENCE</div>
                         <div onclick="sortGameLog('odds')" id="tabOdds" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:transparent;color:#555;border:1px solid transparent;">BEST ODDS</div>
+                        <div onclick="sortGameLog('kelly')" id="tabKelly" style="flex:1;text-align:center;padding:6px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:transparent;color:#555;border:1px solid transparent;">KELLY</div>
                     </div>
                     <div id="logContent" style="padding:12px 14px;"></div>
                 </div>
@@ -434,6 +435,7 @@
                         <div style="display:flex; border-top:1px solid #1a1a1a;">
                             <div id="subTabRobego" onclick="showMoneySubTab('robego')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#ef4444; cursor:pointer; border-bottom:2px solid #ef4444; letter-spacing:1px;">ROB</div>
                             <div id="subTabJustin" onclick="showMoneySubTab('justin')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">JUSTIN</div>
+                            <div id="subTabKelly" onclick="showMoneySubTab('kelly')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">KELLY</div>
                         </div>
                     </div>
                     <div id="monthChartContent" style="flex:1; padding:16px 14px; display:flex; flex-direction:column; gap:12px;">

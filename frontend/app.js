@@ -6778,6 +6778,7 @@
                         logEntry.setAttribute('data-odds', winnerOdds);
                         const confScore = parseInt(winnerExtraBox?.dataset?.confidenceScore || '0');
                         logEntry.setAttribute('data-confidence', confScore);
+                        logEntry.setAttribute('data-kelly', calcKelly(winnerOdds, confScore / 100).toFixed(4));
                         
                         // Update the odds in the cloned entry
                         const oddsSpans = logEntry.querySelectorAll('span');
@@ -7185,18 +7186,28 @@
             const entries = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example)'));
             if (entries.length === 0) return;
 
-            // Sort by CONF descending
-            entries.sort((a, b) => parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0'));
-
-            const splits = [0.35, 0.25, 0.20];
-            const rest = entries.length > 3 ? (bankroll * 0.20) / (entries.length - 3) : 0;
-
-            entries.forEach((entry, i) => {
-                const betInput = entry.querySelector('.bet-amount-input');
-                if (!betInput) return;
-                const amount = i < 3 ? bankroll * splits[i] : rest;
-                betInput.value = '$' + amount.toFixed(2);
-            });
+            if (currentLogSort === 'kelly') {
+                entries.forEach(entry => {
+                    const betInput = entry.querySelector('.bet-amount-input');
+                    if (!betInput) return;
+                    const conf = parseInt(entry.getAttribute('data-confidence') || '0');
+                    const odds = entry.getAttribute('data-odds') || '0';
+                    const winProb = conf / 100;
+                    const f = calcKelly(odds, winProb);
+                    const amount = f > 0 ? bankroll * f : 0;
+                    betInput.value = f > 0 ? '$' + amount.toFixed(2) : '$0.00';
+                });
+            } else {
+                entries.sort((a, b) => parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0'));
+                const splits = [0.35, 0.25, 0.20];
+                const rest = entries.length > 3 ? (bankroll * 0.20) / (entries.length - 3) : 0;
+                entries.forEach((entry, i) => {
+                    const betInput = entry.querySelector('.bet-amount-input');
+                    if (!betInput) return;
+                    const amount = i < 3 ? bankroll * splits[i] : rest;
+                    betInput.value = '$' + amount.toFixed(2);
+                });
+            }
 
             renderConfChips();
         }
@@ -8967,6 +8978,7 @@
                 logEntry.setAttribute('data-bet-type', saved.betType);
                 logEntry.setAttribute('data-odds', saved.odds);
                 logEntry.setAttribute('data-confidence', saved.confidence);
+                logEntry.setAttribute('data-kelly', calcKelly(saved.odds, parseInt(saved.confidence) / 100).toFixed(4));
                 const oddsSpans = logEntry.querySelectorAll('span');
                 if (oddsSpans.length >= 2) oddsSpans[1].textContent = saved.odds;
                 const betInput = logEntry.querySelector('input');
@@ -9596,7 +9608,10 @@
                                 </div>
                             </div>
                             <div style="background:#0a0a0a;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
-                                <span style="font-size:11px;color:#444;">🩹${g.i1}/${g.i2}</span>
+                                <div style="display:flex;flex-direction:column;gap:2px;">
+                                    <span style="font-size:11px;color:#444;">🩹${g.i1}/${g.i2}</span>
+                                    ${(()=>{const winProb=g.conf?g.conf/100:(g.edge?parseFloat(g.edge)/100:0);const f=calcKelly(pickOdds,winProb);const br=parseFloat((document.getElementById('gwBankroll')||document.getElementById('bankrollAmount'))?.textContent?.replace('$','')||'100');return f>0?`<span style="font-size:10px;font-weight:800;color:#22c55e;">kelly: $${(br*f).toFixed(2)} (${(f*100).toFixed(1)}%)</span>`:`<span style="font-size:10px;color:#444;">kelly: no edge</span>`})()}
+                                </div>
                                 ${g.res === null ? `
                                 <div style="display:flex;gap:8px;">
                                     <button onclick="setBetResult(${day.day}, '${gid}', 'W')" style="background:#22c55e;color:#000;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:900;cursor:pointer;">W</button>
@@ -9694,35 +9709,34 @@
         }
         function sortGameLog(type) {
             currentLogSort = type;
-            // Update tab styles
-            document.getElementById('tabConfidence').style.background = type === 'confidence' ? 'rgba(255,255,255,0.15)' : 'transparent';
-            document.getElementById('tabConfidence').style.color = type === 'confidence' ? '#fff' : '#555';
-            document.getElementById('tabConfidence').style.border = type === 'confidence' ? '1px solid rgba(255,255,255,0.4)' : '1px solid transparent';
-            document.getElementById('tabOdds').style.background = type === 'odds' ? 'rgba(255,255,255,0.15)' : 'transparent';
-            document.getElementById('tabOdds').style.color = type === 'odds' ? '#fff' : '#555';
-            document.getElementById('tabOdds').style.border = type === 'odds' ? '1px solid rgba(255,255,255,0.4)' : '1px solid transparent';
+            const setTab = (id, active) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.background = active ? 'rgba(255,255,255,0.15)' : 'transparent';
+                el.style.color = active ? '#fff' : '#555';
+                el.style.border = active ? '1px solid rgba(255,255,255,0.4)' : '1px solid transparent';
+            };
+            setTab('tabConfidence', type === 'confidence');
+            setTab('tabOdds', type === 'odds');
+            setTab('tabKelly', type === 'kelly');
 
             const logContent = document.getElementById('logContent');
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
             cards.sort((a, b) => {
                 if (type === 'confidence') {
-                    const ca = parseInt(a.getAttribute('data-confidence') || '0');
-                    const cb = parseInt(b.getAttribute('data-confidence') || '0');
-                    return cb - ca;
+                    return parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0');
+                } else if (type === 'kelly') {
+                    return parseFloat(b.getAttribute('data-kelly') || '0') - parseFloat(a.getAttribute('data-kelly') || '0');
                 } else {
-                    // Best odds = highest + number first
-                    const parseOdds = el => {
-                        const o = (el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'');
-                        return parseInt(o) || 0;
-                    };
+                    const parseOdds = el => parseInt((el.getAttribute('data-odds') || '0').replace(/[^0-9+\-]/g,'')) || 0;
                     return parseOdds(b) - parseOdds(a);
                 }
             });
 
-            // Remove and re-append in sorted order
             cards.forEach(card => logContent.removeChild(card));
             cards.forEach(card => logContent.appendChild(card));
+            calculateBetAmounts();
         }
 
         function goToLogbook() {
@@ -9835,6 +9849,43 @@
                     body: JSON.stringify({ monthStartOverrides })
                 });
             } catch(e) {}
+        }
+
+        function calcKelly(oddsStr, winProb) {
+            if (!winProb || winProb <= 0 || winProb >= 1) return 0;
+            const odds = parseInt(oddsStr);
+            if (!odds) return 0;
+            const b = odds > 0 ? odds / 100 : 100 / Math.abs(odds);
+            const f = (b * winProb - (1 - winProb)) / b;
+            return Math.max(0, Math.min(f, 0.25));
+        }
+
+        function calcKellyData(month) {
+            const range = MONTH_RANGES[month];
+            let bankroll = 100;
+            const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
+            betLog.forEach(day => {
+                if (day.day < range.startDay || day.day > range.endDay) return;
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                if (decided.length === 0) return;
+                if (bankroll <= 0) bankroll = 100;
+                let newBankroll = bankroll;
+                decided.forEach(g => {
+                    const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
+                    const winProb = g.conf ? g.conf / 100 : (g.edge ? parseFloat(g.edge) / 100 : 0);
+                    if (!winProb) return;
+                    const f = calcKelly(oddsStr, winProb);
+                    if (f <= 0) return;
+                    const stake = bankroll * f;
+                    const o = parseInt(oddsStr);
+                    if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
+                    else newBankroll -= stake;
+                });
+                bankroll = Math.round(Math.max(0, newBankroll) * 100) / 100;
+                if (bankroll <= 0) bankroll = 100;
+                data.push({ date: day.date, bankroll });
+            });
+            return data;
         }
 
         function calcMonthEndBankroll(month, sub) {
@@ -9962,13 +10013,13 @@
             const canvas = document.getElementById('monthChart');
             if (!canvas) return;
             if (monthChartInstance) { monthChartInstance.destroy(); monthChartInstance = null; }
-            const data = currentMoneySubTab === 'justin' ? calcJustinData(month) : calcMonthData(month);
-            const startAmount = getMonthStart(month);
+            const data = currentMoneySubTab === 'kelly' ? calcKellyData(month) : currentMoneySubTab === 'justin' ? calcJustinData(month) : calcMonthData(month);
+            const startAmount = currentMoneySubTab === 'kelly' ? 100 : getMonthStart(month);
             const ctx = canvas.getContext('2d');
             const labels = data.map(d => d.date);
             const values = data.map(d => d.bankroll);
-            const chartColor = currentMoneySubTab === 'robego' ? '#ef4444' : '#3b82f6';
-            const chartColorRgb = currentMoneySubTab === 'robego' ? '239,68,68' : '59,130,246';
+            const chartColor = currentMoneySubTab === 'robego' ? '#ef4444' : currentMoneySubTab === 'kelly' ? '#22c55e' : '#3b82f6';
+            const chartColorRgb = currentMoneySubTab === 'robego' ? '239,68,68' : currentMoneySubTab === 'kelly' ? '34,197,94' : '59,130,246';
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, `rgba(${chartColorRgb},0.4)`);
             gradient.addColorStop(1, `rgba(${chartColorRgb},0)`);
@@ -9984,8 +10035,10 @@
             }
             const robegoTab = document.getElementById('subTabRobego');
             const justinTab = document.getElementById('subTabJustin');
+            const kellyTab = document.getElementById('subTabKelly');
             if (robegoTab) { robegoTab.style.color = currentMoneySubTab === 'robego' ? '#ef4444' : '#555'; robegoTab.style.borderBottomColor = currentMoneySubTab === 'robego' ? '#ef4444' : 'transparent'; }
             if (justinTab) { justinTab.style.color = currentMoneySubTab === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = currentMoneySubTab === 'justin' ? '#3b82f6' : 'transparent'; }
+            if (kellyTab) { kellyTab.style.color = currentMoneySubTab === 'kelly' ? '#22c55e' : '#555'; kellyTab.style.borderBottomColor = currentMoneySubTab === 'kelly' ? '#22c55e' : 'transparent'; }
             const current = values[values.length - 1] || startAmount;
             const gain = current - startAmount;
             const gainPct = startAmount > 0 ? Math.round((gain / startAmount) * 100) : 0;
@@ -10037,10 +10090,12 @@
             currentMoneySubTab = sub;
             const robegoTab = document.getElementById('subTabRobego');
             const justinTab = document.getElementById('subTabJustin');
+            const kellyTab = document.getElementById('subTabKelly');
             const startInput = document.getElementById('monthStartInput');
             if (robegoTab) { robegoTab.style.color = sub === 'robego' ? '#ef4444' : '#555'; robegoTab.style.borderBottomColor = sub === 'robego' ? '#ef4444' : 'transparent'; }
             if (justinTab) { justinTab.style.color = sub === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = sub === 'justin' ? '#3b82f6' : 'transparent'; }
-            if (startInput) startInput.style.color = sub === 'robego' ? '#ef4444' : '#3b82f6';
+            if (kellyTab) { kellyTab.style.color = sub === 'kelly' ? '#22c55e' : '#555'; kellyTab.style.borderBottomColor = sub === 'kelly' ? '#22c55e' : 'transparent'; }
+            if (startInput) startInput.style.color = sub === 'robego' ? '#ef4444' : sub === 'kelly' ? '#22c55e' : '#3b82f6';
             setTimeout(() => buildMonthChart(currentMonthTab), 50);
         }
 
