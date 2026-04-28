@@ -8587,6 +8587,7 @@
 
         // ===== AUTO INJURY FETCH =====
         let pendingLogbookEntries = null;
+        let savedLogbookEntries = null;
         let cachedInjuries = {};
 
         const MLB_TEAM_IDS = {
@@ -8927,11 +8928,10 @@
                     if (data && data.previousBankroll) localStorage.setItem('previousBankroll', data.previousBankroll);
                     if (data && data.gwBankroll) localStorage.setItem('gwBankroll', data.gwBankroll);
                     if (data && data.logbookEntries && data.logbookEntries.length > 0) {
+                        savedLogbookEntries = data.logbookEntries;
                         pendingLogbookEntries = data.logbookEntries;
-                        // If logContent already exists (page already built), restore now
                         const logContent = document.getElementById('logContent');
                         if (logContent && logContent.querySelectorAll('.permanent-example').length > 0) {
-                            // Clear any already-restored entries first to avoid duplicates
                             logContent.querySelectorAll('.log-entry:not(.permanent-example)').forEach(e => e.remove());
                             restoreLogbookEntries(data.logbookEntries);
                             pendingLogbookEntries = null;
@@ -8971,7 +8971,7 @@
                 });
         }
 
-        function restoreLogbookEntries(entries) {
+        function restoreLogbookEntries(entries, skipSort = false) {
             if (!entries || entries.length === 0) return;
             const logContent = document.getElementById('logContent');
             if (!logContent) return;
@@ -9009,7 +9009,7 @@
                 }
                 logContent.insertBefore(logEntry, logContent.firstChild);
             });
-            sortLogByConfidence();
+            if (!skipSort) sortLogByConfidence();
             setTimeout(() => { calculateBetAmounts(); renderConfChips(); }, 50);
         }
 
@@ -9741,11 +9741,12 @@
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
             if (type === 'confidence') {
-                // EQUAL: restore insertion order — append each in order (moves them in DOM)
-                const ordered = logEntryOrder.length > 0
-                    ? logEntryOrder
-                    : cards.slice().sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
-                ordered.forEach(entry => { if (entry.parentNode) logContent.appendChild(entry); });
+                // EQUAL: re-insert from original Firebase data for guaranteed correct order
+                if (savedLogbookEntries) {
+                    restoreLogbookEntries(savedLogbookEntries, true);
+                } else {
+                    logEntryOrder.forEach(entry => { if (entry.parentNode) logContent.appendChild(entry); });
+                }
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
