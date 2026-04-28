@@ -7186,29 +7186,19 @@
             const entries = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example)'));
             if (entries.length === 0) return;
 
-            if (currentLogSort === 'kelly') {
-                const totalConf = entries.reduce((sum, e) => sum + parseInt(e.getAttribute('data-confidence') || '0'), 0);
-                entries.forEach(entry => {
-                    const betInput = entry.querySelector('.bet-amount-input');
-                    if (!betInput) return;
-                    const conf = parseInt(entry.getAttribute('data-confidence') || '0');
-                    const odds = entry.getAttribute('data-odds') || '0';
-                    const fraction = totalConf > 0 ? conf / totalConf : 0;
-                    const amount = bankroll * fraction;
-                    const edge = calcKellyEdge(odds, conf / 100);
-                    betInput.value = '$' + amount.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
-                });
-            } else {
-                entries.sort((a, b) => parseInt(b.getAttribute('data-confidence') || '0') - parseInt(a.getAttribute('data-confidence') || '0'));
-                const splits = [0.35, 0.25, 0.20];
-                const rest = entries.length > 3 ? (bankroll * 0.20) / (entries.length - 3) : 0;
-                entries.forEach((entry, i) => {
-                    const betInput = entry.querySelector('.bet-amount-input');
-                    if (!betInput) return;
-                    const amount = i < 3 ? bankroll * splits[i] : rest;
-                    betInput.value = '$' + amount.toFixed(2);
-                });
-            }
+            const totalConf = entries.reduce((sum, e) => sum + parseInt(e.getAttribute('data-confidence') || '0'), 0);
+            const useEqual = totalConf === 0;
+
+            entries.forEach(entry => {
+                const betInput = entry.querySelector('.bet-amount-input');
+                if (!betInput) return;
+                const conf = parseInt(entry.getAttribute('data-confidence') || '0');
+                const odds = entry.getAttribute('data-odds') || '0';
+                const fraction = useEqual ? 1 / entries.length : conf / totalConf;
+                const amount = bankroll * fraction;
+                const edge = calcKellyEdge(odds, conf / 100);
+                betInput.value = '$' + amount.toFixed(2) + (edge < 0 ? ' ⚠️' : '');
+            });
 
             renderConfChips();
         }
