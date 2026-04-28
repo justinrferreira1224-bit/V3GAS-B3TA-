@@ -1791,6 +1791,7 @@
         saveBetBtn.addEventListener('click', async () => {
             // MLB Game Winner mode — save differently
             if (currentSport === 'mlb' && currentBetType === 'winner') {
+                try {
                 if (!selectedBBAwayTeam || !selectedBBHomeTeam) {
                     alert('Please select both teams first!');
                     return;
@@ -1899,6 +1900,10 @@
                     saveBetBtn.style.transform = 'scale(1.2)';
                     setTimeout(() => saveBetBtn.style.transform = 'scale(1)', 200);
                     console.log('✅ MLB game saved:', newGame);
+                }
+                } catch(e) {
+                    console.error('❌ MLB save failed:', e);
+                    alert('Save failed: ' + e.message);
                 }
                 return;
             }
