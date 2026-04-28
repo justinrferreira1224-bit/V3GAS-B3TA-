@@ -3412,6 +3412,7 @@
                     // Sync bankroll
                     const logBankroll = document.getElementById('logBankroll');
                     if (logBankroll && gwBankroll) logBankroll.textContent = gwBankroll.textContent;
+                    setTimeout(() => calculateBetAmounts(), 100);
                 } else {
                     scrambleText(gwLogbook, 'log book', 1200);
                 }
