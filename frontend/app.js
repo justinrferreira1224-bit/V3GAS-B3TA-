@@ -9754,14 +9754,16 @@
             const cards = Array.from(logContent.querySelectorAll('.log-entry:not(.permanent-example):not(.mlb-permanent-example)'));
 
             if (type === 'confidence') {
-                // EQUAL: restore insertion order from logEntryOrder
-                if (logEntryOrder.length > 0) {
-                    logEntryOrder.forEach(entry => logContent.appendChild(entry));
-                } else {
-                    cards.sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
-                    cards.forEach(card => logContent.removeChild(card));
-                    cards.forEach(card => logContent.appendChild(card));
-                }
+                // EQUAL: restore insertion order, deduplicated
+                const seen = new Set();
+                const ordered = logEntryOrder.length > 0 ? logEntryOrder
+                    : cards.slice().sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
+                ordered.forEach(entry => {
+                    if (!seen.has(entry) && entry.parentNode) {
+                        seen.add(entry);
+                        logContent.appendChild(entry);
+                    }
+                });
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
