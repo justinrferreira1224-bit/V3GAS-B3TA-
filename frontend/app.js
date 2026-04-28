@@ -8975,6 +8975,9 @@
             if (!entries || entries.length === 0) return;
             const logContent = document.getElementById('logContent');
             if (!logContent) return;
+            logEntryOrder = [];
+            // Remove any previously restored entries before re-adding
+            logContent.querySelectorAll('.log-entry:not(.permanent-example)').forEach(e => e.remove());
             const permanentExamples = logContent.querySelectorAll('.log-entry.permanent-example');
             entries.forEach((saved, idx) => {
                 // Skip if this team was deleted
@@ -9742,7 +9745,7 @@
                 const ordered = logEntryOrder.length > 0
                     ? logEntryOrder
                     : cards.slice().sort((a,b) => parseInt(b.getAttribute('data-order')||'0') - parseInt(a.getAttribute('data-order')||'0'));
-                ordered.forEach(entry => { try { logContent.appendChild(entry); } catch(e){} });
+                ordered.forEach(entry => { if (entry.parentNode) logContent.appendChild(entry); });
             } else {
                 if (type === 'kelly') calculateBetAmounts();
                 cards.sort((a, b) => {
