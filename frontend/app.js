@@ -1884,7 +1884,15 @@
                     if (_seriesCount) snap.series = _seriesCount;
                     if (_seriesGames) snap.seriesGames = _seriesGames;
 
-                    console.log('📸 Snap before save:', snap);
+                    console.log('📸 SNAP OBJECT BEFORE SAVE:', JSON.stringify(snap, null, 2));
+                    console.log('📸 Snap has', Object.keys(snap).length, 'fields');
+                    if (Object.keys(snap).length === 0) {
+                        console.warn('⚠️ SNAP IS EMPTY - DOM values at save time:');
+                        console.log('Away ERA input:', document.getElementById('bbAwayStarterERA')?.value);
+                        console.log('Home ERA input:', document.getElementById('bbHomeStarterERA')?.value);
+                        console.log('Away AVG input:', document.getElementById('bbAwayAvg')?.value);
+                        console.log('Home AVG input:', document.getElementById('bbHomeAvg')?.value);
+                    }
 
                     const newGame = {
                         t1: selectedBBAwayTeam.name,
