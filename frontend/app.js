@@ -6617,66 +6617,6 @@
                         });
                         saveAppState();
                         if (activeBetDay === targetDay.day) renderBetDayCards();
-                        const awayStand = [...(mlbStandings.al||[]),...(mlbStandings.nl||[])].find(t => t.abbr === selectedBBAwayTeam.prefix);
-                        const homeStand = [...(mlbStandings.al||[]),...(mlbStandings.nl||[])].find(t => t.abbr === selectedBBHomeTeam.prefix);
-                        console.log('📊 Saving MLB stats to Firebase...', betId);
-                        fetch(BACKEND_URL + '/api/mlb/gameStats', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                gameId: betId,
-                                stats: {
-                                    savedAt: new Date().toISOString(),
-                                    awayTeam: selectedBBAwayTeam.name,
-                                    homeTeam: selectedBBHomeTeam.name,
-                                    odds: {
-                                        away: document.getElementById('bbAwayOdds')?.value || '',
-                                        home: document.getElementById('bbHomeOdds')?.value || '',
-                                    },
-                                    standings: {
-                                        awaySeed: awayStand ? awayStand.rank : 0,
-                                        awayWins: awayStand ? awayStand.wins : 0,
-                                        awayLosses: awayStand ? awayStand.losses : 0,
-                                        homeSeed: homeStand ? homeStand.rank : 0,
-                                        homeWins: homeStand ? homeStand.wins : 0,
-                                        homeLosses: homeStand ? homeStand.losses : 0,
-                                    },
-                                    pitching: {
-                                        awayStarter: document.getElementById('bbAwayPitcherBox')?.textContent?.trim() || '',
-                                        awayERA: parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0,
-                                        awayIP: parseFloat(document.getElementById('bbAwayStarterIP')?.value) || 0,
-                                        awayBullERA: parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0,
-                                        homeStarter: document.getElementById('bbHomePitcherBox')?.textContent?.trim() || '',
-                                        homeERA: parseFloat(document.getElementById('bbHomeStarterERA')?.value) || 0,
-                                        homeIP: parseFloat(document.getElementById('bbHomeStarterIP')?.value) || 0,
-                                        homeBullERA: parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || 0,
-                                    },
-                                    batting: {
-                                        awayAvg: parseFloat(document.getElementById('bbAwayAvg')?.value) || 0,
-                                        awayOBP: parseFloat(document.getElementById('bbAwayOBP')?.value) || 0,
-                                        awaySLG: parseFloat(document.getElementById('bbAwaySLG')?.value) || 0,
-                                        homeAvg: parseFloat(document.getElementById('bbHomeAvg')?.value) || 0,
-                                        homeOBP: parseFloat(document.getElementById('bbHomeOBP')?.value) || 0,
-                                        homeSLG: parseFloat(document.getElementById('bbHomeSLG')?.value) || 0,
-                                    },
-                                    injuries: {
-                                        awayCount: parseInt(document.getElementById('bbAwayInjDisplay')?.textContent) || 0,
-                                        homeCount: parseInt(document.getElementById('bbHomeInjDisplay')?.textContent) || 0,
-                                    },
-                                    series: {
-                                        count: document.getElementById('bbSeriesCount')?.value || '0-0',
-                                        games: parseInt(document.getElementById('bbSeriesGames')?.value) || 3,
-                                    },
-                                    park: {
-                                        away: document.getElementById('bbParkAway')?.value || '',
-                                        home: document.getElementById('bbParkHome')?.value || '',
-                                    },
-                                }
-                            })
-                        })
-                        .then(r => r.json())
-                        .then(data => console.log('✅ MLB stats saved to Firebase:', betId, data))
-                        .catch(err => console.error('❌ Failed to save MLB stats:', err));
                         console.log('✅ MLB game saved:', selectedBBAwayTeam.name, 'vs', selectedBBHomeTeam.name, '→', pickTeam);
 
                         // ── Also add card to GAME LOG ──
