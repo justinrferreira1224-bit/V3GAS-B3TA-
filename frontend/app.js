@@ -1837,6 +1837,7 @@
                         edge: edge,
                         sport: 'mlb',
                         _id: gameId,
+                        testField: 'STATS_CODE_RUNNING',
                         awayERA: parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0,
                         awayIP: parseFloat(document.getElementById('bbAwayStarterIP')?.value) || 0,
                         awayBullERA: parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0,
