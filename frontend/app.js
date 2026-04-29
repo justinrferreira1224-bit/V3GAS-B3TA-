@@ -1807,92 +1807,17 @@
                 const pickTeam = winner.includes(selectedBBHomeTeam.name) ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                 const pickOdds = winner.includes(selectedBBHomeTeam.name) ? homeOdds : awayOdds;
 
-                // Wait for both team stats to finish loading
-                await Promise.all([
-                    fetchMLBPitchingStats(selectedBBAwayTeam.name, 'away'),
-                    fetchMLBPitchingStats(selectedBBHomeTeam.name, 'home'),
-                    fetchMLBBatting(selectedBBAwayTeam.name, 'away'),
-                    fetchMLBBatting(selectedBBHomeTeam.name, 'home')
-                ]);
-
                 const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
                 const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
                 if (targetDay) {
-                    // Grab stats from team objects (set when scrapers finish) → cache → DOM fallback
-                    const _awayPitch = selectedBBAwayTeam?._pitching || cachedMLBStats[selectedBBAwayTeam.name] || {};
-                    const _homePitch = selectedBBHomeTeam?._pitching || cachedMLBStats[selectedBBHomeTeam.name] || {};
-                    const _awayBat = selectedBBAwayTeam?._batting || cachedMLBBatting[selectedBBAwayTeam.name] || {};
-                    const _homeBat = selectedBBHomeTeam?._batting || cachedMLBBatting[selectedBBHomeTeam.name] || {};
+                    const gameId = Date.now();
 
-                    const _awayStarterERA  = _awayPitch.starterERA  || parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0;
-                    const _awayStarterIP   = _awayPitch.starterIP   || parseFloat(document.getElementById('bbAwayStarterIP')?.value)  || 0;
-                    const _awayBullpenERA  = _awayPitch.bullpenERA  || parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0;
-                    const _homeStarterERA  = _homePitch.starterERA  || parseFloat(document.getElementById('bbHomeStarterERA')?.value) || 0;
-                    const _homeStarterIP   = _homePitch.starterIP   || parseFloat(document.getElementById('bbHomeStarterIP')?.value)  || 0;
-                    const _homeBullpenERA  = _homePitch.bullpenERA  || parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || 0;
-                    const _awayAvg  = _awayBat.avg || parseFloat(document.getElementById('bbAwayAvg')?.value)  || 0;
-                    const _awayOBP  = _awayBat.obp || parseFloat(document.getElementById('bbAwayOBP')?.value)  || 0;
-                    const _awaySLG  = _awayBat.slg || parseFloat(document.getElementById('bbAwaySLG')?.value)  || 0;
-                    const _homeAvg  = _homeBat.avg || parseFloat(document.getElementById('bbHomeAvg')?.value)  || 0;
-                    const _homeOBP  = _homeBat.obp || parseFloat(document.getElementById('bbHomeOBP')?.value)  || 0;
-                    const _homeSLG  = _homeBat.slg || parseFloat(document.getElementById('bbHomeSLG')?.value)  || 0;
                     const _awayInjCount = parseInt((document.getElementById('bbAwayInjDisplay')?.textContent || '').replace(/[^0-9]/g,'')) || 0;
                     const _homeInjCount = parseInt((document.getElementById('bbHomeInjDisplay')?.textContent || '').replace(/[^0-9]/g,'')) || 0;
-                    const _seriesCount  = document.getElementById('bbSeriesCount')?.value || '0-0';
-                    const _seriesGames  = parseInt(document.getElementById('bbSeriesGames')?.value) || 4;
-                    const _parkHome     = document.getElementById('bbParkHome')?.value || '';
-                    const _parkAway     = document.getElementById('bbParkAway')?.value || '';
-                    const _awayStarterName = _awayPitch.starterName || document.getElementById('bbAwayPitcherBox')?.textContent || '';
-                    const _homeStarterName = _homePitch.starterName || document.getElementById('bbHomePitcherBox')?.textContent || '';
                     const _awayWL = selectedBBAwayTeam ? (selectedBBAwayTeam.wins + '-' + selectedBBAwayTeam.losses) : '';
                     const _homeWL = selectedBBHomeTeam ? (selectedBBHomeTeam.wins + '-' + selectedBBHomeTeam.losses) : '';
                     const _awayL10 = selectedBBAwayTeam?.last10Results ? selectedBBAwayTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBAwayTeam.last10Results.filter(r=>r==='L').length : '';
                     const _homeL10 = selectedBBHomeTeam?.last10Results ? selectedBBHomeTeam.last10Results.filter(r=>r==='W').length + '-' + selectedBBHomeTeam.last10Results.filter(r=>r==='L').length : '';
-
-                    const snap = {};
-                    const domERA_a = parseFloat(document.getElementById('bbAwayStarterERA')?.value);
-                    const domIP_a  = parseFloat(document.getElementById('bbAwayStarterIP')?.value);
-                    const domBP_a  = parseFloat(document.getElementById('bbAwayBullpenERA')?.value);
-                    const domERA_h = parseFloat(document.getElementById('bbHomeStarterERA')?.value);
-                    const domIP_h  = parseFloat(document.getElementById('bbHomeStarterIP')?.value);
-                    const domBP_h  = parseFloat(document.getElementById('bbHomeBullpenERA')?.value);
-                    const domAvg_a = parseFloat(document.getElementById('bbAwayAvg')?.value);
-                    const domOBP_a = parseFloat(document.getElementById('bbAwayOBP')?.value);
-                    const domSLG_a = parseFloat(document.getElementById('bbAwaySLG')?.value);
-                    const domAvg_h = parseFloat(document.getElementById('bbHomeAvg')?.value);
-                    const domOBP_h = parseFloat(document.getElementById('bbHomeOBP')?.value);
-                    const domSLG_h = parseFloat(document.getElementById('bbHomeSLG')?.value);
-                    const domPit_a = document.getElementById('bbAwayPitcherBox')?.textContent?.trim();
-                    const domPit_h = document.getElementById('bbHomePitcherBox')?.textContent?.trim();
-
-                    if (domERA_a && !isNaN(domERA_a)) snap.awayERA = domERA_a;
-                    if (domIP_a && !isNaN(domIP_a))   snap.awayIP = domIP_a;
-                    if (domBP_a && !isNaN(domBP_a))   snap.awayBullERA = domBP_a;
-                    if (domERA_h && !isNaN(domERA_h)) snap.homeERA = domERA_h;
-                    if (domIP_h && !isNaN(domIP_h))   snap.homeIP = domIP_h;
-                    if (domBP_h && !isNaN(domBP_h))   snap.homeBullERA = domBP_h;
-                    if (domAvg_a && !isNaN(domAvg_a)) snap.awayAvg = domAvg_a;
-                    if (domOBP_a && !isNaN(domOBP_a)) snap.awayOBP = domOBP_a;
-                    if (domSLG_a && !isNaN(domSLG_a)) snap.awaySLG = domSLG_a;
-                    if (domAvg_h && !isNaN(domAvg_h)) snap.homeAvg = domAvg_h;
-                    if (domOBP_h && !isNaN(domOBP_h)) snap.homeOBP = domOBP_h;
-                    if (domSLG_h && !isNaN(domSLG_h)) snap.homeSLG = domSLG_h;
-                    if (domPit_a) snap.awayStarter = domPit_a;
-                    if (domPit_h) snap.homeStarter = domPit_h;
-                    if (_parkAway) snap.parkAway = _parkAway;
-                    if (_parkHome) snap.parkHome = _parkHome;
-                    if (_seriesCount) snap.series = _seriesCount;
-                    if (_seriesGames) snap.seriesGames = _seriesGames;
-
-                    console.log('📸 SNAP OBJECT BEFORE SAVE:', JSON.stringify(snap, null, 2));
-                    console.log('📸 Snap has', Object.keys(snap).length, 'fields');
-                    if (Object.keys(snap).length === 0) {
-                        console.warn('⚠️ SNAP IS EMPTY - DOM values at save time:');
-                        console.log('Away ERA input:', document.getElementById('bbAwayStarterERA')?.value);
-                        console.log('Home ERA input:', document.getElementById('bbHomeStarterERA')?.value);
-                        console.log('Away AVG input:', document.getElementById('bbAwayAvg')?.value);
-                        console.log('Home AVG input:', document.getElementById('bbHomeAvg')?.value);
-                    }
 
                     const newGame = {
                         t1: selectedBBAwayTeam.name,
@@ -1911,16 +1836,34 @@
                         res: null,
                         edge: edge,
                         sport: 'mlb',
-                        _id: Date.now(),
-                        snap: Object.keys(snap).length ? snap : undefined,
+                        _id: gameId,
+                        awayERA: parseFloat(document.getElementById('bbAwayStarterERA')?.value) || 0,
+                        awayIP: parseFloat(document.getElementById('bbAwayStarterIP')?.value) || 0,
+                        awayBullERA: parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || 0,
+                        homeERA: parseFloat(document.getElementById('bbHomeStarterERA')?.value) || 0,
+                        homeIP: parseFloat(document.getElementById('bbHomeStarterIP')?.value) || 0,
+                        homeBullERA: parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || 0,
+                        awayAvg: parseFloat(document.getElementById('bbAwayAvg')?.value) || 0,
+                        awayOBP: parseFloat(document.getElementById('bbAwayOBP')?.value) || 0,
+                        awaySLG: parseFloat(document.getElementById('bbAwaySLG')?.value) || 0,
+                        homeAvg: parseFloat(document.getElementById('bbHomeAvg')?.value) || 0,
+                        homeOBP: parseFloat(document.getElementById('bbHomeOBP')?.value) || 0,
+                        homeSLG: parseFloat(document.getElementById('bbHomeSLG')?.value) || 0,
+                        awayStarter: document.getElementById('bbAwayPitcherBox')?.textContent?.trim() || '',
+                        homeStarter: document.getElementById('bbHomePitcherBox')?.textContent?.trim() || '',
+                        parkAway: document.getElementById('bbParkAway')?.value || '',
+                        parkHome: document.getElementById('bbParkHome')?.value || '',
+                        series: document.getElementById('bbSeriesCount')?.value || '0-0',
+                        seriesGames: parseInt(document.getElementById('bbSeriesGames')?.value) || 4
                     };
+
                     targetDay.games.push(newGame);
                     saveAppState();
                     if (activeBetDay === targetDay.day) renderBetDayCards();
                     // Flash button
                     saveBetBtn.style.transform = 'scale(1.2)';
                     setTimeout(() => saveBetBtn.style.transform = 'scale(1)', 200);
-                    console.log('✅ MLB game saved:', newGame);
+                    console.log('✅ MLB game saved');
                 }
                 } catch(e) {
                     console.error('❌ MLB save failed:', e);

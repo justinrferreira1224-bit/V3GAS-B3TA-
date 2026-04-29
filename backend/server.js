@@ -181,6 +181,40 @@ app.post('/api/mlb/standings', async (req, res) => {
     }
 });
 
+// POST MLB game stats snapshot (saves stats for a specific game by ID)
+app.post('/api/mlb/gameStats', async (req, res) => {
+    try {
+        const { gameId, stats } = req.body;
+        if (!gameId || !stats) {
+            return res.status(400).json({ error: 'gameId and stats required' });
+        }
+        const r = await fetch(`${FB_MLB}/mlbGameStats/${gameId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stats)
+        });
+        const data = await r.json();
+        res.json(data);
+    } catch(e) {
+        console.error('Failed to save game stats:', e);
+        res.status(500).json({ error: 'Failed to save game stats' });
+    }
+});
+
+// GET MLB game stats by game ID
+app.get('/api/mlb/gameStats/:gameId', async (req, res) => {
+    try {
+        const gameId = req.params.gameId;
+        const r = await fetch(`${FB_MLB}/mlbGameStats/${gameId}.json`);
+        const data = await r.json();
+        if (!data) return res.status(404).json({ error: 'No stats for game ' + gameId });
+        res.json(data);
+    } catch(e) {
+        console.error('Failed to load game stats:', e);
+        res.status(500).json({ error: 'Failed to load game stats' });
+    }
+});
+
 app.get('/', (req, res) => res.send('V3GAS B3TA Backend Running'));
 
 const PORT = process.env.PORT || 3000;
