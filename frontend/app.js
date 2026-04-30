@@ -6862,8 +6862,53 @@
                             });
                             saveAppState();
                             if (activeBetDay === targetDay.day) renderBetDayCards();
+
+                            // Backup NBA game stats to Firebase + local JSON
+                            console.log('📊 Saving NBA stats to Firebase...', betId);
+                            fetch(BACKEND_URL + '/api/nba/gameStats', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    gameId: betId,
+                                    stats: {
+                                        savedAt: new Date().toISOString(),
+                                        awayTeam: awayName,
+                                        homeTeam: homeName,
+                                        odds: {
+                                            away: awayOddsStr,
+                                            home: homeOddsStr,
+                                        },
+                                        seeds: {
+                                            away: awaySeed,
+                                            home: homeSeed,
+                                        },
+                                        records: {
+                                            awayWins: aWins,
+                                            awayLosses: aLoss,
+                                            homeWins: hWins,
+                                            homeLosses: hLoss,
+                                        },
+                                        last10: {
+                                            awayWins: aL10w,
+                                            awayLosses: 10 - aL10w,
+                                            homeWins: hL10w,
+                                            homeLosses: 10 - hL10w,
+                                        },
+                                        injuries: {
+                                            away: awayInjuries || 0,
+                                            home: homeInjuries || 0,
+                                        },
+                                        confidence: confScore,
+                                        pick: winnerName,
+                                        sport: 'nba'
+                                    }
+                                })
+                            })
+                            .then(r => r.json())
+                            .then(data => console.log('✅ NBA stats saved to Firebase:', betId))
+                            .catch(err => console.error('❌ Failed to save NBA stats:', err));
                         }
-                        
+
                         // Visual feedback
                         gwRecordBtn.style.transform = 'scale(1.2)';
                         setTimeout(() => {
