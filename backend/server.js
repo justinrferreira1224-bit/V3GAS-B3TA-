@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fs = require('fs').promises;
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -188,12 +190,33 @@ app.post('/api/mlb/gameStats', async (req, res) => {
         if (!gameId || !stats) {
             return res.status(400).json({ error: 'gameId and stats required' });
         }
+
+        // Save to Firebase
         const r = await fetch(`${FB_MLB}/mlbGameStats/${gameId}.json`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(stats)
         });
         const data = await r.json();
+
+        // Backup to local JSON file
+        try {
+            const backupPath = path.join(__dirname, '..', 'mlb_game_stats_backup.json');
+            let backup = {};
+            try {
+                const backupData = await fs.readFile(backupPath, 'utf8');
+                backup = JSON.parse(backupData);
+            } catch(readErr) {
+                // File doesn't exist or is invalid, start fresh
+                backup = {};
+            }
+            backup[gameId] = stats;
+            await fs.writeFile(backupPath, JSON.stringify(backup, null, 2));
+            console.log('✅ MLB game backed up locally:', gameId);
+        } catch(backupErr) {
+            console.error('⚠️ Failed to backup locally (Firebase save succeeded):', backupErr);
+        }
+
         res.json(data);
     } catch(e) {
         console.error('Failed to save game stats:', e);
@@ -212,6 +235,63 @@ app.get('/api/mlb/gameStats/:gameId', async (req, res) => {
     } catch(e) {
         console.error('Failed to load game stats:', e);
         res.status(500).json({ error: 'Failed to load game stats' });
+    }
+});
+
+// ── NBA ROUTES ───────────────────────────────────────────────
+
+// POST NBA game stats snapshot (saves stats for a specific game by ID)
+app.post('/api/nba/gameStats', async (req, res) => {
+    try {
+        const { gameId, stats } = req.body;
+        if (!gameId || !stats) {
+            return res.status(400).json({ error: 'gameId and stats required' });
+        }
+
+        // Save to Firebase
+        const r = await fetch(`${FB_MLB}/nbaGameStats/${gameId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stats)
+        });
+        const data = await r.json();
+
+        // Backup to local JSON file
+        try {
+            const backupPath = path.join(__dirname, '..', 'nba_game_stats_backup.json');
+            let backup = {};
+            try {
+                const backupData = await fs.readFile(backupPath, 'utf8');
+                backup = JSON.parse(backupData);
+            } catch(readErr) {
+                // File doesn't exist or is invalid, start fresh
+                backup = {};
+            }
+            backup[gameId] = stats;
+            await fs.writeFile(backupPath, JSON.stringify(backup, null, 2));
+            console.log('✅ NBA game backed up locally:', gameId);
+        } catch(backupErr) {
+            console.error('⚠️ Failed to backup locally (Firebase save succeeded):', backupErr);
+        }
+
+        res.json(data);
+    } catch(e) {
+        console.error('Failed to save NBA game stats:', e);
+        res.status(500).json({ error: 'Failed to save NBA game stats' });
+    }
+});
+
+// GET NBA game stats by game ID
+app.get('/api/nba/gameStats/:gameId', async (req, res) => {
+    try {
+        const gameId = req.params.gameId;
+        const r = await fetch(`${FB_MLB}/nbaGameStats/${gameId}.json`);
+        const data = await r.json();
+        if (!data) return res.status(404).json({ error: 'No stats for game ' + gameId });
+        res.json(data);
+    } catch(e) {
+        console.error('Failed to load NBA game stats:', e);
+        res.status(500).json({ error: 'Failed to load NBA game stats' });
     }
 });
 
