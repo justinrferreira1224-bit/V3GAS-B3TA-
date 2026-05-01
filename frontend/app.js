@@ -10062,7 +10062,7 @@
         // Deposits per sport per person: { sport: { person: { dayNumber: amount } } }
         const BANKROLL_DEPOSITS = {
             nba: {
-                robego: { 46: 100, 69: 100, 75: 100, 76: 100 }, // 3/24: +$100, 4/16: +$100, 4/22: +$100, 4/23: +$100
+                robego: { 69: 100, 75: 100, 76: 100 }, // 4/16: +$100, 4/22: +$100, 4/23: +$100
                 justin: { 69: 100 }            // 4/16: +$100
             },
             mlb: {
