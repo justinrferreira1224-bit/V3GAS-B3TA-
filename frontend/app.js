@@ -8970,6 +8970,23 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('Save failed: ' + r.status);
+                    console.log('✅ State saved to Firebase');
+                })
+                .catch(err => {
+                    console.error('❌ Save to Firebase failed:', err);
+                    // Retry once after 2 seconds
+                    setTimeout(() => {
+                        fetch(BACKEND_URL + '/api/state', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(() => console.log('✅ Retry successful'))
+                        .catch(() => console.error('❌ Retry also failed - state only in localStorage'));
+                    }, 2000);
                 });
             } catch(e) { console.warn('save failed', e); }
         }
