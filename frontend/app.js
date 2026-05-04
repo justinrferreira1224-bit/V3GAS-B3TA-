@@ -511,9 +511,9 @@
         }
 
         function applyPlayoffModel(regularSeasonPercent) {
-            // Check if this is a playoff game
+            // Check if this is a playoff game (NBA days 71-133: 4/18 - 6/19)
             const currentDay = activeBetDay || 1;
-            if (currentSport !== 'nba' || currentDay < 71) {
+            if (currentSport !== 'nba' || currentDay < 71 || currentDay > 133) {
                 return null; // Not a playoff game, use regular logic
             }
 
@@ -572,9 +572,9 @@
 
             if (!playoffDiv) return;
 
-            // Show playoff inputs only for NBA playoffs (day >= 71)
+            // Show playoff inputs only for NBA playoffs (days 71-133: 4/18 - 6/19)
             const currentDay = activeBetDay || 1;
-            const isNBAPlayoffs = currentSport === 'nba' && currentDay >= 71;
+            const isNBAPlayoffs = currentSport === 'nba' && currentDay >= 71 && currentDay <= 133;
 
             playoffDiv.style.display = isNBAPlayoffs ? 'block' : 'none';
 
