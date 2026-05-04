@@ -436,6 +436,160 @@
             }
         }
 
+        // ===== PLAYOFF SERIES STATE MODEL =====
+        // ONLY applies to NBA playoffs (day >= 71). Regular season logic untouched.
+
+        function getPlayoffSeriesState() {
+            // Returns {homeWins, awayWins, gameNumber, homeCourtTeam} based on current series
+            // This needs to track series progress - for now, we'll use input fields
+            const seriesHomeWinsInput = document.getElementById('seriesHomeWins');
+            const seriesAwayWinsInput = document.getElementById('seriesAwayWins');
+
+            if (!seriesHomeWinsInput || !seriesAwayWinsInput) {
+                return null; // No series tracking UI yet
+            }
+
+            const hw = parseInt(seriesHomeWinsInput.value) || 0;
+            const aw = parseInt(seriesAwayWinsInput.value) || 0;
+            const gameNumber = hw + aw + 1;
+
+            // Determine home court based on regular season record
+            const awayWins = selectedAwayTeam ? (selectedAwayTeam.displayWins !== undefined ? selectedAwayTeam.displayWins : selectedAwayTeam.wins) : 0;
+            const awayLosses = selectedAwayTeam ? (selectedAwayTeam.displayLosses !== undefined ? selectedAwayTeam.displayLosses : selectedAwayTeam.losses) : 0;
+            const homeWins = selectedHomeTeam ? (selectedHomeTeam.displayWins !== undefined ? selectedHomeTeam.displayWins : selectedHomeTeam.wins) : 0;
+            const homeLosses = selectedHomeTeam ? (selectedHomeTeam.displayLosses !== undefined ? selectedHomeTeam.displayLosses : selectedHomeTeam.losses) : 0;
+
+            const awayWinPct = awayWins / (awayWins + awayLosses);
+            const homeWinPct = homeWins / (homeWins + homeLosses);
+
+            // Team with better record has home court
+            const homeCourtTeam = homeWinPct > awayWinPct ? 'home' : 'away';
+
+            return { hw, aw, gameNumber, homeCourtTeam };
+        }
+
+        function getSeriesStateProbability(hw, aw, homeCourtTeam, gameNumber) {
+            // Returns home team win probability based on series state
+            // Sweep protection: if either team up 3-0, give trailing team 95%
+            if (hw === 3 && aw === 0) return 5;  // Home up 3-0, sweep protection
+            if (hw === 0 && aw === 3) return 95; // Away up 3-0, trailing home gets 95%
+
+            // Standard series probabilities
+            if (hw === 0 && aw === 0) return 60;      // 0-0 tied
+            if (hw === 1 && aw === 0) return 76;      // Home leads 1-0
+            if (hw === 0 && aw === 1) return 24;      // Away leads 1-0
+            if (hw === 2 && aw === 0) return 93;      // Home leads 2-0
+            if (hw === 0 && aw === 2) return 7;       // Away leads 2-0
+            if (hw === 1 && aw === 1) return 73;      // Tied 1-1
+            if (hw === 2 && aw === 1) return 68;      // Home leads 2-1
+            if (hw === 1 && aw === 2) return 32;      // Away leads 2-1
+            if (hw === 2 && aw === 2) return 83;      // Tied 2-2 (G5 biggest indicator)
+            if (hw === 3 && aw === 1) return 92;      // Home leads 3-1
+            if (hw === 1 && aw === 3) return 8;       // Away leads 3-1
+            if (hw === 3 && aw === 2) return 68;      // Home leads 3-2
+            if (hw === 2 && aw === 3) return 32;      // Away leads 3-2
+            if (hw === 3 && aw === 3) return 74;      // Tied 3-3
+
+            return 50; // Default if not matched
+        }
+
+        function isHomeGame(gameNumber, homeCourtTeam) {
+            // 2-2-1-1-1 format
+            // Games 1,2: home court team
+            // Games 3,4: away team
+            // Game 5: home court team
+            // Game 6: away team
+            // Game 7: home court team
+            const homeGames = [1, 2, 5, 7];
+            const awayGames = [3, 4, 6];
+
+            if (homeCourtTeam === 'home') {
+                return homeGames.includes(gameNumber);
+            } else {
+                return awayGames.includes(gameNumber);
+            }
+        }
+
+        function applyPlayoffModel(regularSeasonPercent) {
+            // Check if this is a playoff game
+            const currentDay = activeBetDay || 1;
+            if (currentSport !== 'nba' || currentDay < 71) {
+                return null; // Not a playoff game, use regular logic
+            }
+
+            const seriesState = getPlayoffSeriesState();
+            if (!seriesState) {
+                return null; // No series state available
+            }
+
+            const { hw, aw, gameNumber, homeCourtTeam } = seriesState;
+
+            // Get base series probability
+            let seriesProb = getSeriesStateProbability(hw, aw, homeCourtTeam, gameNumber);
+
+            // Apply snap-back logic: if home court team lost G1 at home, boost them +15% in G2
+            if (gameNumber === 2 && hw === 0 && aw === 1 && homeCourtTeam === 'home') {
+                console.log('📊 SNAP-BACK: Home court team lost G1, boosting G2 by 15%');
+                seriesProb = Math.min(95, seriesProb + 15);
+            }
+            if (gameNumber === 2 && hw === 1 && aw === 0 && homeCourtTeam === 'away') {
+                console.log('📊 SNAP-BACK: Away has home court, lost G1, boosting G2 by 15%');
+                seriesProb = Math.max(5, seriesProb - 15); // Boost away (reduce home prob)
+            }
+
+            // Apply flip logic: if home court team lost both G1 AND G2 at home, flip the model
+            let flipped = false;
+            if (gameNumber >= 3 && hw === 0 && aw === 2 && homeCourtTeam === 'home') {
+                console.log('🔄 FLIP: Home court team lost G1 & G2, treating away as favorite');
+                flipped = true;
+                seriesProb = 100 - seriesProb; // Invert probabilities
+            }
+            if (gameNumber >= 3 && hw === 2 && aw === 0 && homeCourtTeam === 'away') {
+                console.log('🔄 FLIP: Away has home court, lost G1 & G2, treating home as favorite');
+                flipped = true;
+                seriesProb = 100 - seriesProb;
+            }
+
+            // Combine: 70% series model + 30% regular season
+            const combinedPercent = (seriesProb * 0.70) + (regularSeasonPercent * 0.30);
+
+            console.log('=== PLAYOFF MODEL ===');
+            console.log('Series State:', `${hw}-${aw}`, 'Game', gameNumber);
+            console.log('Home Court:', homeCourtTeam);
+            console.log('Series Probability:', seriesProb.toFixed(2) + '%');
+            console.log('Regular Season:', regularSeasonPercent.toFixed(2) + '%');
+            console.log('Combined (70/30):', combinedPercent.toFixed(2) + '%');
+            if (flipped) console.log('⚠️ Model FLIPPED');
+            console.log('====================');
+
+            return combinedPercent;
+        }
+
+        // Update playoff series UI visibility and game number display
+        function updatePlayoffSeriesUI() {
+            const playoffDiv = document.getElementById('playoffSeriesState');
+            const gameNumDisplay = document.getElementById('seriesGameNumber');
+
+            if (!playoffDiv) return;
+
+            // Show playoff inputs only for NBA playoffs (day >= 71)
+            const currentDay = activeBetDay || 1;
+            const isNBAPlayoffs = currentSport === 'nba' && currentDay >= 71;
+
+            playoffDiv.style.display = isNBAPlayoffs ? 'block' : 'none';
+
+            if (isNBAPlayoffs && gameNumDisplay) {
+                const homeWinsInput = document.getElementById('seriesHomeWins');
+                const awayWinsInput = document.getElementById('seriesAwayWins');
+                if (homeWinsInput && awayWinsInput) {
+                    const hw = parseInt(homeWinsInput.value) || 0;
+                    const aw = parseInt(awayWinsInput.value) || 0;
+                    const gameNum = hw + aw + 1;
+                    gameNumDisplay.textContent = 'Game ' + gameNum;
+                }
+            }
+        }
+
         // Function to calculate game winner edge
         function calculateGameWinnerEdge() {
             const awayTeamSeedInput = document.getElementById('awayTeamSeed');
@@ -618,9 +772,19 @@
             const awayImpliedFinal = oddsToImplied(awayOddsCalculated);
             const homeImpliedFinal = oddsToImplied(homeOddsCalculated);
             const totalImpliedFinal = awayImpliedFinal + homeImpliedFinal;
-            const awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
-            const homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
-            
+            let awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
+            let homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
+
+            console.log("REGULAR SEASON PERCENTS:", awayFinalPercent.toFixed(4), homeFinalPercent.toFixed(4));
+
+            // ===== PLAYOFF MODEL OVERRIDE (NBA playoffs only, day >= 71) =====
+            const playoffHomePercent = applyPlayoffModel(homeFinalPercent);
+            if (playoffHomePercent !== null) {
+                homeFinalPercent = playoffHomePercent;
+                awayFinalPercent = 100 - homeFinalPercent; // Ensure they sum to 100
+                console.log("PLAYOFF ADJUSTED:", awayFinalPercent.toFixed(4), homeFinalPercent.toFixed(4));
+            }
+
             console.log("FINAL PERCENTS:", awayFinalPercent.toFixed(4), homeFinalPercent.toFixed(4));
             console.log("======================");
             
@@ -3122,9 +3286,12 @@
                         gameWinnerContainer.style.display = 'flex';
                         if (mlbGWContainer) mlbGWContainer.style.display = 'none';
                     }
-                    
+
                     document.querySelector('.header').style.display = 'none';
                     document.getElementById('gwHeader').style.display = 'flex';
+
+                    // Update playoff series UI when opening game winner modal
+                    updatePlayoffSeriesUI();
                 }
                 
                 // Close popup after selection
@@ -5706,6 +5873,7 @@
                                 document.getElementById('awayTeamInjDisplay').textContent = count;
                                 calculateGameWinnerEdge();
                             });
+                            updatePlayoffSeriesUI();
                             updateWinnerDisplay();
                         } else if (selectingFor === 'home') {
                             selectedHomeTeam = team;
@@ -5720,6 +5888,7 @@
                                 document.getElementById('homeTeamInjDisplay').textContent = count;
                                 calculateGameWinnerEdge();
                             });
+                            updatePlayoffSeriesUI();
                             updateWinnerDisplay();
                         } else if (selectingFor === 'bbAway') {
                             selectedBBAwayTeam = team;
@@ -6487,7 +6656,47 @@
                 calculateGameWinnerEdge();
             });
         });
-        
+
+        // Playoff series inputs - only allow 0-3
+        const seriesHomeWinsInput = document.getElementById('seriesHomeWins');
+        const seriesAwayWinsInput = document.getElementById('seriesAwayWins');
+
+        [seriesHomeWinsInput, seriesAwayWinsInput].forEach(input => {
+            if (!input) return;
+
+            input.addEventListener('input', (e) => {
+                // Only allow numbers
+                let value = e.target.value.replace(/[^0-9]/g, '');
+
+                // Limit to 0-3
+                if (value !== '') {
+                    let num = parseInt(value);
+                    if (num > 3) {
+                        value = '3';
+                    } else if (num < 0) {
+                        value = '0';
+                    }
+                }
+
+                e.target.value = value;
+
+                // Update game number display and recalculate
+                updatePlayoffSeriesUI();
+                debouncedCalculate();
+            });
+
+            input.addEventListener('blur', (e) => {
+                let value = e.target.value;
+                if (value === '') {
+                    e.target.value = '0';
+                }
+
+                // Update game number display and recalculate
+                updatePlayoffSeriesUI();
+                calculateGameWinnerEdge();
+            });
+        });
+
         // Plus button
         injPlusBtn.addEventListener('click', () => {
             if (selectedOddsInput) {
@@ -9376,6 +9585,7 @@
             updateBetLogSubtitle();
             renderBetDayCards();
             renderGameLogForDay(dayNum);
+            updatePlayoffSeriesUI();
         }
 
         const appendTaps = {};
