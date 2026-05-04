@@ -439,75 +439,133 @@
         // ===== PLAYOFF SERIES STATE MODEL =====
         // ONLY applies to NBA playoffs (day >= 71). Regular season logic untouched.
 
+        // Series state storage (persists across games)
+        let playoffSeriesData = {}; // Format: { "Celtics-Heat": { awayTeam: "Celtics", awayWins: 2, homeTeam: "Heat", homeWins: 1, homeCourtTeam: "Celtics" } }
+
+        function getSeriesKey(awayTeam, homeTeam) {
+            // Create consistent key regardless of which team is home/away in current game
+            const teams = [awayTeam, homeTeam].sort();
+            return teams.join('-');
+        }
+
         function getPlayoffSeriesState() {
-            // Returns {homeWins, awayWins, gameNumber, homeCourtTeam} based on current series
-            // This needs to track series progress - for now, we'll use input fields
-            const seriesHomeWinsInput = document.getElementById('seriesHomeWins');
-            const seriesAwayWinsInput = document.getElementById('seriesAwayWins');
+            if (!selectedAwayTeam || !selectedHomeTeam) return null;
 
-            if (!seriesHomeWinsInput || !seriesAwayWinsInput) {
-                return null; // No series tracking UI yet
-            }
+            const awayTeamName = selectedAwayTeam.name;
+            const homeTeamName = selectedHomeTeam.name;
+            const seriesKey = getSeriesKey(awayTeamName, homeTeamName);
 
-            const hw = parseInt(seriesHomeWinsInput.value) || 0;
-            const aw = parseInt(seriesAwayWinsInput.value) || 0;
-            const gameNumber = hw + aw + 1;
+            // Get series data from storage or inputs
+            const awayWinsInput = document.getElementById('seriesAwayTeamWins');
+            const homeWinsInput = document.getElementById('seriesHomeTeamWins');
 
-            // Determine home court based on regular season record
-            const awayWins = selectedAwayTeam ? (selectedAwayTeam.displayWins !== undefined ? selectedAwayTeam.displayWins : selectedAwayTeam.wins) : 0;
-            const awayLosses = selectedAwayTeam ? (selectedAwayTeam.displayLosses !== undefined ? selectedAwayTeam.displayLosses : selectedAwayTeam.losses) : 0;
-            const homeWins = selectedHomeTeam ? (selectedHomeTeam.displayWins !== undefined ? selectedHomeTeam.displayWins : selectedHomeTeam.wins) : 0;
-            const homeLosses = selectedHomeTeam ? (selectedHomeTeam.displayLosses !== undefined ? selectedHomeTeam.displayLosses : selectedHomeTeam.losses) : 0;
+            if (!awayWinsInput || !homeWinsInput) return null;
 
-            const awayWinPct = awayWins / (awayWins + awayLosses);
-            const homeWinPct = homeWins / (homeWins + homeLosses);
+            const awayTeamWins = parseInt(awayWinsInput.value) || 0;
+            const homeTeamWins = parseInt(homeWinsInput.value) || 0;
+            const totalGames = awayTeamWins + homeTeamWins;
+            const gameNumber = totalGames + 1;
 
-            // Team with better record has home court
-            const homeCourtTeam = homeWinPct > awayWinPct ? 'home' : 'away';
+            // Determine home court advantage based on regular season record
+            const awayRecord = selectedAwayTeam.displayWins !== undefined ? selectedAwayTeam.displayWins : selectedAwayTeam.wins;
+            const awayLosses = selectedAwayTeam.displayLosses !== undefined ? selectedAwayTeam.displayLosses : selectedAwayTeam.losses;
+            const homeRecord = selectedHomeTeam.displayWins !== undefined ? selectedHomeTeam.displayWins : selectedHomeTeam.wins;
+            const homeLosses = selectedHomeTeam.displayLosses !== undefined ? selectedHomeTeam.displayLosses : selectedHomeTeam.losses;
 
-            return { hw, aw, gameNumber, homeCourtTeam };
+            const awayWinPct = awayRecord / (awayRecord + awayLosses);
+            const homeWinPct = homeRecord / (homeRecord + homeLosses);
+
+            // Team with better record has home court advantage for the SERIES
+            const homeCourtTeam = homeWinPct > awayWinPct ? homeTeamName : awayTeamName;
+
+            return {
+                awayTeam: awayTeamName,
+                awayWins: awayTeamWins,
+                homeTeam: homeTeamName,
+                homeWins: homeTeamWins,
+                gameNumber,
+                homeCourtTeam,
+                seriesKey
+            };
         }
 
-        function getSeriesStateProbability(hw, aw, homeCourtTeam, gameNumber) {
-            // Returns home team win probability based on series state
-            // Sweep protection: if either team up 3-0, give trailing team 95%
-            if (hw === 3 && aw === 0) return 5;  // Home up 3-0, sweep protection
-            if (hw === 0 && aw === 3) return 95; // Away up 3-0, trailing home gets 95%
+        function whoIsHomeThisGame(gameNumber, homeCourtTeam, awayTeam, homeTeam) {
+            // 2-2-1-1-1 format: determine who plays at home for this specific game
+            // Games 1,2,5,7: home court team's arena
+            // Games 3,4,6: other team's arena
+            const HOME_COURT_GAMES = [1, 2, 5, 7];
+            const isHomeCourtGame = HOME_COURT_GAMES.includes(gameNumber);
 
-            // Standard series probabilities
-            if (hw === 0 && aw === 0) return 60;      // 0-0 tied
-            if (hw === 1 && aw === 0) return 76;      // Home leads 1-0
-            if (hw === 0 && aw === 1) return 24;      // Away leads 1-0
-            if (hw === 2 && aw === 0) return 93;      // Home leads 2-0
-            if (hw === 0 && aw === 2) return 7;       // Away leads 2-0
-            if (hw === 1 && aw === 1) return 73;      // Tied 1-1
-            if (hw === 2 && aw === 1) return 68;      // Home leads 2-1
-            if (hw === 1 && aw === 2) return 32;      // Away leads 2-1
-            if (hw === 2 && aw === 2) return 83;      // Tied 2-2 (G5 biggest indicator)
-            if (hw === 3 && aw === 1) return 92;      // Home leads 3-1
-            if (hw === 1 && aw === 3) return 8;       // Away leads 3-1
-            if (hw === 3 && aw === 2) return 68;      // Home leads 3-2
-            if (hw === 2 && aw === 3) return 32;      // Away leads 3-2
-            if (hw === 3 && aw === 3) return 74;      // Tied 3-3
-
-            return 50; // Default if not matched
-        }
-
-        function isHomeGame(gameNumber, homeCourtTeam) {
-            // 2-2-1-1-1 format
-            // Games 1,2: home court team
-            // Games 3,4: away team
-            // Game 5: home court team
-            // Game 6: away team
-            // Game 7: home court team
-            const homeGames = [1, 2, 5, 7];
-            const awayGames = [3, 4, 6];
-
-            if (homeCourtTeam === 'home') {
-                return homeGames.includes(gameNumber);
+            if (isHomeCourtGame) {
+                return homeCourtTeam; // Home court team plays at their arena
             } else {
-                return awayGames.includes(gameNumber);
+                return homeCourtTeam === homeTeam ? awayTeam : homeTeam; // Other team's arena
             }
+        }
+
+        function getSeriesStateProbability(seriesState) {
+            // Returns probability for the team expected to win
+            // Returns {team: "Celtics", probability: 76}
+            const { awayTeam, awayWins, homeTeam, homeWins, gameNumber, homeCourtTeam } = seriesState;
+
+            // Determine who's home for THIS game
+            const gameHomeTeam = whoIsHomeThisGame(gameNumber, homeCourtTeam, awayTeam, homeTeam);
+            const gameAwayTeam = gameHomeTeam === homeTeam ? awayTeam : homeTeam;
+
+            // Determine series leader
+            let leaderTeam, leaderWins, trailerWins;
+            if (awayWins > homeWins) {
+                leaderTeam = awayTeam;
+                leaderWins = awayWins;
+                trailerWins = homeWins;
+            } else if (homeWins > awayWins) {
+                leaderTeam = homeTeam;
+                leaderWins = homeWins;
+                trailerWins = awayWins;
+            } else {
+                leaderTeam = null; // Tied series
+                leaderWins = awayWins;
+                trailerWins = homeWins;
+            }
+
+            // Sweep protection: 3-0
+            if (leaderWins === 3 && trailerWins === 0) {
+                const trailingTeam = leaderTeam === awayTeam ? homeTeam : awayTeam;
+                return { team: trailingTeam, probability: 95 }; // Sweep almost impossible
+            }
+
+            // Series tied states
+            if (awayWins === homeWins) {
+                if (awayWins === 0) {
+                    // 0-0: Home court team favored 60%
+                    return { team: homeCourtTeam, probability: 60 };
+                } else if (awayWins === 1) {
+                    // 1-1: Game home team favored 73%
+                    return { team: gameHomeTeam, probability: 73 };
+                } else if (awayWins === 2) {
+                    // 2-2: Game 5 home team 83%
+                    return { team: gameHomeTeam, probability: 83 };
+                } else if (awayWins === 3) {
+                    // 3-3: Game 7 home team 74%
+                    return { team: gameHomeTeam, probability: 74 };
+                }
+            }
+
+            // Series leader favored states
+            if (leaderWins === 1 && trailerWins === 0) {
+                return { team: leaderTeam, probability: 76 };
+            } else if (leaderWins === 2 && trailerWins === 0) {
+                return { team: leaderTeam, probability: 93 };
+            } else if (leaderWins === 2 && trailerWins === 1) {
+                return { team: leaderTeam, probability: 68 };
+            } else if (leaderWins === 3 && trailerWins === 1) {
+                return { team: leaderTeam, probability: 92 };
+            } else if (leaderWins === 3 && trailerWins === 2) {
+                return { team: leaderTeam, probability: 68 };
+            }
+
+            // Default: slight edge to game home team
+            return { team: gameHomeTeam, probability: 55 };
         }
 
         function applyPlayoffModel(regularSeasonPercent) {
@@ -522,41 +580,49 @@
                 return null; // No series state available
             }
 
-            const { hw, aw, gameNumber, homeCourtTeam } = seriesState;
+            const { awayTeam, awayWins, homeTeam, homeWins, gameNumber, homeCourtTeam } = seriesState;
 
-            // Get base series probability
-            let seriesProb = getSeriesStateProbability(hw, aw, homeCourtTeam, gameNumber);
+            // Get base series prediction
+            let prediction = getSeriesStateProbability(seriesState);
+            let predictedTeam = prediction.team;
+            let predictedProb = prediction.probability;
 
             // Apply snap-back logic: if home court team lost G1 at home, boost them +15% in G2
-            if (gameNumber === 2 && hw === 0 && aw === 1 && homeCourtTeam === 'home') {
-                console.log('📊 SNAP-BACK: Home court team lost G1, boosting G2 by 15%');
-                seriesProb = Math.min(95, seriesProb + 15);
-            }
-            if (gameNumber === 2 && hw === 1 && aw === 0 && homeCourtTeam === 'away') {
-                console.log('📊 SNAP-BACK: Away has home court, lost G1, boosting G2 by 15%');
-                seriesProb = Math.max(5, seriesProb - 15); // Boost away (reduce home prob)
+            const homeCourtTeamWins = homeCourtTeam === homeTeam ? homeWins : awayWins;
+            const otherTeamWins = homeCourtTeam === homeTeam ? awayWins : homeWins;
+
+            if (gameNumber === 2 && homeCourtTeamWins === 0 && otherTeamWins === 1) {
+                console.log('📊 SNAP-BACK: Home court team', homeCourtTeam, 'lost G1, boosting G2 by 15%');
+                predictedTeam = homeCourtTeam;
+                predictedProb = Math.min(95, 60 + 15); // Base 60% + 15% boost = 75%
             }
 
             // Apply flip logic: if home court team lost both G1 AND G2 at home, flip the model
             let flipped = false;
-            if (gameNumber >= 3 && hw === 0 && aw === 2 && homeCourtTeam === 'home') {
-                console.log('🔄 FLIP: Home court team lost G1 & G2, treating away as favorite');
+            if (gameNumber >= 3 && homeCourtTeamWins === 0 && otherTeamWins === 2) {
+                console.log('🔄 FLIP: Home court team', homeCourtTeam, 'lost G1 & G2, flipping model');
                 flipped = true;
-                seriesProb = 100 - seriesProb; // Invert probabilities
+                const otherTeam = homeCourtTeam === homeTeam ? awayTeam : homeTeam;
+                predictedTeam = otherTeam;
+                // When flipped, other team becomes the favorite
             }
-            if (gameNumber >= 3 && hw === 2 && aw === 0 && homeCourtTeam === 'away') {
-                console.log('🔄 FLIP: Away has home court, lost G1 & G2, treating home as favorite');
-                flipped = true;
-                seriesProb = 100 - seriesProb;
+
+            // Convert predicted team probability to HOME team probability (for current game)
+            let homeTeamProb;
+            if (predictedTeam === homeTeam) {
+                homeTeamProb = predictedProb;
+            } else {
+                homeTeamProb = 100 - predictedProb;
             }
 
             // Combine: 70% series model + 30% regular season
-            const combinedPercent = (seriesProb * 0.70) + (regularSeasonPercent * 0.30);
+            const combinedPercent = (homeTeamProb * 0.70) + (regularSeasonPercent * 0.30);
 
             console.log('=== PLAYOFF MODEL ===');
-            console.log('Series State:', `${hw}-${aw}`, 'Game', gameNumber);
-            console.log('Home Court:', homeCourtTeam);
-            console.log('Series Probability:', seriesProb.toFixed(2) + '%');
+            console.log('Series:', `${awayTeam} ${awayWins}-${homeWins} ${homeTeam}`, '| Game', gameNumber);
+            console.log('Home Court Advantage:', homeCourtTeam);
+            console.log('Prediction:', predictedTeam, predictedProb + '%');
+            console.log('Home Team Prob:', homeTeamProb.toFixed(2) + '%');
             console.log('Regular Season:', regularSeasonPercent.toFixed(2) + '%');
             console.log('Combined (70/30):', combinedPercent.toFixed(2) + '%');
             if (flipped) console.log('⚠️ Model FLIPPED');
@@ -569,6 +635,9 @@
         function updatePlayoffSeriesUI() {
             const playoffDiv = document.getElementById('playoffSeriesState');
             const gameNumDisplay = document.getElementById('seriesGameNumber');
+            const homeCourtIndicator = document.getElementById('seriesHomeCourtIndicator');
+            const awayLabel = document.getElementById('seriesAwayTeamLabel');
+            const homeLabel = document.getElementById('seriesHomeTeamLabel');
 
             if (!playoffDiv) return;
 
@@ -578,15 +647,88 @@
 
             playoffDiv.style.display = isNBAPlayoffs ? 'block' : 'none';
 
-            if (isNBAPlayoffs && gameNumDisplay) {
-                const homeWinsInput = document.getElementById('seriesHomeWins');
-                const awayWinsInput = document.getElementById('seriesAwayWins');
-                if (homeWinsInput && awayWinsInput) {
-                    const hw = parseInt(homeWinsInput.value) || 0;
-                    const aw = parseInt(awayWinsInput.value) || 0;
-                    const gameNum = hw + aw + 1;
-                    gameNumDisplay.textContent = 'Game ' + gameNum;
+            if (isNBAPlayoffs) {
+                // Update team name labels
+                if (selectedAwayTeam && awayLabel) {
+                    awayLabel.textContent = selectedAwayTeam.name.toUpperCase();
                 }
+                if (selectedHomeTeam && homeLabel) {
+                    homeLabel.textContent = selectedHomeTeam.name.toUpperCase();
+                }
+
+                // Update game number and home court indicator
+                const seriesState = getPlayoffSeriesState();
+                if (seriesState && gameNumDisplay) {
+                    gameNumDisplay.textContent = 'Game ' + seriesState.gameNumber;
+
+                    if (homeCourtIndicator) {
+                        const gameHome = whoIsHomeThisGame(seriesState.gameNumber, seriesState.homeCourtTeam, seriesState.awayTeam, seriesState.homeTeam);
+                        homeCourtIndicator.textContent = `${gameHome} has home court`;
+                    }
+                }
+            }
+        }
+
+        // Load series state from storage
+        async function loadSeriesState(awayTeam, homeTeam) {
+            if (!awayTeam || !homeTeam) return;
+
+            const seriesKey = getSeriesKey(awayTeam, homeTeam);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/nba/playoffSeries/${encodeURIComponent(seriesKey)}`);
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Populate inputs
+                    const awayWinsInput = document.getElementById('seriesAwayTeamWins');
+                    const homeWinsInput = document.getElementById('seriesHomeTeamWins');
+
+                    if (awayWinsInput && homeWinsInput && data) {
+                        // Figure out which team is which in stored data
+                        if (data.awayTeam === awayTeam) {
+                            awayWinsInput.value = data.awayWins || 0;
+                            homeWinsInput.value = data.homeWins || 0;
+                        } else {
+                            // Teams swapped positions
+                            awayWinsInput.value = data.homeWins || 0;
+                            homeWinsInput.value = data.awayWins || 0;
+                        }
+
+                        console.log('📊 Loaded series state:', seriesKey, data);
+                        updatePlayoffSeriesUI();
+                        calculateGameWinnerEdge();
+                    }
+                }
+            } catch (e) {
+                console.log('No existing series state for', seriesKey);
+            }
+        }
+
+        // Save series state to storage
+        async function saveSeriesState(seriesState) {
+            if (!seriesState) return;
+
+            const { seriesKey, awayTeam, awayWins, homeTeam, homeWins, homeCourtTeam } = seriesState;
+
+            const payload = {
+                awayTeam,
+                awayWins,
+                homeTeam,
+                homeWins,
+                homeCourtTeam,
+                lastUpdated: new Date().toISOString()
+            };
+
+            try {
+                await fetch(`${BACKEND_URL}/api/nba/playoffSeries/${encodeURIComponent(seriesKey)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                console.log('✅ Saved series state:', seriesKey, payload);
+            } catch (e) {
+                console.error('Failed to save series state:', e);
             }
         }
 
@@ -5874,6 +6016,10 @@
                                 calculateGameWinnerEdge();
                             });
                             updatePlayoffSeriesUI();
+                            // Load series state if both teams selected
+                            if (selectedHomeTeam) {
+                                loadSeriesState(team.name, selectedHomeTeam.name);
+                            }
                             updateWinnerDisplay();
                         } else if (selectingFor === 'home') {
                             selectedHomeTeam = team;
@@ -5889,6 +6035,10 @@
                                 calculateGameWinnerEdge();
                             });
                             updatePlayoffSeriesUI();
+                            // Load series state if both teams selected
+                            if (selectedAwayTeam) {
+                                loadSeriesState(selectedAwayTeam.name, team.name);
+                            }
                             updateWinnerDisplay();
                         } else if (selectingFor === 'bbAway') {
                             selectedBBAwayTeam = team;
@@ -6658,10 +6808,10 @@
         });
 
         // Playoff series inputs - only allow 0-3
-        const seriesHomeWinsInput = document.getElementById('seriesHomeWins');
-        const seriesAwayWinsInput = document.getElementById('seriesAwayWins');
+        const seriesHomeTeamWinsInput = document.getElementById('seriesHomeTeamWins');
+        const seriesAwayTeamWinsInput = document.getElementById('seriesAwayTeamWins');
 
-        [seriesHomeWinsInput, seriesAwayWinsInput].forEach(input => {
+        [seriesHomeTeamWinsInput, seriesAwayTeamWinsInput].forEach(input => {
             if (!input) return;
 
             input.addEventListener('input', (e) => {
@@ -6683,6 +6833,12 @@
                 // Update game number display and recalculate
                 updatePlayoffSeriesUI();
                 debouncedCalculate();
+
+                // Save series state
+                const seriesState = getPlayoffSeriesState();
+                if (seriesState) {
+                    saveSeriesState(seriesState);
+                }
             });
 
             input.addEventListener('blur', (e) => {
@@ -6694,6 +6850,12 @@
                 // Update game number display and recalculate
                 updatePlayoffSeriesUI();
                 calculateGameWinnerEdge();
+
+                // Save series state
+                const seriesState = getPlayoffSeriesState();
+                if (seriesState) {
+                    saveSeriesState(seriesState);
+                }
             });
         });
 

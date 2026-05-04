@@ -295,6 +295,37 @@ app.get('/api/nba/gameStats/:gameId', async (req, res) => {
     }
 });
 
+// NBA Playoff Series State
+app.get('/api/nba/playoffSeries/:seriesKey', async (req, res) => {
+    try {
+        const seriesKey = req.params.seriesKey;
+        const r = await fetch(`${FB_MLB}/nbaPlayoffSeries/${encodeURIComponent(seriesKey)}.json`);
+        const data = await r.json();
+        if (!data) return res.status(404).json({ error: 'No series data for ' + seriesKey });
+        res.json(data);
+    } catch(e) {
+        console.error('Failed to load playoff series state:', e);
+        res.status(500).json({ error: 'Failed to load playoff series state' });
+    }
+});
+
+app.post('/api/nba/playoffSeries/:seriesKey', async (req, res) => {
+    try {
+        const seriesKey = req.params.seriesKey;
+        const r = await fetch(`${FB_MLB}/nbaPlayoffSeries/${encodeURIComponent(seriesKey)}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req.body)
+        });
+        const data = await r.json();
+        console.log('✅ Saved playoff series state:', seriesKey);
+        res.json(data);
+    } catch(e) {
+        console.error('Failed to save playoff series state:', e);
+        res.status(500).json({ error: 'Failed to save playoff series state' });
+    }
+});
+
 app.get('/', (req, res) => res.send('V3GAS B3TA Backend Running'));
 
 const PORT = process.env.PORT || 3000;
