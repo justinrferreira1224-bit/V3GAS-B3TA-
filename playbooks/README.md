@@ -18,7 +18,7 @@ Playbooks are documented betting strategies with specific edge calculation logic
 
 ### ⚾ MLB Playbooks
 1. **[MLB Regular Season Playbook](mlb-regular-season-playbook.md)**
-   - Core 4: Pitching, Batting, Ability, Game Factors
+   - Core 4: Pitching, Batting, Team Ability, Game Factors (Park/Series/Home)
    - Status: ✅ Active
 
 ---
