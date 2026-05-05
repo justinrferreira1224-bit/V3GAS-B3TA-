@@ -462,8 +462,8 @@
 
             if (!awayWinsInput || !homeWinsInput) return null;
 
-            const awayTeamWins = parseInt(awayWinsInput.value) || 0;
-            const homeTeamWins = parseInt(homeWinsInput.value) || 0;
+            const awayTeamWins = parseInt(awayWinsInput.textContent) || 0;
+            const homeTeamWins = parseInt(homeWinsInput.textContent) || 0;
             const totalGames = awayTeamWins + homeTeamWins;
             const gameNumber = totalGames + 1;
 
@@ -710,9 +710,9 @@
                 }
             });
 
-            // Update inputs with calculated wins
-            awayWinsInput.value = Math.min(4, awayWins);
-            homeWinsInput.value = Math.min(4, homeWins);
+            // Update display with calculated wins
+            awayWinsInput.textContent = Math.min(4, awayWins);
+            homeWinsInput.textContent = Math.min(4, homeWins);
 
             console.log('📊 Calculated series state from bet log:', seriesKey, { awayTeam, awayWins, homeTeam, homeWins });
 
@@ -6833,57 +6833,7 @@
             });
         });
 
-        // Playoff series inputs - only allow 0-3
-        const seriesHomeTeamWinsInput = document.getElementById('seriesHomeTeamWins');
-        const seriesAwayTeamWinsInput = document.getElementById('seriesAwayTeamWins');
-
-        [seriesHomeTeamWinsInput, seriesAwayTeamWinsInput].forEach(input => {
-            if (!input) return;
-
-            input.addEventListener('input', (e) => {
-                // Only allow numbers
-                let value = e.target.value.replace(/[^0-9]/g, '');
-
-                // Limit to 0-3
-                if (value !== '') {
-                    let num = parseInt(value);
-                    if (num > 3) {
-                        value = '3';
-                    } else if (num < 0) {
-                        value = '0';
-                    }
-                }
-
-                e.target.value = value;
-
-                // Update game number display and recalculate
-                updatePlayoffSeriesUI();
-                debouncedCalculate();
-
-                // Save series state
-                const seriesState = getPlayoffSeriesState();
-                if (seriesState) {
-                    saveSeriesState(seriesState);
-                }
-            });
-
-            input.addEventListener('blur', (e) => {
-                let value = e.target.value;
-                if (value === '') {
-                    e.target.value = '0';
-                }
-
-                // Update game number display and recalculate
-                updatePlayoffSeriesUI();
-                calculateGameWinnerEdge();
-
-                // Save series state
-                const seriesState = getPlayoffSeriesState();
-                if (seriesState) {
-                    saveSeriesState(seriesState);
-                }
-            });
-        });
+        // Playoff series display is now read-only (auto-calculated from bet log)
 
         // Plus button
         injPlusBtn.addEventListener('click', () => {
