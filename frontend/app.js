@@ -444,7 +444,8 @@
 
         function getSeriesKey(awayTeam, homeTeam) {
             // Create consistent key regardless of which team is home/away in current game
-            const teams = [awayTeam, homeTeam].sort();
+            // Normalize to lowercase to avoid case sensitivity issues
+            const teams = [awayTeam.toLowerCase(), homeTeam.toLowerCase()].sort();
             return teams.join('-');
         }
 
@@ -669,40 +670,65 @@
             }
         }
 
-        // Load series state from storage
+        // Load series state from storage OR calculate from bet log
         async function loadSeriesState(awayTeam, homeTeam) {
             if (!awayTeam || !homeTeam) return;
 
             const seriesKey = getSeriesKey(awayTeam, homeTeam);
+            const awayWinsInput = document.getElementById('seriesAwayTeamWins');
+            const homeWinsInput = document.getElementById('seriesHomeTeamWins');
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/nba/playoffSeries/${encodeURIComponent(seriesKey)}`);
-                if (response.ok) {
-                    const data = await response.json();
+            if (!awayWinsInput || !homeWinsInput) return;
 
-                    // Populate inputs
-                    const awayWinsInput = document.getElementById('seriesAwayTeamWins');
-                    const homeWinsInput = document.getElementById('seriesHomeTeamWins');
+            // SCAN BET LOG for all completed games in this series (playoff days 71-133)
+            let awayWins = 0;
+            let homeWins = 0;
 
-                    if (awayWinsInput && homeWinsInput && data) {
-                        // Figure out which team is which in stored data
-                        if (data.awayTeam === awayTeam) {
-                            awayWinsInput.value = data.awayWins || 0;
-                            homeWinsInput.value = data.homeWins || 0;
-                        } else {
-                            // Teams swapped positions
-                            awayWinsInput.value = data.homeWins || 0;
-                            homeWinsInput.value = data.awayWins || 0;
+            betLog.forEach(day => {
+                if (day.day >= 71 && day.day <= 133) {
+                    day.games.forEach(game => {
+                        if (game.res === 'W' || game.res === 'L') {
+                            // Check if this game is between our two teams (case-insensitive)
+                            const gameTeams = [game.t1, game.t2].map(t => t.toLowerCase()).sort();
+                            const seriesTeams = [awayTeam, homeTeam].map(t => t.toLowerCase()).sort();
+
+                            if (gameTeams[0] === seriesTeams[0] && gameTeams[1] === seriesTeams[1]) {
+                                // This is a game in our series - determine actual winner
+                                const pickWon = game.res === 'W';
+                                const opponent = game.pick === game.t1 ? game.t2 : game.t1;
+                                const actualWinner = pickWon ? game.pick : opponent;
+
+                                // Increment the correct team's wins
+                                if (actualWinner.toLowerCase() === awayTeam.toLowerCase()) {
+                                    awayWins++;
+                                } else if (actualWinner.toLowerCase() === homeTeam.toLowerCase()) {
+                                    homeWins++;
+                                }
+                            }
                         }
-
-                        console.log('📊 Loaded series state:', seriesKey, data);
-                        updatePlayoffSeriesUI();
-                        calculateGameWinnerEdge();
-                    }
+                    });
                 }
-            } catch (e) {
-                console.log('No existing series state for', seriesKey);
-            }
+            });
+
+            // Update inputs with calculated wins
+            awayWinsInput.value = Math.min(4, awayWins);
+            homeWinsInput.value = Math.min(4, homeWins);
+
+            console.log('📊 Calculated series state from bet log:', seriesKey, { awayTeam, awayWins, homeTeam, homeWins });
+
+            // Save to backend for future reference
+            const seriesState = {
+                seriesKey,
+                awayTeam,
+                awayWins: Math.min(4, awayWins),
+                homeTeam,
+                homeWins: Math.min(4, homeWins),
+                homeCourtTeam: awayTeam // Will be determined by regular season record
+            };
+            await saveSeriesState(seriesState);
+
+            updatePlayoffSeriesUI();
+            calculateGameWinnerEdge();
         }
 
         // Save series state to storage
@@ -9793,7 +9819,7 @@
             syncTeamsFromStandings();
         }
 
-        function setBetResult(dayNum, betId, result) {
+        async function setBetResult(dayNum, betId, result) {
             const day = betLog.find(d => d.day === dayNum);
             if (!day) return;
             const game = day.games.find(g => g._id == betId);
@@ -9803,6 +9829,95 @@
             const opponent = game.pick === game.t1 ? game.t2 : game.t1;
             updateStandings(game.pick, pickWon ? 'W' : 'L');
             updateStandings(opponent, pickWon ? 'L' : 'W');
+
+            // Automatically update playoff series stepper for NBA playoffs (days 71-133)
+            const gameSport = game.sport || currentSport;
+            console.log('🔍 Checking playoff auto-update:', { gameSport, dayNum, isNBA: gameSport === 'nba', isPlayoffDay: dayNum >= 71 && dayNum <= 133 });
+
+            if (gameSport === 'nba' && dayNum >= 71 && dayNum <= 133) {
+                const actualWinner = pickWon ? game.pick : opponent;
+                const actualLoser = pickWon ? opponent : game.pick;
+
+                // Get series key
+                const seriesKey = getSeriesKey(game.t1, game.t2);
+
+                console.log('🏀 Playoff game detected:', {
+                    t1: game.t1,
+                    t2: game.t2,
+                    pick: game.pick,
+                    result,
+                    actualWinner,
+                    seriesKey
+                });
+
+                try {
+                    // Load current series state from backend
+                    const response = await fetch(`${BACKEND_URL}/api/nba/playoffSeries/${encodeURIComponent(seriesKey)}`);
+                    let seriesData = null;
+
+                    if (response.ok) {
+                        seriesData = await response.json();
+                    }
+
+                    // Initialize if no existing data
+                    if (!seriesData) {
+                        seriesData = {
+                            awayTeam: game.t1,
+                            awayWins: 0,
+                            homeTeam: game.t2,
+                            homeWins: 0,
+                            homeCourtTeam: game.t1 // Default, will be overridden
+                        };
+                    }
+
+                    // Increment the winner's count (case-insensitive matching)
+                    console.log('🎯 Matching winner:', {
+                        actualWinner,
+                        seriesAwayTeam: seriesData.awayTeam,
+                        seriesHomeTeam: seriesData.homeTeam,
+                        matchesAway: actualWinner.toLowerCase() === seriesData.awayTeam.toLowerCase(),
+                        matchesHome: actualWinner.toLowerCase() === seriesData.homeTeam.toLowerCase()
+                    });
+
+                    if (actualWinner.toLowerCase() === seriesData.awayTeam.toLowerCase()) {
+                        seriesData.awayWins = Math.min(4, (seriesData.awayWins || 0) + 1);
+                        console.log('✅ Incremented away team wins to', seriesData.awayWins);
+                    } else if (actualWinner.toLowerCase() === seriesData.homeTeam.toLowerCase()) {
+                        seriesData.homeWins = Math.min(4, (seriesData.homeWins || 0) + 1);
+                        console.log('✅ Incremented home team wins to', seriesData.homeWins);
+                    } else {
+                        console.warn('⚠️ Winner name did not match either team in series data!');
+                    }
+
+                    // Save updated series state to backend
+                    await fetch(`${BACKEND_URL}/api/nba/playoffSeries/${encodeURIComponent(seriesKey)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            awayTeam: seriesData.awayTeam,
+                            awayWins: seriesData.awayWins,
+                            homeTeam: seriesData.homeTeam,
+                            homeWins: seriesData.homeWins,
+                            homeCourtTeam: seriesData.homeCourtTeam,
+                            lastUpdated: new Date().toISOString()
+                        })
+                    });
+
+                    console.log('✅ Auto-updated playoff series:', seriesKey, seriesData);
+
+                    // If currently viewing this matchup, update the UI inputs
+                    if (selectedAwayTeam && selectedHomeTeam) {
+                        const currentSeriesKey = getSeriesKey(selectedAwayTeam.name, selectedHomeTeam.name);
+                        if (currentSeriesKey === seriesKey) {
+                            // Reload series state to update inputs
+                            await loadSeriesState(selectedAwayTeam.name, selectedHomeTeam.name);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to auto-update playoff series:', e);
+                }
+            }
+
             saveAppState();
             updateBetLogSubtitle();
             renderBetDayCards();
