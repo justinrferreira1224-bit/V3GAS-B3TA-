@@ -1213,11 +1213,23 @@
 
         // e-NBA Game Winner Edge Calculation (NBA 2K Esports)
         function calculateENBAGameWinnerEdge() {
-            // Get inputs (will need UI elements for H2H)
-            const awayH2HWins = parseFloat(document.getElementById('awayH2HWins')?.value) || 0;
-            const awayH2HLosses = parseFloat(document.getElementById('awayH2HLosses')?.value) || 0;
-            const homeH2HWins = parseFloat(document.getElementById('homeH2HWins')?.value) || 0;
-            const homeH2HLosses = parseFloat(document.getElementById('homeH2HLosses')?.value) || 0;
+            // Parse H2H inputs (format: "7-3" = 7 wins, 3 losses)
+            const awayH2HStr = document.getElementById('awayTeamH2HInput')?.value.trim() || '';
+            const homeH2HStr = document.getElementById('homeTeamH2HInput')?.value.trim() || '';
+
+            let awayH2HWins = 0, awayH2HLosses = 0, homeH2HWins = 0, homeH2HLosses = 0;
+
+            if (awayH2HStr.includes('-')) {
+                const parts = awayH2HStr.split('-');
+                awayH2HWins = parseFloat(parts[0]) || 0;
+                awayH2HLosses = parseFloat(parts[1]) || 0;
+            }
+
+            if (homeH2HStr.includes('-')) {
+                const parts = homeH2HStr.split('-');
+                homeH2HWins = parseFloat(parts[0]) || 0;
+                homeH2HLosses = parseFloat(parts[1]) || 0;
+            }
 
             const awayOddsStr = document.getElementById('awayTeamOdds')?.value.trim() || '';
             const homeOddsStr = document.getElementById('homeTeamOdds')?.value.trim() || '';
@@ -1226,7 +1238,7 @@
             if (!finalEdgeValueEl) return;
 
             // Validate inputs
-            if (!awayOddsStr || !homeOddsStr || (!awayH2HWins && !awayH2HLosses) || (!homeH2HWins && !homeH2HLosses)) {
+            if (!awayOddsStr || !homeOddsStr || !awayH2HStr || !homeH2HStr) {
                 finalEdgeValueEl.textContent = '—';
                 const winnerExtraBox = document.getElementById('winnerExtraBox');
                 if (winnerExtraBox) winnerExtraBox.innerHTML = `<div class="winner-extra-text">—</div>`;
@@ -1361,6 +1373,43 @@
             }
 
             updateWinnerDisplay();
+        }
+
+        // Wrapper to call appropriate game winner calculation based on sport
+        function recalculateGameWinner() {
+            if (currentSport === 'enba') {
+                calculateENBAGameWinnerEdge();
+            } else {
+                calculateGameWinnerEdge();
+            }
+        }
+
+        // Toggle game winner UI between NBA and e-NBA mode
+        function updateGameWinnerMode() {
+            const rightColumnLabel = document.getElementById('rightColumnLabel');
+            const awayInjDisplay = document.getElementById('awayTeamInjDisplay');
+            const homeInjDisplay = document.getElementById('homeTeamInjDisplay');
+            const awayH2HInput = document.getElementById('awayTeamH2HInput');
+            const homeH2HInput = document.getElementById('homeTeamH2HInput');
+
+            if (currentSport === 'enba') {
+                // e-NBA mode: show H2H inputs, hide injuries
+                if (rightColumnLabel) rightColumnLabel.textContent = 'h2h';
+                if (awayInjDisplay) awayInjDisplay.style.display = 'none';
+                if (homeInjDisplay) homeInjDisplay.style.display = 'none';
+                if (awayH2HInput) awayH2HInput.style.display = 'block';
+                if (homeH2HInput) homeH2HInput.style.display = 'block';
+            } else {
+                // NBA mode: show injuries, hide H2H inputs
+                if (rightColumnLabel) rightColumnLabel.textContent = 'inj';
+                if (awayInjDisplay) awayInjDisplay.style.display = 'flex';
+                if (homeInjDisplay) homeInjDisplay.style.display = 'flex';
+                if (awayH2HInput) awayH2HInput.style.display = 'none';
+                if (homeH2HInput) homeH2HInput.style.display = 'none';
+            }
+
+            // Recalculate with new mode
+            recalculateGameWinner();
         }
 
         // Function to update winner display based on team names and scores
@@ -6736,19 +6785,21 @@
                 
                 // Update sport settings (quarter length, etc.)
                 updateSportSettings();
+                // Update game winner UI mode (e-NBA vs NBA)
+                updateGameWinnerMode();
                 // Re-render game log for new sport
                 renderGameLogForDay(activeBetDay);
                 sortGameLog(currentLogSort);
-                
+
                 // Remove gold highlight from nav
                 navSports.classList.remove('active');
-                
+
                 // Close popup after selection
                 setTimeout(() => {
                     sportsPopup.classList.remove('open');
                     sportsOverlay.classList.remove('open');
                 }, 300);
-                
+
                 console.log('Selected sport:', currentSport);
             });
         });
@@ -6935,16 +6986,16 @@
         
         // Debounce timer for input calculations
         let calcDebounceTimer = null;
-        
+
         function debouncedCalculate() {
             // Clear existing timer
             if (calcDebounceTimer) {
                 clearTimeout(calcDebounceTimer);
             }
-            
+
             // Wait 300ms after user stops typing before calculating
             calcDebounceTimer = setTimeout(() => {
-                calculateGameWinnerEdge();
+                recalculateGameWinner();
             }, 300);
         }
         
@@ -6954,12 +7005,35 @@
                 let value = e.target.value;
                 value = value.replace(/[^0-9+\-]/g, '');
                 e.target.value = value;
-                
+
                 // Trigger debounced calculation (waits for user to stop typing)
                 debouncedCalculate();
             });
         });
-        
+
+        // H2H inputs for e-NBA mode
+        const awayH2HInput = document.getElementById('awayTeamH2HInput');
+        const homeH2HInput = document.getElementById('homeTeamH2HInput');
+
+        [awayH2HInput, homeH2HInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', (e) => {
+                    // Allow numbers and dash only (format: "7-3")
+                    let value = e.target.value;
+                    value = value.replace(/[^0-9\-]/g, '');
+                    // Only allow one dash
+                    const dashCount = (value.match(/\-/g) || []).length;
+                    if (dashCount > 1) {
+                        value = value.substring(0, value.lastIndexOf('-'));
+                    }
+                    e.target.value = value;
+
+                    // Trigger debounced calculation
+                    debouncedCalculate();
+                });
+            }
+        });
+
         // Seed inputs - only allow 1-16
         const awayTeamSeed = document.getElementById('awayTeamSeed');
         const homeTeamSeed = document.getElementById('homeTeamSeed');
@@ -6996,11 +7070,14 @@
                         e.target.value = '1';
                     }
                 }
-                
+
                 // Trigger calculation
-                calculateGameWinnerEdge();
+                recalculateGameWinner();
             });
         });
+
+        // Initialize game winner UI mode (NBA vs e-NBA)
+        updateGameWinnerMode();
 
         // Playoff series display is now read-only (auto-calculated from bet log)
 

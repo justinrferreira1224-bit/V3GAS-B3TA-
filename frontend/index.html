@@ -144,7 +144,7 @@
                         <div style="display:flex;gap:6px;margin-bottom:6px;">
                             <div style="flex:1;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">matchup</div>
                             <div style="flex:0 0 50px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">odds</div>
-                            <div style="flex:0 0 38px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">inj</div>
+                            <div id="rightColumnLabel" style="flex:0 0 38px;padding:4px 0;font-size:9px;font-weight:900;background:linear-gradient(90deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:4px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">inj</div>
                         </div>
                         <!-- Away team row (TOP) -->
                         <div class="winner-team-row">
@@ -155,6 +155,7 @@
                             </div>
                             <input type="text" class="winner-input winner-odds" id="awayTeamOdds" placeholder="odds">
                             <div class="winner-inj-display" id="awayTeamInjDisplay">0</div>
+                            <input type="text" class="winner-input winner-h2h" id="awayTeamH2HInput" placeholder="W-L" style="display:none;flex:0 0 38px;font-size:10px;padding:5px 2px;">
                         </div>
                         <!-- Home team row (BOTTOM) -->
                         <div class="winner-team-row">
@@ -165,6 +166,7 @@
                             </div>
                             <input type="text" class="winner-input winner-odds" id="homeTeamOdds" placeholder="odds">
                             <div class="winner-inj-display" id="homeTeamInjDisplay">0</div>
+                            <input type="text" class="winner-input winner-h2h" id="homeTeamH2HInput" placeholder="W-L" style="display:none;flex:0 0 38px;font-size:10px;padding:5px 2px;">
                         </div>
 
                     </div>
