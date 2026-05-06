@@ -6776,7 +6776,7 @@
 
                 // Switch to new sport
                 currentSport = btn.dataset.sport;
-                activeBetDay = activeBetDays[currentSport] || 33;
+                activeBetDay = activeBetDays[currentSport] || currentDayNumber;
 
                 sportButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -9241,9 +9241,17 @@
           { day:137, date:'6/23', type:'', overall:'', games:[] },
         ];
 
-        // Separate day counters per sport
-        let activeBetDays = JSON.parse(localStorage.getItem('activeBetDays') || '{"nba":33,"enba":33,"mlb":33,"cbb":33,"nfl":33,"cfb":33,"nhl":33,"soccer":33}');
-        let activeBetDay = activeBetDays[currentSport] || 33;
+        // Calculate current day number (Feb 1, 2026 = Day 1)
+        const seasonStart = new Date('2026-02-01');
+        const today = new Date();
+        const diffTime = today - seasonStart;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const currentDayNumber = Math.max(1, diffDays + 1);
+
+        // Separate day counters per sport (default to current day)
+        const defaultDays = {nba:currentDayNumber,enba:currentDayNumber,mlb:currentDayNumber,cbb:currentDayNumber,nfl:currentDayNumber,cfb:currentDayNumber,nhl:currentDayNumber,soccer:currentDayNumber};
+        let activeBetDays = JSON.parse(localStorage.getItem('activeBetDays') || JSON.stringify(defaultDays));
+        let activeBetDay = activeBetDays[currentSport] || currentDayNumber;
 
         // Save day counters to localStorage
         function saveActiveBetDays() {
