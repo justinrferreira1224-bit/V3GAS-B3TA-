@@ -1211,6 +1211,157 @@
             updateWinnerDisplay();
         }
 
+        // e-NBA Game Winner Edge Calculation (NBA 2K Esports)
+        function calculateENBAGameWinnerEdge() {
+            // Get inputs (will need UI elements for H2H)
+            const awayH2HWins = parseFloat(document.getElementById('awayH2HWins')?.value) || 0;
+            const awayH2HLosses = parseFloat(document.getElementById('awayH2HLosses')?.value) || 0;
+            const homeH2HWins = parseFloat(document.getElementById('homeH2HWins')?.value) || 0;
+            const homeH2HLosses = parseFloat(document.getElementById('homeH2HLosses')?.value) || 0;
+
+            const awayOddsStr = document.getElementById('awayTeamOdds')?.value.trim() || '';
+            const homeOddsStr = document.getElementById('homeTeamOdds')?.value.trim() || '';
+
+            const finalEdgeValueEl = document.getElementById('finalEdgeValue');
+            if (!finalEdgeValueEl) return;
+
+            // Validate inputs
+            if (!awayOddsStr || !homeOddsStr || (!awayH2HWins && !awayH2HLosses) || (!homeH2HWins && !homeH2HLosses)) {
+                finalEdgeValueEl.textContent = '—';
+                const winnerExtraBox = document.getElementById('winnerExtraBox');
+                if (winnerExtraBox) winnerExtraBox.innerHTML = `<div class="winner-extra-text">—</div>`;
+                updateWinnerDisplay();
+                return;
+            }
+
+            // Get team names from selected teams
+            const awayTeamName = selectedAwayTeam?.name || '';
+            const homeTeamName = selectedHomeTeam?.name || '';
+
+            if (!awayTeamName || !homeTeamName) {
+                finalEdgeValueEl.textContent = '—';
+                updateWinnerDisplay();
+                return;
+            }
+
+            // ===== CORE 1: H2H % (32% weight) =====
+            const awayH2HTotal = awayH2HWins + awayH2HLosses;
+            const homeH2HTotal = homeH2HWins + homeH2HLosses;
+
+            let awayCore1 = awayH2HTotal > 0 ? (awayH2HWins / awayH2HTotal) * 100 : 50;
+            let homeCore1 = homeH2HTotal > 0 ? (homeH2HWins / homeH2HTotal) * 100 : 50;
+
+            // Normalize
+            const core1Total = awayCore1 + homeCore1;
+            awayCore1 = (awayCore1 / core1Total) * 100;
+            homeCore1 = (homeCore1 / core1Total) * 100;
+
+            // ===== CORE 2: Team Ability % (32% weight) =====
+            // Part A: Real NBA standings (win-loss %)
+            const awayWins = selectedAwayTeam?.displayWins !== undefined ? selectedAwayTeam.displayWins : selectedAwayTeam?.wins || 0;
+            const awayLosses = selectedAwayTeam?.displayLosses !== undefined ? selectedAwayTeam.displayLosses : selectedAwayTeam?.losses || 0;
+            const homeWins = selectedHomeTeam?.displayWins !== undefined ? selectedHomeTeam.displayWins : selectedHomeTeam?.wins || 0;
+            const homeLosses = selectedHomeTeam?.displayLosses !== undefined ? selectedHomeTeam.displayLosses : selectedHomeTeam?.losses || 0;
+
+            const awayRealWLPct = awayWins + awayLosses > 0 ? (awayWins / (awayWins + awayLosses)) * 100 : 50;
+            const homeRealWLPct = homeWins + homeLosses > 0 ? (homeWins / (homeWins + homeLosses)) * 100 : 50;
+
+            // Part B: 2K Overall matchup %
+            const away2KOVR = NBA_2K26_OVERALLS[awayTeamName] || 80;
+            const home2KOVR = NBA_2K26_OVERALLS[homeTeamName] || 80;
+
+            // Normalize OVR to score (range: 77-85)
+            const away2KScore = ((away2KOVR - 77) / 8) * 100 + 50;
+            const home2KScore = ((home2KOVR - 77) / 8) * 100 + 50;
+
+            // 2K matchup %
+            const k2Total = away2KScore + home2KScore;
+            const away2KPct = (away2KScore / k2Total) * 100;
+            const home2KPct = (home2KScore / k2Total) * 100;
+
+            // Blend real WL + 2K (50/50)
+            const awayAbility = (awayRealWLPct + away2KPct) / 2;
+            const homeAbility = (homeRealWLPct + home2KPct) / 2;
+
+            // Normalize
+            const abilityTotal = awayAbility + homeAbility;
+            let awayCore2 = (awayAbility / abilityTotal) * 100;
+            let homeCore2 = (homeAbility / abilityTotal) * 100;
+
+            // ===== CORE 3: No-Vig Odds % (21% weight) =====
+            const awayOdds = parseFloat(awayOddsStr.replace(/[+\-]/g, ''));
+            const homeOdds = parseFloat(homeOddsStr.replace(/[+\-]/g, ''));
+            const awayIsNegative = awayOddsStr.includes('-');
+            const homeIsNegative = homeOddsStr.includes('-');
+
+            let awayImplied, homeImplied;
+            if (awayIsNegative) {
+                awayImplied = awayOdds / (awayOdds + 100);
+            } else {
+                awayImplied = 100 / (awayOdds + 100);
+            }
+            if (homeIsNegative) {
+                homeImplied = homeOdds / (homeOdds + 100);
+            } else {
+                homeImplied = 100 / (homeOdds + 100);
+            }
+
+            // Remove vig
+            const impliedTotal = awayImplied + homeImplied;
+            let awayCore3 = (awayImplied / impliedTotal) * 100;
+            let homeCore3 = (homeImplied / impliedTotal) * 100;
+
+            // ===== CORE 4: Full NBA Playbook Output (15% weight) =====
+            // Call the existing NBA playbook and extract the result
+            // Store current final edge, call NBA calc, read result, restore if needed
+            const currentEdgeText = finalEdgeValueEl.textContent;
+            calculateGameWinnerEdge();
+            const nbaPlaybookText = finalEdgeValueEl.textContent;
+
+            // Parse the NBA playbook result (format: "TEAM 65%")
+            let awayCore4 = 50, homeCore4 = 50;
+            if (nbaPlaybookText && nbaPlaybookText !== '—') {
+                const match = nbaPlaybookText.match(/(\d+)%/);
+                if (match) {
+                    const winnerPct = parseFloat(match[1]);
+                    // Determine which team won in NBA playbook
+                    if (nbaPlaybookText.includes(awayTeamName.toUpperCase())) {
+                        awayCore4 = winnerPct;
+                        homeCore4 = 100 - winnerPct;
+                    } else if (nbaPlaybookText.includes(homeTeamName.toUpperCase())) {
+                        homeCore4 = winnerPct;
+                        awayCore4 = 100 - winnerPct;
+                    }
+                }
+            }
+
+            // ===== WEIGHTED AVERAGE =====
+            const awayFinal = (awayCore1 * 0.32) + (awayCore2 * 0.32) + (awayCore3 * 0.21) + (awayCore4 * 0.15);
+            const homeFinal = (homeCore1 * 0.32) + (homeCore2 * 0.32) + (homeCore3 * 0.21) + (homeCore4 * 0.15);
+
+            // Determine winner
+            const winner = awayFinal > homeFinal ? awayTeamName.toUpperCase() : homeTeamName.toUpperCase();
+            const winnerPct = Math.max(awayFinal, homeFinal).toFixed(2);
+
+            // Update display
+            finalEdgeValueEl.innerHTML = `${winner} ${winnerPct}%`;
+
+            // Update extra box with breakdown
+            const winnerExtraBox = document.getElementById('winnerExtraBox');
+            if (winnerExtraBox) {
+                winnerExtraBox.innerHTML = `
+                    <div class="winner-extra-text" style="font-size:9px;line-height:1.3;">
+                        <div style="margin-bottom:4px;font-weight:700;color:#fff;">e-NBA CORE 4</div>
+                        <div>H2H: ${awayTeamName} ${awayCore1.toFixed(1)}% - ${homeCore1.toFixed(1)}% ${homeTeamName}</div>
+                        <div>Ability: ${awayCore2.toFixed(1)}% - ${homeCore2.toFixed(1)}%</div>
+                        <div>Odds: ${awayCore3.toFixed(1)}% - ${homeCore3.toFixed(1)}%</div>
+                        <div>NBA: ${awayCore4.toFixed(1)}% - ${homeCore4.toFixed(1)}%</div>
+                    </div>
+                `;
+            }
+
+            updateWinnerDisplay();
+        }
 
         // Function to update winner display based on team names and scores
         function updateWinnerDisplay() {
@@ -9209,6 +9360,15 @@
             'Heat': '14', 'Bucks': '15', 'Timberwolves': '16', 'Pelicans': '3', 'Knicks': '18',
             'Thunder': '25', 'Magic': '19', '76ers': '20', 'Suns': '21', 'Trail Blazers': '22',
             'Kings': '26', 'Spurs': '23', 'Raptors': '28', 'Jazz': '27', 'Wizards': '24'
+        };
+
+        const NBA_2K26_OVERALLS = {
+            'Thunder': 85, 'Knicks': 84, 'Clippers': 83, 'Lakers': 83, 'Cavaliers': 83,
+            'Nuggets': 83, 'Mavericks': 83, 'Rockets': 83, 'Pacers': 82, 'Timberwolves': 82,
+            'Celtics': 82, 'Hawks': 82, 'Spurs': 82, 'Warriors': 81, 'Magic': 81,
+            '76ers': 81, 'Trail Blazers': 81, 'Grizzlies': 81, 'Pelicans': 81, 'Kings': 81,
+            'Heat': 81, 'Bucks': 80, 'Pistons': 80, 'Raptors': 80, 'Suns': 79,
+            'Hornets': 79, 'Jazz': 79, 'Bulls': 79, 'Wizards': 78, 'Nets': 77
         };
 
         async function fetchMLBInjuries(teamName, side) {

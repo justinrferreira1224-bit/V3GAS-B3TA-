@@ -16,6 +16,11 @@ Playbooks are documented betting strategies with specific edge calculation logic
    - Core 4 logic: Table %, Team Strength %, No-Vig Odds %, Last 10 Win %
    - Status: ✅ Active
 
+3. **[e-NBA Playbook](enba-playbook.md)** - NBA 2K Esports
+   - Core 4: H2H % (32%), Team Ability (32%), No-Vig Odds (21%), NBA Playbook (15%)
+   - Blends real NBA data with 2K26 team overalls
+   - Status: ✅ Active
+
 ### ⚾ MLB Playbooks
 1. **[MLB Regular Season Playbook](mlb-regular-season-playbook.md)**
    - Core 4: Pitching, Batting, Team Ability, Game Factors (Park/Series/Home)
@@ -29,6 +34,7 @@ Playbooks are documented betting strategies with specific edge calculation logic
 |----------|-------|-----|-------|-------|
 | NBA Playoff | TBD | TBD | TBD% | Auto series tracking enabled |
 | NBA Regular Season | TBD | TBD | TBD% | - |
+| e-NBA | TBD | TBD | TBD% | 2K esports logic |
 | MLB Regular Season | TBD | TBD | TBD% | - |
 
 ---
