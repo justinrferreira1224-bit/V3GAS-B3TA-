@@ -6770,7 +6770,14 @@
         // Sport selection
         sportButtons.forEach(btn => {
             btn.addEventListener('click', () => {
+                // Save current sport's day before switching
+                activeBetDays[currentSport] = activeBetDay;
+                saveActiveBetDays();
+
+                // Switch to new sport
                 currentSport = btn.dataset.sport;
+                activeBetDay = activeBetDays[currentSport] || 33;
+
                 sportButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 
@@ -9234,7 +9241,14 @@
           { day:137, date:'6/23', type:'', overall:'', games:[] },
         ];
 
-        let activeBetDay = 33;
+        // Separate day counters per sport
+        let activeBetDays = JSON.parse(localStorage.getItem('activeBetDays') || '{"nba":33,"enba":33,"mlb":33,"cbb":33,"nfl":33,"cfb":33,"nhl":33,"soccer":33}');
+        let activeBetDay = activeBetDays[currentSport] || 33;
+
+        // Save day counters to localStorage
+        function saveActiveBetDays() {
+            localStorage.setItem('activeBetDays', JSON.stringify(activeBetDays));
+        }
 
         // ===== FIREBASE PERSISTENCE =====
         let db, dbRef;
@@ -9966,6 +9980,8 @@
 
         function selectBetDay(dayNum) {
             activeBetDay = dayNum;
+            activeBetDays[currentSport] = dayNum;
+            saveActiveBetDays();
             document.querySelectorAll('[id^="betDayBtn"]').forEach(el => {
                 const isActive = el.id === `betDayBtn${dayNum}`;
                 el.style.background = isActive ? '#fff' : '#1e1e1e';
