@@ -456,14 +456,33 @@
             const homeTeamName = selectedHomeTeam.name;
             const seriesKey = getSeriesKey(awayTeamName, homeTeamName);
 
-            // Get series data from storage or inputs
-            const awayWinsInput = document.getElementById('seriesAwayTeamWins');
-            const homeWinsInput = document.getElementById('seriesHomeTeamWins');
+            // Calculate series wins from bet log
+            let awayTeamWins = 0;
+            let homeTeamWins = 0;
 
-            if (!awayWinsInput || !homeWinsInput) return null;
+            betLog.forEach(day => {
+                if (day.day >= 71 && day.day <= 133) {
+                    day.games.forEach(game => {
+                        if (game.res === 'W' || game.res === 'L') {
+                            const gameTeams = [game.t1, game.t2].map(t => t.toLowerCase()).sort();
+                            const seriesTeams = [awayTeamName, homeTeamName].map(t => t.toLowerCase()).sort();
 
-            const awayTeamWins = parseInt(awayWinsInput.textContent) || 0;
-            const homeTeamWins = parseInt(homeWinsInput.textContent) || 0;
+                            if (gameTeams[0] === seriesTeams[0] && gameTeams[1] === seriesTeams[1]) {
+                                const pickWon = game.res === 'W';
+                                const opponent = game.pick === game.t1 ? game.t2 : game.t1;
+                                const actualWinner = pickWon ? game.pick : opponent;
+
+                                if (actualWinner.toLowerCase() === awayTeamName.toLowerCase()) {
+                                    awayTeamWins++;
+                                } else if (actualWinner.toLowerCase() === homeTeamName.toLowerCase()) {
+                                    homeTeamWins++;
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
             const totalGames = awayTeamWins + homeTeamWins;
             const gameNumber = totalGames + 1;
 
@@ -634,40 +653,8 @@
 
         // Update playoff series UI visibility and game number display
         function updatePlayoffSeriesUI() {
-            const playoffDiv = document.getElementById('playoffSeriesState');
-            const gameNumDisplay = document.getElementById('seriesGameNumber');
-            const homeCourtIndicator = document.getElementById('seriesHomeCourtIndicator');
-            const awayLabel = document.getElementById('seriesAwayTeamLabel');
-            const homeLabel = document.getElementById('seriesHomeTeamLabel');
-
-            if (!playoffDiv) return;
-
-            // Show playoff inputs only for NBA playoffs (days 71-133: 4/18 - 6/19)
-            const currentDay = activeBetDay || 1;
-            const isNBAPlayoffs = currentSport === 'nba' && currentDay >= 71 && currentDay <= 133;
-
-            playoffDiv.style.display = isNBAPlayoffs ? 'block' : 'none';
-
-            if (isNBAPlayoffs) {
-                // Update team name labels
-                if (selectedAwayTeam && awayLabel) {
-                    awayLabel.textContent = selectedAwayTeam.name.toUpperCase();
-                }
-                if (selectedHomeTeam && homeLabel) {
-                    homeLabel.textContent = selectedHomeTeam.name.toUpperCase();
-                }
-
-                // Update game number and home court indicator
-                const seriesState = getPlayoffSeriesState();
-                if (seriesState && gameNumDisplay) {
-                    gameNumDisplay.textContent = 'Game ' + seriesState.gameNumber;
-
-                    if (homeCourtIndicator) {
-                        const gameHome = whoIsHomeThisGame(seriesState.gameNumber, seriesState.homeCourtTeam, seriesState.awayTeam, seriesState.homeTeam);
-                        homeCourtIndicator.textContent = `${gameHome} has home court`;
-                    }
-                }
-            }
+            // Playoff series info now shown inline with team names
+            // This function kept for backward compatibility but does nothing
         }
 
         // Load series state from storage OR calculate from bet log
@@ -675,10 +662,14 @@
             if (!awayTeam || !homeTeam) return;
 
             const seriesKey = getSeriesKey(awayTeam, homeTeam);
-            const awayWinsInput = document.getElementById('seriesAwayTeamWins');
-            const homeWinsInput = document.getElementById('seriesHomeTeamWins');
+            const currentDay = activeBetDay || 1;
+            const isPlayoffs = currentSport === 'nba' && currentDay >= 71 && currentDay <= 133;
 
-            if (!awayWinsInput || !homeWinsInput) return;
+            if (!isPlayoffs) {
+                // Not playoffs, just calculate edge
+                calculateGameWinnerEdge();
+                return;
+            }
 
             // SCAN BET LOG for all completed games in this series (playoff days 71-133)
             let awayWins = 0;
@@ -710,11 +701,19 @@
                 }
             });
 
-            // Update display with calculated wins
-            awayWinsInput.textContent = Math.min(4, awayWins);
-            homeWinsInput.textContent = Math.min(4, homeWins);
+            // Calculate losses for each team
+            const awayLosses = homeWins;
+            const homeLosses = awayWins;
 
-            console.log('📊 Calculated series state from bet log:', seriesKey, { awayTeam, awayWins, homeTeam, homeWins });
+            console.log('📊 Calculated series state from bet log:', seriesKey, {
+                awayTeam,
+                awayRecord: `${awayWins}-${awayLosses}`,
+                homeTeam,
+                homeRecord: `${homeWins}-${homeLosses}`
+            });
+
+            // Update team name displays with series records
+            updateTeamNamesWithSeries(awayTeam, awayWins, awayLosses, homeTeam, homeWins, homeLosses);
 
             // Save to backend for future reference
             const seriesState = {
@@ -727,8 +726,27 @@
             };
             await saveSeriesState(seriesState);
 
-            updatePlayoffSeriesUI();
             calculateGameWinnerEdge();
+        }
+
+        // Update team name displays with series records
+        function updateTeamNamesWithSeries(awayTeam, awayWins, awayLosses, homeTeam, homeWins, homeLosses) {
+            const awayTeamNameContent = document.getElementById('awayTeamNameContent');
+            const homeTeamNameContent = document.getElementById('homeTeamNameContent');
+
+            if (awayTeamNameContent && selectedAwayTeam) {
+                awayTeamNameContent.innerHTML = `
+                    <img src="${selectedAwayTeam.logo}" class="winner-team-logo" alt="${selectedAwayTeam.name}">
+                    <span>${selectedAwayTeam.name} <span style="color:#888;font-size:11px;">(${awayWins}-${awayLosses})</span></span>
+                `;
+            }
+
+            if (homeTeamNameContent && selectedHomeTeam) {
+                homeTeamNameContent.innerHTML = `
+                    <img src="${selectedHomeTeam.logo}" class="winner-team-logo" alt="${selectedHomeTeam.name}">
+                    <span>${selectedHomeTeam.name} <span style="color:#888;font-size:11px;">(${homeWins}-${homeLosses})</span></span>
+                `;
+            }
         }
 
         // Save series state to storage
