@@ -9175,15 +9175,6 @@
             {_id:1777254187172,sport:'mlb',t1:'Rockies',o1:'+150',s1:12,i1:7,wl1:'13-16',l1:'1-9',t2:'Mets',o2:'-165',s2:15,i2:9,wl2:'9-19',l2:'1-9',pick:'Rockies',res:'W',edge:'52.00%'},
           ]},
           // NBA PLAYOFF PERIOD - Days 71-79 (April 18-26, 2026)
-          { day: 71, date: '4/18', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 72, date: '4/19', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 73, date: '4/20', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 74, date: '4/21', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 75, date: '4/22', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 76, date: '4/23', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 77, date: '4/24', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 78, date: '4/25', type: 'REAL', overall: '', unlocked: true, games: [] },
-          { day: 79, date: '4/26', type: 'REAL', overall: '', unlocked: true, games: [] },
           // MLB RECOVERED GAMES - Days 80-88 (April 27 - May 5, 2026)
           // Hardcoded with real odds, picks, and results
           
