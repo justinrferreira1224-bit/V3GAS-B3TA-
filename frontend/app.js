@@ -6770,14 +6770,7 @@
         // Sport selection
         sportButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Save current sport's day before switching
-                activeBetDays[currentSport] = activeBetDay;
-                saveActiveBetDays();
-
-                // Switch to new sport
                 currentSport = btn.dataset.sport;
-                activeBetDay = activeBetDays[currentSport] || currentDayNumber;
-
                 sportButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 
@@ -9248,15 +9241,8 @@
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         const currentDayNumber = Math.max(1, diffDays + 1);
 
-        // Separate day counters per sport (default to current day)
-        const defaultDays = {nba:currentDayNumber,enba:currentDayNumber,mlb:currentDayNumber,cbb:currentDayNumber,nfl:currentDayNumber,cfb:currentDayNumber,nhl:currentDayNumber,soccer:currentDayNumber};
-        let activeBetDays = JSON.parse(localStorage.getItem('activeBetDays') || JSON.stringify(defaultDays));
-        let activeBetDay = activeBetDays[currentSport] || currentDayNumber;
-
-        // Save day counters to localStorage
-        function saveActiveBetDays() {
-            localStorage.setItem('activeBetDays', JSON.stringify(activeBetDays));
-        }
+        // One shared day counter for all sports (by calendar date)
+        let activeBetDay = currentDayNumber;
 
         // ===== FIREBASE PERSISTENCE =====
         let db, dbRef;
@@ -9988,8 +9974,6 @@
 
         function selectBetDay(dayNum) {
             activeBetDay = dayNum;
-            activeBetDays[currentSport] = dayNum;
-            saveActiveBetDays();
             document.querySelectorAll('[id^="betDayBtn"]').forEach(el => {
                 const isActive = el.id === `betDayBtn${dayNum}`;
                 el.style.background = isActive ? '#fff' : '#1e1e1e';
