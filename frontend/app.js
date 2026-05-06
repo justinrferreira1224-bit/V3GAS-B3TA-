@@ -6770,31 +6770,26 @@
         // Sport selection
         sportButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Save current sport's day and betLog before switching
+                // Save current sport's day before switching
                 activeBetDays[currentSport] = activeBetDay;
                 saveActiveBetDays();
-                saveBetLogForSport(currentSport, betLog);
 
                 // Switch to new sport
-                const oldSport = currentSport;
                 currentSport = btn.dataset.sport;
-
-                // Load new sport's day and betLog
                 activeBetDay = activeBetDays[currentSport] || currentDayNumber;
-                betLog = loadBetLogForSport(currentSport);
 
                 sportButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-
+                
                 // Animate emoji
                 const iconEl = btn.querySelector('.sport-icon');
                 iconEl.classList.add('animate');
                 setTimeout(() => iconEl.classList.remove('animate'), 500);
-
+                
                 // Update nav icon to match sport
                 const icon = iconEl.textContent;
                 navSports.textContent = icon;
-
+                
                 // Update sport settings (quarter length, etc.)
                 updateSportSettings();
                 // Update game winner UI mode (e-NBA vs NBA)
@@ -8444,21 +8439,7 @@
         }
 
         // ===== BET LOG =====
-        // Generate empty betLog template (137 days)
-        function generateEmptyBetLog() {
-            const log = [];
-            const startDate = new Date('2026-02-01');
-            for (let i = 1; i <= 137; i++) {
-                const date = new Date(startDate);
-                date.setDate(startDate.getDate() + (i - 1));
-                const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-                log.push({ day: i, date: dateStr, type: '', overall: '', games: [] });
-            }
-            return log;
-        }
-
-        // NBA betLog with paper trading data
-        const nbaBetLogTemplate = [
+        const betLog = [
           { day:1, date:'2/1', type:'PAPER', overall:'10-0 (100%) 🔥', games:[
             {t1:'Bucks',o1:'+450',s1:12,i1:4,wl1:'19-30',l1:'2-8',t2:'Celtics',o2:'-650',s2:2,i2:2,wl2:'30-18',l2:'7-3',pick:'Celtics',res:'W'},
             {t1:'Magic',o1:'+450',s1:7,i1:2,wl1:'25-22',l1:'5-5',t2:'Spurs',o2:'-210',s2:2,i2:1,wl2:'32-16',l2:'5-5',pick:'Spurs',res:'W'},
@@ -9260,23 +9241,6 @@
           { day:137, date:'6/23', type:'', overall:'', games:[] },
         ];
 
-        // Load sport-specific betLogs from localStorage or use defaults
-        function loadBetLogForSport(sport) {
-            const saved = localStorage.getItem(`betLog_${sport}`);
-            if (saved) {
-                return JSON.parse(saved);
-            }
-            // Default: NBA gets template, others get empty
-            return sport === 'nba' ? JSON.parse(JSON.stringify(nbaBetLogTemplate)) : generateEmptyBetLog();
-        }
-
-        function saveBetLogForSport(sport, log) {
-            localStorage.setItem(`betLog_${sport}`, JSON.stringify(log));
-        }
-
-        // Initialize betLog for current sport
-        let betLog = loadBetLogForSport(currentSport);
-
         // Calculate current day number (Feb 1, 2026 = Day 1)
         const seasonStart = new Date('2026-02-01');
         const today = new Date();
@@ -9595,9 +9559,6 @@
 
         function saveAppState() {
             try {
-                // Save current sport's betLog to localStorage
-                saveBetLogForSport(currentSport, betLog);
-
                 const betLogState = betLog.map(d => ({
                     day: d.day,
                     unlocked: d.unlocked || false,
