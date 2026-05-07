@@ -22281,7 +22281,19 @@
             const nav = document.getElementById('betLogDayNav');
             const cards = document.getElementById('betLogCards');
 
-            nav.innerHTML = betLog.map(d => `
+            nav.innerHTML = betLog.map(d => {
+                // Generate date if not set: Day 1-11 = 2/1-2/11, Day 12-22 = 2/19-2/28, Day 23+ = 3/1+
+                let displayDate = d.date;
+                if (!displayDate || displayDate === '') {
+                    if (d.day <= 11) {
+                        displayDate = `2/${d.day}`;
+                    } else if (d.day <= 22) {
+                        displayDate = `2/${d.day + 7}`;  // Day 12 = 2/19, Day 13 = 2/20, etc.
+                    } else {
+                        displayDate = `3/${d.day - 22}`;  // Day 23 = 3/1, Day 24 = 3/2, etc.
+                    }
+                }
+                return `
                 <div onclick="selectBetDay(${d.day})" id="betDayBtn${d.day}" style="
                     flex-shrink:0; padding:12px 20px; border-radius:20px; cursor:pointer;
                     background:${d.day===activeBetDay?'#fff':'#1e1e1e'};
@@ -22289,9 +22301,10 @@
                     border:1px solid ${d.day===activeBetDay?'#fff':'#333'};
                     white-space:nowrap; text-align:center;
                 ">
-                    <div style="font-size:13px;font-weight:800;">${d.date}</div>
+                    <div style="font-size:13px;font-weight:800;">${displayDate}</div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
             // scroll active day into view
             setTimeout(() => {
