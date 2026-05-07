@@ -1347,6 +1347,7 @@
 
             // Update display
             finalEdgeValueEl.innerHTML = `${winner} ${winnerPct}%`;
+            finalEdgeValueEl.dataset.winner = awayFinal > homeFinal ? awayTeamName : homeTeamName;
 
             // Update extra box with breakdown
             const winnerExtraBox = document.getElementById('winnerExtraBox');
