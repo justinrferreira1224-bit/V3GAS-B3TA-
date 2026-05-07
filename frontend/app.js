@@ -22680,8 +22680,8 @@
 
             // Filter games by current sport
             const filteredGames = day.games.filter(g => {
-                if (currentSport === 'mlb') return g.sport === 'mlb';
-                return !g.sport || g.sport === 'nba';
+                const gameSport = g.sport || 'nba';  // default old games to 'nba'
+                return gameSport === currentSport;
             });
 
             const isBlank = filteredGames.length === 0 && !day.unlocked;
@@ -22693,8 +22693,8 @@
             // compute live overall accuracy from all decided games (filtered by sport)
             let totalW = 0, totalL = 0;
             betLog.forEach(d => d.games.filter(g => {
-                if (currentSport === 'mlb') return g.sport === 'mlb';
-                return !g.sport || g.sport === 'nba';
+                const gameSport = g.sport || 'nba';  // default old games to 'nba'
+                return gameSport === currentSport;
             }).forEach(g => {
                 if (g.res === 'W') totalW++;
                 else if (g.res === 'L') totalL++;
