@@ -7493,7 +7493,7 @@
                                         },
                                         confidence: confScore,
                                         pick: winnerName,
-                                        sport: 'nba'
+                                        sport: currentSport
                                     }
                                 })
                             })
@@ -22242,7 +22242,10 @@
             const day = betLog.find(d => d.day === activeBetDay);
             if (!day) return;
             // daily record
-            const sportFilter = g => currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba');
+            const sportFilter = g => {
+                const gameSport = g.sport || 'nba';  // default old games to 'nba'
+                return gameSport === currentSport;
+            };
             let dW = 0, dL = 0;
             day.games.filter(sportFilter).forEach(g => { if(g.res==='W') dW++; else if(g.res==='L') dL++; });
             // overall up to and including this day
@@ -23041,7 +23044,7 @@
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (g.sport || 'nba') === currentSport);
                 if (decided.length === 0) return;
                 if (bankroll <= 0) bankroll = 100;
                 const kellyFracs = decided.map(g => {
@@ -23072,7 +23075,7 @@
             let bankroll = getMonthStart(month, sub);
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (g.sport || 'nba') === currentSport);
                 if (decided.length === 0 || bankroll <= 0) return;
                 const n = decided.length;
                 const stake = bankroll / n;
@@ -23131,7 +23134,7 @@
                 // Apply any deposit for this day
                 const dep = getDeposits('robego')[day.day];
                 if (dep) { bankroll += dep; bankroll = Math.round(bankroll * 100) / 100; }
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (g.sport || 'nba') === currentSport);
                 if (decided.length === 0) { 
                     const dep2 = getDeposits('robego')[day.day];
                     if (dep2) data.push({ date: day.date + ' (+$' + dep2 + ')', bankroll });
@@ -23163,7 +23166,7 @@
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 const jdep = getDeposits('justin')[day.day];
                 if (jdep) bankroll = Math.round((bankroll + jdep) * 100) / 100;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (g.sport || 'nba') === currentSport);
                 const jdep2 = getDeposits('justin')[day.day];
                 if (decided.length === 0) { if (jdep2) data.push({ date: day.date + ' (+$' + jdep2 + ')', bankroll }); return; }
                 if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
