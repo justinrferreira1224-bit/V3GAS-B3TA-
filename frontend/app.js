@@ -22283,16 +22283,24 @@
 
             nav.innerHTML = betLog.map(d => {
                 // Generate date if not set: Day 1-11 = 2/1-2/11, Day 12-22 = 2/19-2/28, Day 23+ = 3/1+
-                let displayDate = d.date;
-                if (!displayDate || displayDate === '') {
-                    if (d.day <= 11) {
-                        displayDate = `2/${d.day}`;
-                    } else if (d.day <= 22) {
-                        displayDate = `2/${d.day + 7}`;  // Day 12 = 2/19, Day 13 = 2/20, etc.
-                    } else {
-                        displayDate = `3/${d.day - 22}`;  // Day 23 = 3/1, Day 24 = 3/2, etc.
-                    }
+                let month, dayNum;
+                if (d.day <= 11) {
+                    month = 1; // February (0-indexed)
+                    dayNum = d.day;
+                } else if (d.day <= 22) {
+                    month = 1; // February
+                    dayNum = d.day + 7;  // Day 12 = 2/19, Day 13 = 2/20, etc.
+                } else {
+                    month = 2; // March
+                    dayNum = d.day - 22;  // Day 23 = 3/1, Day 24 = 3/2, etc.
                 }
+
+                const date = new Date(2026, month, dayNum);
+                const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const monthStr = monthNames[date.getMonth()];
+                const dayStr = dayNames[date.getDay()];
+
                 return `
                 <div onclick="selectBetDay(${d.day})" id="betDayBtn${d.day}" style="
                     flex-shrink:0; padding:12px 20px; border-radius:20px; cursor:pointer;
@@ -22301,7 +22309,8 @@
                     border:1px solid ${d.day===activeBetDay?'#fff':'#333'};
                     white-space:nowrap; text-align:center;
                 ">
-                    <div style="font-size:13px;font-weight:800;">${displayDate}</div>
+                    <div style="font-size:13px;font-weight:800;">${monthStr} ${date.getDate()}</div>
+                    <div style="font-size:10px;font-weight:500;opacity:0.7;">${dayStr}</div>
                 </div>
                 `;
             }).join('');
