@@ -22303,7 +22303,7 @@
 
                 return `
                 <div onclick="selectBetDay(${d.day})" id="betDayBtn${d.day}" style="
-                    flex-shrink:0; padding:12px 20px; border-radius:20px; cursor:pointer;
+                    flex-shrink:0; padding:10px 16px; border-radius:18px; cursor:pointer;
                     background:${d.day===activeBetDay?'#fff':'#1e1e1e'};
                     color:${d.day===activeBetDay?'#000':'#aaa'};
                     border:1px solid ${d.day===activeBetDay?'#fff':'#333'};
