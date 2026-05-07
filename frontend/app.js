@@ -22283,14 +22283,13 @@
 
             nav.innerHTML = betLog.map(d => `
                 <div onclick="selectBetDay(${d.day})" id="betDayBtn${d.day}" style="
-                    flex-shrink:0; padding:7px 14px; border-radius:20px; cursor:pointer;
+                    flex-shrink:0; padding:12px 20px; border-radius:20px; cursor:pointer;
                     background:${d.day===activeBetDay?'#fff':'#1e1e1e'};
                     color:${d.day===activeBetDay?'#000':'#aaa'};
                     border:1px solid ${d.day===activeBetDay?'#fff':'#333'};
                     white-space:nowrap; text-align:center;
                 ">
-                    <div style="font-size:12px;font-weight:800;">${d.date}</div>
-                    <div style="font-size:10px;font-weight:500;opacity:0.7;">Day ${d.day}</div>
+                    <div style="font-size:13px;font-weight:800;">${d.date}</div>
                 </div>
             `).join('');
 
