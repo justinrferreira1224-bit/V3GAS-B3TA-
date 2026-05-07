@@ -1213,23 +1213,13 @@
 
         // e-NBA Game Winner Edge Calculation (NBA 2K Esports)
         function calculateENBAGameWinnerEdge() {
-            // Parse H2H inputs (format: "7-3" = 7 wins, 3 losses)
+            // Parse H2H inputs as direct percentages (e.g., "75" = 75%)
             const awayH2HStr = document.getElementById('awayTeamH2HInput')?.value.trim() || '';
             const homeH2HStr = document.getElementById('homeTeamH2HInput')?.value.trim() || '';
 
-            let awayH2HWins = 0, awayH2HLosses = 0, homeH2HWins = 0, homeH2HLosses = 0;
-
-            if (awayH2HStr.includes('-')) {
-                const parts = awayH2HStr.split('-');
-                awayH2HWins = parseFloat(parts[0]) || 0;
-                awayH2HLosses = parseFloat(parts[1]) || 0;
-            }
-
-            if (homeH2HStr.includes('-')) {
-                const parts = homeH2HStr.split('-');
-                homeH2HWins = parseFloat(parts[0]) || 0;
-                homeH2HLosses = parseFloat(parts[1]) || 0;
-            }
+            // Parse as raw percentages
+            const awayH2HPct = parseFloat(awayH2HStr) || 0;
+            const homeH2HPct = parseFloat(homeH2HStr) || 0;
 
             const awayOddsStr = document.getElementById('awayTeamOdds')?.value.trim() || '';
             const homeOddsStr = document.getElementById('homeTeamOdds')?.value.trim() || '';
@@ -1257,16 +1247,16 @@
             }
 
             // ===== CORE 1: H2H % (32% weight) =====
-            const awayH2HTotal = awayH2HWins + awayH2HLosses;
-            const homeH2HTotal = homeH2HWins + homeH2HLosses;
+            // Use the percentages directly (e.g., 75 = 75%)
+            let awayCore1 = awayH2HPct > 0 ? awayH2HPct : 50;
+            let homeCore1 = homeH2HPct > 0 ? homeH2HPct : 50;
 
-            let awayCore1 = awayH2HTotal > 0 ? (awayH2HWins / awayH2HTotal) * 100 : 50;
-            let homeCore1 = homeH2HTotal > 0 ? (homeH2HWins / homeH2HTotal) * 100 : 50;
-
-            // Normalize
+            // Normalize so they add up to 100%
             const core1Total = awayCore1 + homeCore1;
-            awayCore1 = (awayCore1 / core1Total) * 100;
-            homeCore1 = (homeCore1 / core1Total) * 100;
+            if (core1Total > 0) {
+                awayCore1 = (awayCore1 / core1Total) * 100;
+                homeCore1 = (homeCore1 / core1Total) * 100;
+            }
 
             // ===== CORE 2: Team Ability % (32% weight) =====
             // Part A: Real NBA standings (win-loss %)
