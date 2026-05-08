@@ -24077,8 +24077,26 @@
                                 } else {
                                     saved.games.forEach(sg => {
                                         const match = day.games.find(g => g._id == sg._id);
-                                        if (match) match.res = (sg.res === undefined || sg.res === 'pending') ? null : sg.res;
-                                        else day.games.push({...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
+                                        if (match) {
+                                            match.res = (sg.res === undefined || sg.res === 'pending') ? null : sg.res;
+                                        } else {
+                                            // Check for duplicate matchup (same teams, regardless of ID)
+                                            const duplicateMatchup = day.games.find(g =>
+                                                (g.t1 === sg.t1 && g.t2 === sg.t2) ||
+                                                (g.t1 === sg.t2 && g.t2 === sg.t1)
+                                            );
+                                            // Only add if no duplicate matchup exists, OR if the saved game has better data
+                                            if (!duplicateMatchup) {
+                                                day.games.push({...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
+                                            } else {
+                                                // If saved game has odds/result and existing doesn't, replace it
+                                                const savedHasData = sg.o1 || sg.o2 || sg.res === 'W' || sg.res === 'L';
+                                                const existingHasData = duplicateMatchup.o1 || duplicateMatchup.o2 || duplicateMatchup.res === 'W' || duplicateMatchup.res === 'L';
+                                                if (savedHasData && !existingHasData) {
+                                                    Object.assign(duplicateMatchup, {...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
+                                                }
+                                            }
+                                        }
                                     });
                                 }
                             }
@@ -24176,6 +24194,61 @@
             });
             if (!skipSort) sortLogByConfidence();
             setTimeout(() => { calculateBetAmounts(); renderConfChips(); }, 50);
+        }
+
+        function cleanupDuplicateGames() {
+            let totalRemoved = 0;
+            betLog.forEach(day => {
+                if (!day.games || day.games.length === 0) return;
+
+                const seen = new Map();
+                const toKeep = [];
+
+                day.games.forEach(game => {
+                    const key = `${game.t1}_${game.t2}`;
+                    const reverseKey = `${game.t2}_${game.t1}`;
+
+                    if (seen.has(key) || seen.has(reverseKey)) {
+                        // Duplicate matchup found
+                        const existing = seen.get(key) || seen.get(reverseKey);
+                        const gameHasData = game.o1 || game.o2 || game.res === 'W' || game.res === 'L' || game.edge;
+                        const existingHasData = existing.o1 || existing.o2 || existing.res === 'W' || existing.res === 'L' || existing.edge;
+
+                        // Keep the one with more data
+                        if (gameHasData && !existingHasData) {
+                            // Replace existing with this one
+                            const idx = toKeep.indexOf(existing);
+                            if (idx !== -1) {
+                                toKeep[idx] = game;
+                                seen.set(key, game);
+                                console.log(`Replacing blank game on day ${day.day}: ${game.t1} vs ${game.t2}`);
+                                totalRemoved++;
+                            }
+                        } else if (!gameHasData) {
+                            // This one is blank, skip it
+                            console.log(`Removing blank duplicate on day ${day.day}: ${game.t1} vs ${game.t2}`);
+                            totalRemoved++;
+                        } else {
+                            // Both have data, keep existing
+                            console.log(`Keeping existing game with data on day ${day.day}: ${game.t1} vs ${game.t2}`);
+                        }
+                    } else {
+                        // First time seeing this matchup
+                        seen.set(key, game);
+                        toKeep.push(game);
+                    }
+                });
+
+                if (toKeep.length < day.games.length) {
+                    day.games = toKeep;
+                }
+            });
+
+            if (totalRemoved > 0) {
+                console.log(`✅ Cleaned up ${totalRemoved} duplicate/blank games`);
+                saveAppState();
+            }
+            return totalRemoved;
         }
 
         function reapplyMLBStandingsFromBetLog() {
@@ -25087,6 +25160,7 @@
             if (changed) saveAppState();
         }
         loadAppState(() => {
+            cleanupDuplicateGames();
             fixTeamNames();
             reapplyStandingsFromBetLog();
             reapplyMLBStandingsFromBetLog();
@@ -25100,6 +25174,7 @@
                 saveAppState();
             } else {
                 loadAppState(() => {
+                    cleanupDuplicateGames();
                     fixTeamNames();
                     reapplyStandingsFromBetLog();
                     reapplyMLBStandingsFromBetLog();
