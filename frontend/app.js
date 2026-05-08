@@ -24085,10 +24085,13 @@
                                                 (g.t1 === sg.t1 && g.t2 === sg.t2) ||
                                                 (g.t1 === sg.t2 && g.t2 === sg.t1)
                                             );
-                                            // Only add if no duplicate matchup exists, OR if the saved game has better data
-                                            if (!duplicateMatchup) {
+                                            // Check if saved game is blank/placeholder
+                                            const isBlank = !sg.o1 && !sg.o2 && sg.res !== 'W' && sg.res !== 'L' && !sg.edge;
+
+                                            // Only add if no duplicate matchup exists AND it's not blank
+                                            if (!duplicateMatchup && !isBlank) {
                                                 day.games.push({...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
-                                            } else {
+                                            } else if (duplicateMatchup) {
                                                 // If saved game has odds/result and existing doesn't, replace it
                                                 const savedHasData = sg.o1 || sg.o2 || sg.res === 'W' || sg.res === 'L';
                                                 const existingHasData = duplicateMatchup.o1 || duplicateMatchup.o2 || duplicateMatchup.res === 'W' || duplicateMatchup.res === 'L';
