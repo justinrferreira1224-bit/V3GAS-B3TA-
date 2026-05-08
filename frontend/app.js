@@ -25174,6 +25174,15 @@
             });
             if (changed) saveAppState();
         }
+        // Auto-clear corrupted localStorage (one-time fix for duplicate blank games)
+        try {
+            const localState = localStorage.getItem('appState');
+            if (localState) {
+                localStorage.removeItem('appState');
+                console.log('🔧 Cleared localStorage to force fresh load from Firebase');
+            }
+        } catch(e) {}
+
         loadAppState(() => {
             cleanupDuplicateGames();
             fixTeamNames();
