@@ -24211,8 +24211,20 @@
                     if (seen.has(key) || seen.has(reverseKey)) {
                         // Duplicate matchup found
                         const existing = seen.get(key) || seen.get(reverseKey);
-                        const gameHasData = game.o1 || game.o2 || game.res === 'W' || game.res === 'L' || game.edge;
-                        const existingHasData = existing.o1 || existing.o2 || existing.res === 'W' || existing.res === 'L' || existing.edge;
+
+                        // Check if game has real data (not placeholder/default values)
+                        const isPlaceholder = (g) => {
+                            // No odds, no result, no edge = placeholder
+                            if (!g.o1 && !g.o2 && g.res !== 'W' && g.res !== 'L' && !g.edge) {
+                                // Also check for identical WL records (e.g., both teams 5-5)
+                                if (g.wl1 === g.wl2 && g.wl1 && (g.wl1 === '5-5' || g.wl1 === '0-0')) return true;
+                                return true;
+                            }
+                            return false;
+                        };
+
+                        const gameHasData = !isPlaceholder(game);
+                        const existingHasData = !isPlaceholder(existing);
 
                         // Keep the one with more data
                         if (gameHasData && !existingHasData) {
