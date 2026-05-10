@@ -22381,6 +22381,7 @@
                     border:1px solid ${d.day===activeBetDay?'#fff':'#333'};
                     white-space:nowrap; text-align:center;
                 ">
+                    <div style="font-size:9px;font-weight:600;opacity:0.6;">Day ${d.day}</div>
                     <div style="font-size:13px;font-weight:800;">${monthStr} ${date.getDate()}</div>
                     <div style="font-size:10px;font-weight:500;opacity:0.7;">${dayStr}</div>
                 </div>
