@@ -2402,6 +2402,54 @@
                     targetDay.games.push(newGame);
                     saveAppState();
                     if (activeBetDay === targetDay.day) renderBetDayCards();
+
+                    // Save full stats to Firebase backup
+                    fetch(BACKEND_URL + '/api/mlb/gameStats', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            gameId: gameId,
+                            stats: {
+                                savedAt: new Date().toISOString(),
+                                awayTeam: selectedBBAwayTeam.name,
+                                homeTeam: selectedBBHomeTeam.name,
+                                odds: { away: awayOdds, home: homeOdds },
+                                standings: {
+                                    awaySeed: selectedBBAwayTeam.rank || 0,
+                                    awayWins: selectedBBAwayTeam.wins || 0,
+                                    awayLosses: selectedBBAwayTeam.losses || 0,
+                                    homeSeed: selectedBBHomeTeam.rank || 0,
+                                    homeWins: selectedBBHomeTeam.wins || 0,
+                                    homeLosses: selectedBBHomeTeam.losses || 0
+                                },
+                                pitching: {
+                                    awayStarter: newGame.awayStarter,
+                                    awayERA: newGame.awayERA,
+                                    awayIP: newGame.awayIP,
+                                    awayBullERA: newGame.awayBullERA,
+                                    homeStarter: newGame.homeStarter,
+                                    homeERA: newGame.homeERA,
+                                    homeIP: newGame.homeIP,
+                                    homeBullERA: newGame.homeBullERA
+                                },
+                                batting: {
+                                    awayAvg: newGame.awayAvg,
+                                    awayOBP: newGame.awayOBP,
+                                    awaySLG: newGame.awaySLG,
+                                    homeAvg: newGame.homeAvg,
+                                    homeOBP: newGame.homeOBP,
+                                    homeSLG: newGame.homeSLG
+                                },
+                                injuries: { awayCount: _awayInjCount, homeCount: _homeInjCount },
+                                series: { count: newGame.series, games: newGame.seriesGames },
+                                park: { away: newGame.parkAway, home: newGame.parkHome }
+                            }
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => console.log('✅ MLB stats backed up:', gameId))
+                    .catch(err => console.error('❌ Failed to backup MLB stats:', err));
+
                     // Flash button
                     saveBetBtn.style.transform = 'scale(1.2)';
                     setTimeout(() => saveBetBtn.style.transform = 'scale(1)', 200);
