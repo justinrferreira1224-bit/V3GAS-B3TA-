@@ -9,10 +9,45 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
-const FB_MLB  = 'https://vegas-bet-default-rtdb.firebaseio.com';
+const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com';
 
-// ── EXISTING ROUTES ──────────────────────────────────────────
+// ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
+// GET state for ANY sport
+app.get('/api/state/:sport', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const sportPath = `${FB_BASE}/${sport}Betlog`;
+        const r = await fetch(sportPath + '.json');
+        const data = await r.json();
+        res.json(data || {});
+    } catch(e) {
+        console.error(`${req.params.sport.toUpperCase()} GET failed:`, e);
+        res.status(500).json({ error: `Failed to load ${req.params.sport} data` });
+    }
+});
+
+// POST state for ANY sport
+app.post('/api/state/:sport', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const sportPath = `${FB_BASE}/${sport}Betlog`;
+        const payload = req.body;
+        const r = await fetch(sportPath + '.json', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await r.json();
+        console.log(`✅ ${sport.toUpperCase()} data saved to Firebase`);
+        res.json(data);
+    } catch(e) {
+        console.error(`${req.params.sport.toUpperCase()} POST failed:`, e);
+        res.status(500).json({ error: `Failed to save ${req.params.sport} data` });
+    }
+});
+
+// Legacy endpoint (keep for backwards compatibility)
 app.get('/api/state', async (req, res) => {
     try {
         const r = await fetch(FB_URL + '.json');
@@ -201,7 +236,7 @@ app.post('/api/mlb/gameStats', async (req, res) => {
 
         // Backup to local JSON file
         try {
-            const backupPath = path.join(__dirname, '..', 'mlb_game_stats_backup.json');
+            const backupPath = path.join(__dirname, '..', 'backups', 'mlb_game_stats_backup.json');
             let backup = {};
             try {
                 const backupData = await fs.readFile(backupPath, 'utf8');
@@ -210,9 +245,44 @@ app.post('/api/mlb/gameStats', async (req, res) => {
                 // File doesn't exist or is invalid, start fresh
                 backup = {};
             }
-            backup[gameId] = stats;
+
+            // Organize by date (YYYY-MM-DD) then gameId
+            const dateKey = stats.savedAt ? stats.savedAt.split('T')[0] : new Date().toISOString().split('T')[0];
+            if (!backup[dateKey]) backup[dateKey] = {};
+            backup[dateKey][gameId] = stats;
+
             await fs.writeFile(backupPath, JSON.stringify(backup, null, 2));
-            console.log('✅ MLB game backed up locally:', gameId);
+            console.log('✅ MLB game stats backed up to JSON:', dateKey, gameId);
+
+            // ALSO append to human-readable TXT file
+            const txtPath = path.join(__dirname, '..', 'backups', 'mlb_game_stats_backup.txt');
+            const txtEntry = `
+================================================================================
+DATE: ${dateKey} | GAME ID: ${gameId}
+${stats.awayTeam} @ ${stats.homeTeam}
+================================================================================
+
+PITCHING:
+  Away: ${stats.pitching?.awayStarter || 'TBD'} - ${stats.pitching?.awayERA || 0} ERA, ${stats.pitching?.awayIP || 0} IP (Bull: ${stats.pitching?.awayBullERA || 0})
+  Home: ${stats.pitching?.homeStarter || 'TBD'} - ${stats.pitching?.homeERA || 0} ERA, ${stats.pitching?.homeIP || 0} IP (Bull: ${stats.pitching?.homeBullERA || 0})
+
+BATTING:
+  Away: AVG ${stats.batting?.awayAvg || 0} | OBP ${stats.batting?.awayOBP || 0} | SLG ${stats.batting?.awaySLG || 0}
+  Home: AVG ${stats.batting?.homeAvg || 0} | OBP ${stats.batting?.homeOBP || 0} | SLG ${stats.batting?.homeSLG || 0}
+
+STANDINGS:
+  Away: Seed #${stats.standings?.awaySeed || 0} - ${stats.standings?.awayWins || 0}-${stats.standings?.awayLosses || 0}
+  Home: Seed #${stats.standings?.homeSeed || 0} - ${stats.standings?.homeWins || 0}-${stats.standings?.homeLosses || 0}
+
+INJURIES: Away ${stats.injuries?.awayCount || 0} | Home ${stats.injuries?.homeCount || 0}
+ODDS: Away ${stats.odds?.away || 'N/A'} | Home ${stats.odds?.home || 'N/A'}
+PARK: ${stats.park?.home || 'N/A'}
+SERIES: ${stats.series?.count || '0-0'} (${stats.series?.games || 0} game series)
+
+`;
+            await fs.appendFile(txtPath, txtEntry);
+            console.log('✅ MLB game stats backed up to TXT:', dateKey, gameId);
+
         } catch(backupErr) {
             console.error('⚠️ Failed to backup locally (Firebase save succeeded):', backupErr);
         }
@@ -258,7 +328,7 @@ app.post('/api/nba/gameStats', async (req, res) => {
 
         // Backup to local JSON file
         try {
-            const backupPath = path.join(__dirname, '..', 'nba_game_stats_backup.json');
+            const backupPath = path.join(__dirname, '..', 'backups', 'nba_game_stats_backup.json');
             let backup = {};
             try {
                 const backupData = await fs.readFile(backupPath, 'utf8');
@@ -267,9 +337,37 @@ app.post('/api/nba/gameStats', async (req, res) => {
                 // File doesn't exist or is invalid, start fresh
                 backup = {};
             }
-            backup[gameId] = stats;
+
+            // Organize by date (YYYY-MM-DD) then gameId
+            const dateKey = stats.savedAt ? stats.savedAt.split('T')[0] : new Date().toISOString().split('T')[0];
+            if (!backup[dateKey]) backup[dateKey] = {};
+            backup[dateKey][gameId] = stats;
+
             await fs.writeFile(backupPath, JSON.stringify(backup, null, 2));
-            console.log('✅ NBA game backed up locally:', gameId);
+            console.log('✅ NBA game stats backed up to JSON:', dateKey, gameId);
+
+            // ALSO append to human-readable TXT file
+            const txtPath = path.join(__dirname, '..', 'backups', 'nba_game_stats_backup.txt');
+            const txtEntry = `
+================================================================================
+DATE: ${dateKey} | GAME ID: ${gameId}
+${stats.awayTeam} @ ${stats.homeTeam}
+================================================================================
+
+SEEDS: Away #${stats.seeds?.away || 0} | Home #${stats.seeds?.home || 0}
+INJURIES: Away ${stats.injuries?.awayCount || 0} | Home ${stats.injuries?.homeCount || 0}
+ODDS: Away ${stats.odds?.away || 'N/A'} | Home ${stats.odds?.home || 'N/A'}
+
+RECORDS:
+  Away: ${stats.records?.awayWins || 0}-${stats.records?.awayLosses || 0} | Last 10: ${stats.last10?.away || 'N/A'}
+  Home: ${stats.records?.homeWins || 0}-${stats.records?.homeLosses || 0} | Last 10: ${stats.last10?.home || 'N/A'}
+
+EDGE: ${stats.edge || 'N/A'}
+
+`;
+            await fs.appendFile(txtPath, txtEntry);
+            console.log('✅ NBA game stats backed up to TXT:', dateKey, gameId);
+
         } catch(backupErr) {
             console.error('⚠️ Failed to backup locally (Firebase save succeeded):', backupErr);
         }

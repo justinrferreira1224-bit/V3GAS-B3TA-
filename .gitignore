@@ -67,5 +67,9 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# macOS system files
+.DS_Store
+
 .archived_temp_files/
 backups/

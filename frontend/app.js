@@ -6811,23 +6811,47 @@
                 currentSport = btn.dataset.sport;
                 sportButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
+
                 // Animate emoji
                 const iconEl = btn.querySelector('.sport-icon');
                 iconEl.classList.add('animate');
                 setTimeout(() => iconEl.classList.remove('animate'), 500);
-                
+
                 // Update nav icon to match sport
                 const icon = iconEl.textContent;
                 navSports.textContent = icon;
-                
-                // Update sport settings (quarter length, etc.)
-                updateSportSettings();
-                // Update game winner UI mode (e-NBA vs NBA)
-                updateGameWinnerMode();
-                // Re-render game log for new sport
-                renderGameLogForDay(activeBetDay);
-                sortGameLog(currentLogSort);
+
+                // Switch to the appropriate betLog for this sport
+                switchBetLog(currentSport);
+
+                // Load betLog data for this sport from Firebase
+                const loadEndpoint = BACKEND_URL + '/api/state/' + currentSport;
+                fetch(loadEndpoint)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.betLog) {
+                            const activeBetLog = getActiveBetLog();
+                            // Clear and reload
+                            activeBetLog.length = 0;
+                            data.betLog.forEach(saved => {
+                                activeBetLog.push(saved);
+                            });
+                            betLog = activeBetLog;
+                        }
+                        // Update UI after loading
+                        updateSportSettings();
+                        updateGameWinnerMode();
+                        renderGameLogForDay(activeBetDay);
+                        sortGameLog(currentLogSort);
+                    })
+                    .catch(err => {
+                        console.log('No saved data for ' + currentSport + ', starting fresh');
+                        // Update UI anyway
+                        updateSportSettings();
+                        updateGameWinnerMode();
+                        renderGameLogForDay(activeBetDay);
+                        sortGameLog(currentLogSort);
+                    });
 
                 // Remove gold highlight from nav
                 navSports.classList.remove('active');
@@ -8470,7 +8494,9 @@
         }
 
         // ===== BET LOG =====
-        const betLog = [
+        // Dynamic betLogs object - holds betLog for every sport
+        let betLogs = {
+            nba: [
           { day:1, date:'', type:'PAPER', overall:'10-0 (100%) 🔥', unlocked:false, games:[
             {
               i1:4,
@@ -21905,9 +21931,41 @@
             }
         }
 
+        // Initialize empty betLogs for other sports
+        betLogs.mlb = [];
+        betLogs.nfl = [];
+        betLogs.cbb = [];
+        betLogs.cfb = [];
+        betLogs.nhl = [];
+        betLogs.soccer = [];
+        betLogs.enba = [];
+
+        // Active betLog pointer - points to current sport's betLog
+        let betLog = betLogs.nba;
+
+        // Function to get the active betLog based on current sport
+        function getActiveBetLog() {
+            // Auto-create betLog for sport if it doesn't exist
+            if (!betLogs[currentSport]) {
+                betLogs[currentSport] = [];
+            }
+            return betLogs[currentSport];
+        }
+
+        // Function to set active betLog when switching sports
+        function switchBetLog(sport) {
+            // Auto-create if doesn't exist
+            if (!betLogs[sport]) {
+                betLogs[sport] = [];
+            }
+            betLog = betLogs[sport];
+        }
+
         function saveAppState() {
             try {
-                const betLogState = betLog.map(d => ({
+                // Get the active betLog for current sport
+                const activeBetLog = getActiveBetLog();
+                const betLogState = activeBetLog.map(d => ({
                     day: d.day,
                     unlocked: d.unlocked || false,
                     type: d.type || '',
@@ -21937,21 +21995,23 @@
                     gwBankroll: localStorage.getItem('gwBankroll') || '',
                     logbookEntries: logbookEntries
                 };
-                localStorage.setItem('appState', JSON.stringify(payload));
-                fetch(BACKEND_URL + '/api/state', {
+                localStorage.setItem('appState_' + currentSport, JSON.stringify(payload));
+                // Save to sport-specific Firebase path
+                const sportEndpoint = BACKEND_URL + '/api/state/' + currentSport;
+                fetch(sportEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 })
                 .then(r => {
                     if (!r.ok) throw new Error('Save failed: ' + r.status);
-                    console.log('✅ State saved to Firebase');
+                    console.log('✅ ' + currentSport.toUpperCase() + ' state saved to Firebase');
                 })
                 .catch(err => {
                     console.error('❌ Save to Firebase failed:', err);
                     // Retry once after 2 seconds
                     setTimeout(() => {
-                        fetch(BACKEND_URL + '/api/state', {
+                        fetch(sportEndpoint, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -21973,16 +22033,19 @@
                 .then(deleted => { if (Array.isArray(deleted)) deletedLogbookTeams = deleted; })
                 .catch(() => {});
 
-            fetch(BACKEND_URL + '/api/state')
+            // Load sport-specific betLog from Firebase
+            const loadEndpoint = BACKEND_URL + '/api/state/' + currentSport;
+            fetch(loadEndpoint)
                 .then(r => r.json())
                 .then(data => {
                     if (data && data.betLog) {
+                        const activeBetLog = getActiveBetLog();
                         data.betLog.forEach(saved => {
-                            let day = betLog.find(d => d.day === saved.day);
+                            let day = activeBetLog.find(d => d.day === saved.day);
                             if (!day) {
                                 // Day not in hardcoded array — create it from Firebase data
                                 day = { day: saved.day, date: saved.date || '', type: saved.type || 'REAL', overall: saved.overall || '', unlocked: saved.unlocked || false, games: [] };
-                                betLog.push(day);
+                                activeBetLog.push(day);
                             }
                             day.unlocked = saved.unlocked;
                             if (saved.games && saved.games.length > 0) {
@@ -22020,7 +22083,9 @@
                             if (saved.type) day.type = saved.type;
                             if (saved.overall) day.overall = saved.overall;
                         });
-                        betLog.sort((a, b) => a.day - b.day);
+                        activeBetLog.sort((a, b) => a.day - b.day);
+                        // Update the betLog pointer to the active one
+                        betLog = activeBetLog;
                     }
                     if (data && data.activeBetDay) activeBetDay = data.activeBetDay;
                     if (data && data.bankroll) localStorage.setItem('bankroll', data.bankroll);
