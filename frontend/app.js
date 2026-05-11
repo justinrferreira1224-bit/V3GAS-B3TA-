@@ -10193,9 +10193,7 @@
               wl2:'33-21'
             }
           ]},
-          { day:14, date:'', type:'REAL', overall:'', unlocked:false, games:[
-          ]},
-          { day:15, date:'', type:'REAL 💰', overall:'98-14 (88%)', unlocked:false, games:[
+          { day:14, date:'', type:'REAL 💰', overall:'98-14 (88%)', unlocked:true, games:[
             {
               i1:3,
               i2:3,
@@ -10282,7 +10280,7 @@
               l1:'6-4',
               l2:'8-2',
               o1:'-195',
-              o2:'+165',
+              o2:'-165',
               pick:'Knicks',
               res:'W',
               s1:4,
@@ -10292,6 +10290,8 @@
               wl1:'34-20',
               wl2:'35-21'
             }
+          ]},
+          { day:15, date:'', type:'REAL', overall:'', unlocked:false, games:[
           ]},
           { day:16, date:'', type:'REAL 💰', overall:'106-17 (86%)', unlocked:false, games:[
             {
