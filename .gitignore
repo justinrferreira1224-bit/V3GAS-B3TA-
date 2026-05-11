@@ -68,3 +68,4 @@ node_modules/
 # dataconnect generated files
 .dataconnect
 .archived_temp_files/
+backups/
