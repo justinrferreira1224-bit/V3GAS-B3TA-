@@ -2348,8 +2348,7 @@
                 const pickTeam = winner.includes(selectedBBHomeTeam.name) ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                 const pickOdds = winner.includes(selectedBBHomeTeam.name) ? homeOdds : awayOdds;
 
-                const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
-                const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
+                const targetDay = betLog.find(d => d.day === activeBetDay) || betLog[betLog.length-1];
                 if (targetDay) {
                     const gameId = Date.now();
 
@@ -22754,14 +22753,6 @@
         }
 
         function tapAppend(dayNum) {
-            // block if any currently unlocked day has pending W/L
-            const currentUnlocked = betLog.find(d => d.unlocked && d.games.some(g => g.res === null));
-            if (currentUnlocked && currentUnlocked.day !== dayNum) {
-                const block = document.getElementById('appendBlock' + dayNum);
-                block.innerHTML = `<span style="font-size:18px;">⛓️🔒⛓️</span><span style="font-size:12px;font-weight:800;color:#ef4444;">RESOLVE DAY ${currentUnlocked.day} FIRST</span>`;
-                setTimeout(() => renderBetDayCards(), 1800);
-                return;
-            }
             if (!appendTaps[dayNum]) appendTaps[dayNum] = 0;
             appendTaps[dayNum]++;
             const remaining = 5 - appendTaps[dayNum];
