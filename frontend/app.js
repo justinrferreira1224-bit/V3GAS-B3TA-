@@ -22403,17 +22403,17 @@
             const cards = document.getElementById('betLogCards');
 
             nav.innerHTML = betLog.map(d => {
-                // Generate date if not set: Day 1-11 = 2/1-2/11, Day 12-22 = 2/19-2/28, Day 23+ = 3/1+
+                // Generate date if not set: Day 1-12 = 2/1-2/12, Day 13-23 = 2/19-2/29, Day 24+ = 3/1+
                 let month, dayNum;
-                if (d.day <= 11) {
+                if (d.day <= 12) {
                     month = 1; // February (0-indexed)
                     dayNum = d.day;
-                } else if (d.day <= 22) {
+                } else if (d.day <= 23) {
                     month = 1; // February
-                    dayNum = d.day + 7;  // Day 12 = 2/19, Day 13 = 2/20, etc.
+                    dayNum = d.day + 6;  // Day 13 = 2/19, Day 14 = 2/20, etc.
                 } else {
                     month = 2; // March
-                    dayNum = d.day - 22;  // Day 23 = 3/1, Day 24 = 3/2, etc.
+                    dayNum = d.day - 23;  // Day 24 = 3/1, Day 25 = 3/2, etc.
                 }
 
                 const date = new Date(2026, month, dayNum);
@@ -22840,12 +22840,12 @@
 
             // section config
             let sectionLabel, sectionColor, showOverall;
-            if (day.day >= 1 && day.day <= 11) {
-                sectionLabel = '📄 PAPER — 2/1–2/11';
+            if (day.day >= 1 && day.day <= 12) {
+                sectionLabel = '📄 PAPER — 2/1–2/12';
                 sectionColor = '#555';
                 showOverall = false;
-            } else if (day.day >= 12 && day.day <= 22) {
-                sectionLabel = '📄 UPDATED PAPER — 2/19–2/28';
+            } else if (day.day >= 13 && day.day <= 23) {
+                sectionLabel = '📄 UPDATED PAPER — 2/19–2/29';
                 sectionColor = '#888';
                 showOverall = true;
             } else {
