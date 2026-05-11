@@ -21620,7 +21620,9 @@
           { day:137, date:'', type:'', overall:'', unlocked:false, games:[
           ]},
           { day:137, date:'', type:'', overall:'', unlocked:false, games:[
-          ]}        ];
+          ]}
+        ] // closes nba array
+        }; // closes betLogs object
 
         // Calculate current day number (Feb 1, 2026 = Day 1)
         const seasonStart = new Date('2026-02-01');
