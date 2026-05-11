@@ -22795,7 +22795,7 @@
                     block.style.borderColor = '#22c55e';
                     block.style.boxShadow = '0 0 30px rgba(34,197,94,0.5)';
                     block.style.cursor = 'default';
-                    saveAppState();
+                    renderBetDayCards();
                 }, 300);
                 setTimeout(() => { block.style.display = 'none'; }, 1500);
             } else {
