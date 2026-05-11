@@ -29,8 +29,9 @@ function formatDay(day, sport) {
 
     const dayType = day.type === 'REAL' ? 'REAL MONEY 💰' : 'PAPER TRADING';
     const dateStr = day.date || 'TBD';
+    const sportDayStr = day.sportDay ? ` | Sport Day ${day.sportDay}` : '';
 
-    let output = `DAY ${day.day} (${dateStr}) - ${dayType}\n\n`;
+    let output = `DAY ${day.day}${sportDayStr} (${dateStr}) - ${dayType}\n\n`;
 
     day.games.forEach(game => {
         output += `${game.t1.padEnd(10)}| ${game.o1.padEnd(6)}| ${String(game.s1).padEnd(2)} | ${String(game.i1).padEnd(2)} | ${game.wl1.padEnd(6)} | ${game.l1}\n`;
