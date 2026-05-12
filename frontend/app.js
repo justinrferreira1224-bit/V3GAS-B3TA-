@@ -22478,17 +22478,9 @@
             const cards = document.getElementById('betLogCards');
 
             nav.innerHTML = betLog.map(d => {
-                // Sequential dates: Day 1-28 = Feb 1-28, Day 29+ = March 1+
-                let month, dayNum;
-                if (d.day <= 28) {
-                    month = 1; // February (0-indexed)
-                    dayNum = d.day;
-                } else {
-                    month = 2; // March
-                    dayNum = d.day - 28;  // Day 29 = 3/1, Day 30 = 3/2, etc.
-                }
-
-                const date = new Date(2026, month, dayNum);
+                // Calendar day system: Day 1 = Jan 1, Day 32 = Feb 1, Day 365 = Dec 31
+                // Convert calendar day to actual date
+                const date = new Date(2026, 0, d.day); // Jan 1 + (day - 1) days
                 const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
                 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 const monthStr = monthNames[date.getMonth()];
