@@ -25,13 +25,18 @@ const SPORTS = ['nba', 'mlb', 'nfl', 'cbb', 'cfb', 'nhl', 'soccer', 'enba'];
 
 // Format a single day's data into readable text format
 function formatDay(day, sport) {
-    if (!day.games || day.games.length === 0) return '';
-
     const dayType = day.type === 'REAL' ? 'REAL MONEY 💰' : 'PAPER TRADING';
     const dateStr = day.date || 'TBD';
     const sportDayStr = day.sportDay ? ` | Sport Day ${day.sportDay}` : '';
 
     let output = `DAY ${day.day}${sportDayStr} (${dateStr}) - ${dayType}\n\n`;
+
+    // If no games, show as empty day
+    if (!day.games || day.games.length === 0) {
+        output += `(no games)\n\n`;
+        output += `================================================================================\n\n`;
+        return output;
+    }
 
     day.games.forEach(game => {
         output += `${game.t1.padEnd(10)}| ${game.o1.padEnd(6)}| ${String(game.s1).padEnd(2)} | ${String(game.i1).padEnd(2)} | ${game.wl1.padEnd(6)} | ${game.l1}\n`;
