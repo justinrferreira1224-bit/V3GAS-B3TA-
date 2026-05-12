@@ -22471,17 +22471,14 @@
             const cards = document.getElementById('betLogCards');
 
             nav.innerHTML = betLog.map(d => {
-                // Generate date if not set: Day 1-12 = 2/1-2/12, Day 13-23 = 2/19-2/29, Day 24+ = 3/1+
+                // Sequential dates: Day 1-28 = Feb 1-28, Day 29+ = March 1+
                 let month, dayNum;
-                if (d.day <= 12) {
+                if (d.day <= 28) {
                     month = 1; // February (0-indexed)
                     dayNum = d.day;
-                } else if (d.day <= 23) {
-                    month = 1; // February
-                    dayNum = d.day + 6;  // Day 13 = 2/19, Day 14 = 2/20, etc.
                 } else {
                     month = 2; // March
-                    dayNum = d.day - 23;  // Day 24 = 3/1, Day 25 = 3/2, etc.
+                    dayNum = d.day - 28;  // Day 29 = 3/1, Day 30 = 3/2, etc.
                 }
 
                 const date = new Date(2026, month, dayNum);
