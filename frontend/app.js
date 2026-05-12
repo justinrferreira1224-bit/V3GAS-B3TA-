@@ -8494,9 +8494,21 @@
         }
 
         // ===== BET LOG =====
-        // Dynamic betLogs object - holds betLog for every sport
+        // Dynamic betLogs object - loads from Firebase (no hardcoded data)
         let betLogs = {
-            nba: [
+            nba: [], // Will load from Firebase: /nbaBetlog
+            mlb: [], // Will load from Firebase: /mlbBetlog
+            nfl: [], // Will load from Firebase: /nflBetlog
+            nhl: [], // Will load from Firebase: /nhlBetlog
+            cbb: [], // Will load from Firebase: /cbbBetlog
+            cfb: []  // Will load from Firebase: /cfbBetlog
+        };
+
+        // REMOVED: 13,000+ lines of hardcoded betLog data
+        // Source of truth is now: backup txt files → Firebase → frontend
+
+        // Placeholder to maintain line structure (will be removed)
+        const _removedHardcodedData = [
           { day:1, date:'', type:'PAPER', overall:'10-0 (100%) 🔥', unlocked:false, games:[
             {
               i1:4,
@@ -21617,12 +21629,7 @@
           ]},
           { day:136, date:'', type:'', overall:'', unlocked:false, games:[
           ]},
-          { day:137, date:'', type:'', overall:'', unlocked:false, games:[
-          ]},
-          { day:137, date:'', type:'', overall:'', unlocked:false, games:[
-          ]}
-        ] // closes nba array
-        }; // closes betLogs object
+        ]; // closes placeholder array
 
         // Calculate current day number (Feb 1, 2026 = Day 1)
         const seasonStart = new Date('2026-02-01');
