@@ -22050,6 +22050,7 @@
                                 activeBetLog.push(day);
                             }
                             day.unlocked = saved.unlocked;
+                            day.date = saved.date || '';
                             if (saved.games && saved.games.length > 0) {
                                 if (day.games.length === 0) {
                                     day.games = saved.games.map(g => ({...g, res: (g.res === undefined || g.res === 'pending') ? null : g.res}));
@@ -22788,7 +22789,7 @@
                                     type: d.type || '', overall: d.overall || '',
                                     games: d.games.map(g => ({...g, res: g.res === null ? 'pending' : g.res}))
                                 }));
-                                fetch(BACKEND_URL + '/api/state', {
+                                fetch(BACKEND_URL + '/api/state/' + currentSport, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ betLog: betLogState })

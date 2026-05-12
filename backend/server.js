@@ -10,6 +10,7 @@ app.use(express.json({ limit: '10mb' }));
 
 const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
 const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com';
+const FB_MLB = 'https://vegas-bet-default-rtdb.firebaseio.com';
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
