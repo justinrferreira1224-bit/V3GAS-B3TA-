@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/vegasbeta';
+const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
@@ -26,13 +26,13 @@ app.get('/api/state/:sport', async (req, res) => {
 });
 
 // POST state for ANY sport
-app.post('/api/state/:sport', async (req, res) => {
+app.post("/api/state/:sport", async (req, res) => {
     try {
         const sport = req.params.sport;
         const payload = req.body;
         const r = await fetch(`${FB_BASE}/${sport}/betLog.json`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
         const data = await r.json();
