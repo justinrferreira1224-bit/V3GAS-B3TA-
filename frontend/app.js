@@ -22047,66 +22047,12 @@
             fetch(loadEndpoint)
                 .then(r => r.json())
                 .then(data => {
-                    // Convert date-keyed Firebase object {"02-01":{...}} to array [{day:32,...}]
-                    if (data && data.betLog && !Array.isArray(data.betLog) && typeof data.betLog === 'object') {
-                        const monthDays = [0,31,28,31,30,31,30,31,31,30,31,30,31];
-                        data.betLog = Object.entries(data.betLog)
-                            .filter(([k]) => /^\d{2}-\d{2}$/.test(k))
-                            .map(([date, val]) => {
-                                const [m,d] = date.split('-').map(Number);
-                                let day = d; for (let i=1;i<m;i++) day+=monthDays[i];
-                                return { day, date, games: val.games||[], unlocked: val.unlocked||false, type: val.type||'', overall: val.overall||'' };
-                            })
-                            .sort((a,b) => a.day - b.day);
-                    }
-                    if (data && data.betLog) {
+                    // Backend already transforms data to correct format, just load it
+                    if (data && data.betLog && Array.isArray(data.betLog)) {
                         const activeBetLog = getActiveBetLog();
-                        data.betLog.forEach(saved => {
-                            let day = activeBetLog.find(d => d.day === saved.day);
-                            if (!day) {
-                                // Day not in hardcoded array — create it from Firebase data
-                                day = { day: saved.day, date: saved.date || '', type: saved.type || 'REAL', overall: saved.overall || '', unlocked: saved.unlocked || false, games: [] };
-                                activeBetLog.push(day);
-                            }
-                            day.unlocked = saved.unlocked;
-                            day.date = saved.date || '';
-                            if (saved.games && saved.games.length > 0) {
-                                if (day.games.length === 0) {
-                                    day.games = saved.games.map(g => ({...g, res: (g.res === undefined || g.res === 'pending') ? null : g.res}));
-                                } else {
-                                    saved.games.forEach(sg => {
-                                        const match = day.games.find(g => g._id == sg._id);
-                                        if (match) {
-                                            match.res = (sg.res === undefined || sg.res === 'pending') ? null : sg.res;
-                                        } else {
-                                            // Check for duplicate matchup (same teams, regardless of ID)
-                                            const duplicateMatchup = day.games.find(g =>
-                                                (g.t1 === sg.t1 && g.t2 === sg.t2) ||
-                                                (g.t1 === sg.t2 && g.t2 === sg.t1)
-                                            );
-                                            // Check if saved game is blank/placeholder
-                                            const isBlank = !sg.o1 && !sg.o2 && sg.res !== 'W' && sg.res !== 'L' && !sg.edge;
-
-                                            // Only add if no duplicate matchup exists AND it's not blank
-                                            if (!duplicateMatchup && !isBlank) {
-                                                day.games.push({...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
-                                            } else if (duplicateMatchup) {
-                                                // If saved game has odds/result and existing doesn't, replace it
-                                                const savedHasData = sg.o1 || sg.o2 || sg.res === 'W' || sg.res === 'L';
-                                                const existingHasData = duplicateMatchup.o1 || duplicateMatchup.o2 || duplicateMatchup.res === 'W' || duplicateMatchup.res === 'L';
-                                                if (savedHasData && !existingHasData) {
-                                                    Object.assign(duplicateMatchup, {...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
-                                                }
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                            if (saved.type) day.type = saved.type;
-                            if (saved.overall) day.overall = saved.overall;
-                        });
-                        activeBetLog.sort((a, b) => a.day - b.day);
-                        // Update the betLog pointer to the active one
+                        activeBetLog.length = 0; // Clear existing
+                        // Load all days from backend (already in correct format)
+                        data.betLog.forEach(day => activeBetLog.push(day));
                         betLog = activeBetLog;
                     }
                     if (data && data.activeBetDay) activeBetDay = data.activeBetDay;
