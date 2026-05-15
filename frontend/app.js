@@ -4063,6 +4063,10 @@
         
         // Inning box click handler
         document.addEventListener('DOMContentLoaded', () => {
+            // Clear old localStorage to force fresh load from Firebase
+            localStorage.removeItem('appState');
+            localStorage.removeItem('appState_nba');
+            localStorage.removeItem('appState_mlb');
             // Populate log book with Celtics and Pistons examples
             const logContent = document.getElementById('logContent');
             if (logContent) {
@@ -6829,6 +6833,10 @@
                 fetch(loadEndpoint)
                     .then(r => r.json())
                     .then(data => {
+                        console.log('🏀 SPORT SWITCH LOAD:', currentSport, {
+                            hasBetLog: !!data.betLog,
+                            totalDays: data.betLog ? data.betLog.length : 0
+                        });
                         if (data && data.betLog) {
                             const activeBetLog = getActiveBetLog();
                             // Clear and reload
@@ -6837,6 +6845,7 @@
                                 activeBetLog.push(saved);
                             });
                             betLog = activeBetLog;
+                            console.log('✅ SPORT BETLOG LOADED:', betLog.length, 'days');
                         }
                         // Update UI after loading
                         updateSportSettings();
@@ -22047,6 +22056,13 @@
             fetch(loadEndpoint)
                 .then(r => r.json())
                 .then(data => {
+                    console.log('🔥 FIREBASE DATA LOADED:', {
+                        hasBetLog: !!data.betLog,
+                        isArray: Array.isArray(data.betLog),
+                        totalDays: data.betLog ? data.betLog.length : 0,
+                        firstDay: data.betLog && data.betLog[0] ? data.betLog[0] : 'none',
+                        day32: data.betLog ? data.betLog.find(d => d.day === 32) : 'not found'
+                    });
                     // Backend already transforms data to correct format, just load it
                     if (data && data.betLog && Array.isArray(data.betLog)) {
                         const activeBetLog = getActiveBetLog();
@@ -22054,6 +22070,9 @@
                         // Load all days from backend (already in correct format)
                         data.betLog.forEach(day => activeBetLog.push(day));
                         betLog = activeBetLog;
+                        console.log('✅ BETLOG LOADED:', betLog.length, 'days');
+                    } else {
+                        console.error('❌ BETLOG NOT LOADED - data structure wrong');
                     }
                     if (data && data.activeBetDay) activeBetDay = data.activeBetDay;
                     if (data && data.bankroll) localStorage.setItem('bankroll', data.bankroll);
