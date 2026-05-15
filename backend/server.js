@@ -16,7 +16,7 @@ const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
 app.get('/api/state/:sport', async (req, res) => {
     try {
         const sport = req.params.sport;
-        const r = await fetch(`${FB_BASE}/${sport}/betLog.json`);
+        const r = await fetch(`${FB_BASE}/${sport}.json`);
         const data = await r.json();
         res.json(data || {});
     } catch(e) {
@@ -30,7 +30,7 @@ app.post("/api/state/:sport", async (req, res) => {
     try {
         const sport = req.params.sport;
         const payload = req.body;
-        const r = await fetch(`${FB_BASE}/${sport}/betLog.json`, {
+        const r = await fetch(`${FB_BASE}/${sport}.json`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
