@@ -22048,10 +22048,11 @@
 
         function loadAppState(callback) {
             // First load deleted logbook teams so we can filter them out
-            fetch(BACKEND_URL + '/api/deletedLogbook')
-                .then(r => r.json())
-                .then(deleted => { if (Array.isArray(deleted)) deletedLogbookTeams = deleted; })
-                .catch(() => {});
+            // Deleted logbook removed - no longer needed
+            // fetch(BACKEND_URL + '/api/deletedLogbook')
+            //     .then(r => r.json())
+            //     .then(deleted => { if (Array.isArray(deleted)) deletedLogbookTeams = deleted; })
+            //     .catch(() => {});
 
             // Load sport-specific betLog from Firebase
             const loadEndpoint = BACKEND_URL + '/api/state/' + currentSport;
