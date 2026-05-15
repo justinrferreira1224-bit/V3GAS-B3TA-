@@ -12,12 +12,70 @@ const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
+// Helper: Transform new Firebase structure to old frontend format
+function transformBetLog(betLogObj) {
+    if (!betLogObj) return [];
+
+    const betLogArray = [];
+
+    // Convert date-keyed object to array with day numbers
+    Object.entries(betLogObj).forEach(([dateKey, dayData]) => {
+        // Parse date (MM-DD format) to calculate day of year
+        const [month, day] = dateKey.split('-').map(Number);
+        const date = new Date(2026, month - 1, day);
+        const jan1 = new Date(2026, 0, 1);
+        const dayOfYear = Math.floor((date - jan1) / (1000 * 60 * 60 * 24)) + 1;
+
+        // Transform games from new format to old format
+        const transformedGames = (dayData.games || []).map(game => {
+            return {
+                t1: game.away?.team || '',
+                t2: game.home?.team || '',
+                o1: game.away?.odds || '',
+                o2: game.home?.odds || '',
+                s1: parseInt(game.away?.seed) || 0,
+                s2: parseInt(game.home?.seed) || 0,
+                i1: parseInt(game.away?.injuries) || 0,
+                i2: parseInt(game.home?.injuries) || 0,
+                wl1: game.away?.record || '',
+                wl2: game.home?.record || '',
+                l1: game.away?.last10 || '',
+                l2: game.home?.last10 || '',
+                pick: game.pick || '',
+                res: game.res || null,
+                edge: game.edge || '',
+                _id: game._id || Date.now() + Math.random()
+            };
+        });
+
+        betLogArray.push({
+            day: dayOfYear,
+            date: dateKey,
+            type: dayData.type || 'REAL',
+            overall: dayData.overall || '',
+            unlocked: dayData.unlocked || false,
+            games: transformedGames
+        });
+    });
+
+    // Sort by day number
+    betLogArray.sort((a, b) => a.day - b.day);
+
+    return betLogArray;
+}
+
 // GET state for ANY sport
 app.get('/api/state/:sport', async (req, res) => {
     try {
         const sport = req.params.sport;
         const r = await fetch(`${FB_BASE}/${sport}.json`);
         const data = await r.json();
+
+        // Transform betLog if it exists
+        if (data && data.betLog) {
+            data.betLog = transformBetLog(data.betLog);
+        }
+
         res.json(data || {});
     } catch(e) {
         console.error(`${req.params.sport.toUpperCase()} GET failed:`, e);
