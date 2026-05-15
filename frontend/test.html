@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BetLog Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        .day { padding: 10px; margin: 5px; background: #222; border: 1px solid #444; }
+        .day.has-games { background: #1a4d1a; }
+    </style>
+</head>
+<body>
+    <h1>NBA BetLog Test</h1>
+    <div id="output"></div>
+
+    <script>
+        console.log('🔥 Fetching from backend...');
+        fetch('https://v3gas-b3ta-backend.onrender.com/api/state/nba')
+            .then(r => r.json())
+            .then(data => {
+                console.log('✅ Data received:', data);
+
+                const output = document.getElementById('output');
+
+                if (!data.betLog) {
+                    output.innerHTML = '❌ NO BETLOG IN RESPONSE';
+                    return;
+                }
+
+                output.innerHTML = `
+                    <h2>Total Days: ${data.betLog.length}</h2>
+                    <h3>First 10 days:</h3>
+                `;
+
+                data.betLog.slice(0, 10).forEach(day => {
+                    const div = document.createElement('div');
+                    div.className = 'day' + (day.games && day.games.length > 0 ? ' has-games' : '');
+                    div.innerHTML = `
+                        <strong>Day ${day.day}</strong> |
+                        Date: ${day.date} |
+                        Games: ${day.games ? day.games.length : 0}
+                    `;
+                    output.appendChild(div);
+                });
+
+                output.innerHTML += '<h3>Day 32 (should be Feb 1):</h3>';
+                const day32 = data.betLog.find(d => d.day === 32);
+                if (day32) {
+                    const div = document.createElement('div');
+                    div.className = 'day has-games';
+                    div.innerHTML = `
+                        <strong>Day ${day32.day}</strong> |
+                        Date: ${day32.date} |
+                        Games: ${day32.games ? day32.games.length : 0}
+                        ${day32.games && day32.games.length > 0 ? '<br>First game: ' + day32.games[0].t1 + ' vs ' + day32.games[0].t2 : ''}
+                    `;
+                    output.appendChild(div);
+                } else {
+                    output.innerHTML += '<div class="day">❌ Day 32 not found!</div>';
+                }
+            })
+            .catch(err => {
+                document.getElementById('output').innerHTML = '❌ FETCH FAILED: ' + err;
+                console.error(err);
+            });
+    </script>
+</body>
+</html>
