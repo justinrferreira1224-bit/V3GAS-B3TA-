@@ -118,6 +118,31 @@ app.delete('/api/state/:sport/:dayIndex/:gameIndex', async (req, res) => {
     }
 });
 
+// Legacy /api/state endpoint (no sport param) for backwards compatibility
+app.get('/api/state', async (req, res) => {
+    try {
+        const r = await fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta.json');
+        const data = await r.json();
+        res.json(data || {});
+    } catch(e) {
+        res.status(500).json({ error: 'Failed to load data' });
+    }
+});
+
+app.post('/api/state', async (req, res) => {
+    try {
+        const r = await fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta.json', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req.body)
+        });
+        const data = await r.json();
+        res.json(data);
+    } catch(e) {
+        res.status(500).json({ error: 'Failed to save data' });
+    }
+});
+
 // ── MLB ROUTES ───────────────────────────────────────────────
 
 app.get('/api/mlb/pitching/:team', async (req, res) => {
