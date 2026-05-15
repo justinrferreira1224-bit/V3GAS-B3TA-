@@ -4063,10 +4063,12 @@
         
         // Inning box click handler
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 APP STARTING - DOMContentLoaded fired');
             // Clear old localStorage to force fresh load from Firebase
             localStorage.removeItem('appState');
             localStorage.removeItem('appState_nba');
             localStorage.removeItem('appState_mlb');
+            console.log('🗑️ localStorage cleared');
             // Populate log book with Celtics and Pistons examples
             const logContent = document.getElementById('logContent');
             if (logContent) {
