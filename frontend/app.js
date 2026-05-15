@@ -21964,6 +21964,9 @@
         let betLog = betLogs.nba;
 
         // FORCE IMMEDIATE LOAD FROM BACKEND AND RE-RENDER
+        // Clear localStorage first to prevent old data from interfering
+        localStorage.removeItem('appState');
+        localStorage.removeItem('appState_nba');
         console.log('🔥 FORCE LOADING NBA FROM BACKEND...');
         fetch('https://v3gas-b3ta-backend.onrender.com/api/state/nba')
             .then(r => r.json())
