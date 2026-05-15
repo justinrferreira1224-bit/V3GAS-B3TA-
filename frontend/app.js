@@ -22461,6 +22461,12 @@
             const nav = document.getElementById('betLogDayNav');
             const cards = document.getElementById('betLogCards');
 
+            if (!nav) return;
+            if (!betLog || !Array.isArray(betLog) || betLog.length === 0) {
+                nav.innerHTML = '<div style="color:#f00;padding:20px;">NO BETLOG DATA LOADED</div>';
+                return;
+            }
+
             nav.innerHTML = betLog.map(d => {
                 // Calendar day system: Day 1 = Jan 1, Day 32 = Feb 1, Day 365 = Dec 31
                 // Convert calendar day to actual date
