@@ -22072,9 +22072,10 @@
             //     .then(deleted => { if (Array.isArray(deleted)) deletedLogbookTeams = deleted; })
             //     .catch(() => {});
 
+            // DISABLED - using force-load instead to prevent conflicts
             // Load sport-specific betLog from Firebase
-            const loadEndpoint = BACKEND_URL + '/api/state/' + currentSport;
-            fetch(loadEndpoint)
+            // const loadEndpoint = BACKEND_URL + '/api/state/' + currentSport;
+            // fetch(loadEndpoint)
                 .then(r => r.json())
                 .then(data => {
                     console.log('🔥 FIREBASE DATA LOADED:', {
