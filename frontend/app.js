@@ -12,40 +12,12 @@ const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/vegasbe
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
-// Convert MM-DD date key to day number (Jan 1 = Day 1)
-function dateKeyToDayNumber(mmdd) {
-    const [month, day] = mmdd.split('-').map(Number);
-    const monthDays = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let dayNum = day;
-    for (let m = 1; m < month; m++) dayNum += monthDays[m];
-    return dayNum;
-}
-
 // GET state for ANY sport
 app.get('/api/state/:sport', async (req, res) => {
     try {
         const sport = req.params.sport;
         const r = await fetch(`${FB_BASE}/${sport}/betLog.json`);
         const data = await r.json();
-
-        // If Firebase returns a date-keyed object like {"01-01": {...}, "02-01": {...}}
-        // convert it to the array format the app expects: [{ day: 1, date: "01-01", games: [] }]
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-            const betLog = Object.entries(data)
-                .filter(([key]) => /^\d{2}-\d{2}$/.test(key))  // only MM-DD keys
-                .map(([date, val]) => ({
-                    day: dateKeyToDayNumber(date),
-                    date,
-                    games: val.games || [],
-                    unlocked: val.unlocked || false,
-                    type: val.type || '',
-                    overall: val.overall || ''
-                }))
-                .sort((a, b) => a.day - b.day);
-
-            return res.json({ betLog });
-        }
-
         res.json(data || {});
     } catch(e) {
         console.error(`${req.params.sport.toUpperCase()} GET failed:`, e);
