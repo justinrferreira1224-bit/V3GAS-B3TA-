@@ -21963,27 +21963,6 @@
         // Active betLog pointer - points to current sport's betLog
         let betLog = betLogs.nba;
 
-        // FORCE IMMEDIATE LOAD FROM BACKEND AND RE-RENDER
-        // Clear localStorage first to prevent old data from interfering
-        localStorage.removeItem('appState');
-        localStorage.removeItem('appState_nba');
-        console.log('🔥 FORCE LOADING NBA FROM BACKEND...');
-        fetch('https://v3gas-b3ta-backend.onrender.com/api/state/nba')
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.betLog && Array.isArray(data.betLog)) {
-                    betLogs.nba = data.betLog;
-                    betLog = data.betLog;
-                    console.log('✅ LOADED', betLog.length, 'days. Day 32:', betLog.find(d => d.day === 32));
-                    // RE-RENDER THE BET LOG WITH NEW DATA
-                    if (typeof renderBetLog === 'function') {
-                        renderBetLog();
-                        console.log('🎨 Re-rendered bet log');
-                    }
-                }
-            })
-            .catch(err => console.error('❌ Load failed:', err));
-
         // Function to get the active betLog based on current sport
         function getActiveBetLog() {
             // Auto-create betLog for sport if it doesn't exist
@@ -22095,6 +22074,10 @@
                         data.betLog.forEach(day => activeBetLog.push(day));
                         betLog = activeBetLog;
                         console.log('✅ BETLOG LOADED:', betLog.length, 'days');
+                        // Render immediately after loading
+                        if (typeof renderBetLog === 'function') {
+                            renderBetLog();
+                        }
                     } else {
                         console.error('❌ BETLOG NOT LOADED - data structure wrong');
                     }

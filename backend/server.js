@@ -83,18 +83,75 @@ app.get('/api/state/:sport', async (req, res) => {
     }
 });
 
+// Helper: Reverse transform - convert array back to date-keyed object
+function reverseBetLog(betLogArray) {
+    if (!Array.isArray(betLogArray)) return betLogArray;
+
+    const betLogObj = {};
+
+    betLogArray.forEach(day => {
+        if (!day.date) return; // Skip if no date
+
+        // Convert games back to away/home format
+        const reversedGames = (day.games || []).map(game => {
+            return {
+                away: {
+                    team: game.t1 || '',
+                    odds: game.o1 || '',
+                    seed: game.s1 || 0,
+                    injuries: game.i1 || 0,
+                    record: game.wl1 || '',
+                    last10: game.l1 || ''
+                },
+                home: {
+                    team: game.t2 || '',
+                    odds: game.o2 || '',
+                    seed: game.s2 || 0,
+                    injuries: game.i2 || 0,
+                    record: game.wl2 || '',
+                    last10: game.l2 || ''
+                },
+                pick: game.pick || '',
+                res: game.res || null,
+                edge: game.edge || '',
+                _id: game._id || Date.now() + Math.random()
+            };
+        });
+
+        betLogObj[day.date] = {
+            type: day.type || 'REAL',
+            overall: day.overall || '',
+            unlocked: day.unlocked || false,
+            games: reversedGames
+        };
+    });
+
+    return betLogObj;
+}
+
 // POST state for ANY sport
 app.post("/api/state/:sport", async (req, res) => {
     try {
         const sport = req.params.sport;
         const payload = req.body;
+
+        // Remove fields that shouldn't be saved to Firebase
+        delete payload.betLog;
+        delete payload.activeBetDay;
+        delete payload.bankroll;
+
+        // Only save if there's something left to save
+        if (Object.keys(payload).length === 0) {
+            return res.json({ message: 'No data to save (betLog managed manually)' });
+        }
+
         const r = await fetch(`${FB_BASE}/${sport}.json`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
         const data = await r.json();
-        console.log(`✅ ${sport.toUpperCase()} bet log saved to Firebase`);
+        console.log(`✅ ${sport.toUpperCase()} data saved to Firebase`);
         res.json(data);
     } catch(e) {
         console.error(`${req.params.sport.toUpperCase()} POST failed:`, e);
