@@ -53,45 +53,15 @@ app.get('/api/state/:sport', async (req, res) => {
     }
 });
 
-// Convert day number back to MM-DD key (Day 1 = Jan 1)
-function dayNumberToDateKey(dayNum) {
-    const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let remaining = dayNum;
-    let month = 0;
-    while (month < 12 && remaining > monthDays[month]) {
-        remaining -= monthDays[month];
-        month++;
-    }
-    const mm = String(month + 1).padStart(2, '0');
-    const dd = String(remaining).padStart(2, '0');
-    return `${mm}-${dd}`;
-}
-
 // POST state for ANY sport
-app.post('/api/state/:sport', async (req, res) => {
+app.post("/api/state/:sport", async (req, res) => {
     try {
         const sport = req.params.sport;
         const payload = req.body;
-
-        // If app sends { betLog: [{day: 32, games: [...]}] }, convert to date-keyed object
-        let firebasePayload = payload;
-        if (payload.betLog && Array.isArray(payload.betLog)) {
-            firebasePayload = {};
-            payload.betLog.forEach(entry => {
-                const dateKey = entry.date || dayNumberToDateKey(entry.day);
-                firebasePayload[dateKey] = {
-                    games: entry.games || [],
-                    unlocked: entry.unlocked || false,
-                    type: entry.type || '',
-                    overall: entry.overall || ''
-                };
-            });
-        }
-
         const r = await fetch(`${FB_BASE}/${sport}/betLog.json`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(firebasePayload)
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         });
         const data = await r.json();
         console.log(`✅ ${sport.toUpperCase()} bet log saved to Firebase`);
