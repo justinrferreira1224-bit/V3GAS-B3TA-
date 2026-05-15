@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
+const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/vegasbeta';
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
