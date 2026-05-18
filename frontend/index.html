@@ -11240,39 +11240,18 @@
         let deletedLogbookTeams = [];
 
         function loadAppState(callback) {
-            // First load deleted logbook teams so we can filter them out
-            fetch(BACKEND_URL + '/api/deletedLogbook')
-                .then(r => r.json())
-                .then(deleted => { if (Array.isArray(deleted)) deletedLogbookTeams = deleted; })
-                .catch(() => {});
-
-            fetch(BACKEND_URL + '/api/state')
+            // Load NBA data from backend (backend transforms Firebase structure)
+            fetch(BACKEND_URL + '/api/state/nba')
                 .then(r => r.json())
                 .then(data => {
-                    if (data && data.betLog) {
-                        data.betLog.forEach(saved => {
-                            let day = betLog.find(d => d.day === saved.day);
-                            if (!day) {
-                                // Day not in hardcoded array — create it from Firebase data
-                                day = { day: saved.day, date: saved.date || '', type: saved.type || 'REAL', overall: saved.overall || '', unlocked: saved.unlocked || false, games: [] };
-                                betLog.push(day);
-                            }
-                            day.unlocked = saved.unlocked;
-                            if (saved.games && saved.games.length > 0) {
-                                if (day.games.length === 0) {
-                                    day.games = saved.games.map(g => ({...g, res: (g.res === undefined || g.res === 'pending') ? null : g.res}));
-                                } else {
-                                    saved.games.forEach(sg => {
-                                        const match = day.games.find(g => g._id == sg._id);
-                                        if (match) match.res = (sg.res === undefined || sg.res === 'pending') ? null : sg.res;
-                                        else day.games.push({...sg, res: (sg.res === undefined || sg.res === 'pending') ? null : sg.res});
-                                    });
-                                }
-                            }
-                            if (saved.type) day.type = saved.type;
-                            if (saved.overall) day.overall = saved.overall;
-                        });
-                        betLog.sort((a, b) => a.day - b.day);
+                    if (data && data.betLog && Array.isArray(data.betLog)) {
+                        // Replace betLog entirely with backend data
+                        betLog.length = 0;
+                        data.betLog.forEach(day => betLog.push(day));
+                        // Render immediately after loading
+                        if (typeof renderBetLog === 'function') {
+                            renderBetLog();
+                        }
                     }
                     if (data && data.activeBetDay) activeBetDay = data.activeBetDay;
                     if (data && data.bankroll) localStorage.setItem('bankroll', data.bankroll);
