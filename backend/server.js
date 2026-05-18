@@ -175,6 +175,30 @@ app.delete('/api/state/:sport/:dayIndex/:gameIndex', async (req, res) => {
     }
 });
 
+// ── SAVE app picks for all days ──────────────────────────────────
+app.post('/api/:sport/appPicks', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const appPicksData = req.body; // { "02-01": ["Celtics", "Spurs", ...], "02-02": [...], ... }
+
+        // Save appPicks for each day
+        const promises = Object.entries(appPicksData).map(([dateKey, picks]) => {
+            return fetch(`${FB_BASE}/${sport}/betLog/${dateKey}/appPicks.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(picks)
+            });
+        });
+
+        await Promise.all(promises);
+        console.log(`✅ Saved app picks for ${Object.keys(appPicksData).length} days in ${sport}`);
+        res.json({ success: true, daysUpdated: Object.keys(appPicksData).length });
+    } catch(e) {
+        console.error('App picks save failed:', e);
+        res.status(500).json({ error: 'Failed to save app picks' });
+    }
+});
+
 // Legacy /api/state endpoint (no sport param) for backwards compatibility
 app.get('/api/state', async (req, res) => {
     try {

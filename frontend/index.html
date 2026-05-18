@@ -11239,6 +11239,157 @@
 
         let deletedLogbookTeams = [];
 
+        // Core 4 calculation for a single game - returns winning team name
+        function calculateCore4Pick(game) {
+            const awayTeam = game.t1;
+            const homeTeam = game.t2;
+            const awaySeed = game.s1 || 8;
+            const homeSeed = game.s2 || 8;
+            const awayInjuries = game.i1 || 0;
+            const homeInjuries = game.i2 || 0;
+
+            // Parse odds
+            const awayOddsStr = game.o1 || '+100';
+            const homeOddsStr = game.o2 || '-100';
+            const awayOdds = Math.abs(parseInt(awayOddsStr));
+            const homeOdds = Math.abs(parseInt(homeOddsStr));
+            const awayIsNegative = awayOddsStr.startsWith('-');
+            const homeIsNegative = homeOddsStr.startsWith('-');
+
+            // Parse last 10 (e.g. "2-8" = 20% win rate)
+            const awayLast10Str = game.l1 || "5-5";
+            const homeLast10Str = game.l2 || "5-5";
+            const [awayWins, awayLosses] = awayLast10Str.split('-').map(Number);
+            const [homeWins, homeLosses] = homeLast10Str.split('-').map(Number);
+            const awayLast10Total = awayWins + awayLosses;
+            const homeLast10Total = homeWins + homeLosses;
+
+            // CORE 1: SEED TO TABLE %
+            const awayBaseValue = 100 - ((awaySeed - 1) / 15) * 70;
+            const homeBaseValue = 100 - ((homeSeed - 1) / 15) * 70;
+            const totalBaseValue = awayBaseValue + homeBaseValue;
+            let awayTablePercent = (awayBaseValue / totalBaseValue) * 100;
+            let homeTablePercent = (homeBaseValue / totalBaseValue) * 100;
+            awayTablePercent = awayTablePercent - 2.5; // Away penalty
+            homeTablePercent = homeTablePercent + 3.0; // Home boost
+
+            // CORE 2: TEAM STRENGTH %
+            const AWAY_INJURY_PENALTY = 3.0;
+            const HOME_INJURY_PENALTY = 4.0;
+            let awayTeamStrength = awayTablePercent - (awayInjuries * AWAY_INJURY_PENALTY);
+            let homeTeamStrength = homeTablePercent - (homeInjuries * HOME_INJURY_PENALTY);
+
+            // CORE 3: MARKET ODDS TO NO VIG %
+            let awayImplied, homeImplied;
+            if (awayIsNegative) {
+                awayImplied = awayOdds / (awayOdds + 100);
+            } else {
+                awayImplied = 100 / (awayOdds + 100);
+            }
+            if (homeIsNegative) {
+                homeImplied = homeOdds / (homeOdds + 100);
+            } else {
+                homeImplied = 100 / (homeOdds + 100);
+            }
+            const totalImplied = awayImplied + homeImplied;
+            let awayNoVigOddsPercent = (awayImplied / totalImplied) * 100;
+            let homeNoVigOddsPercent = (homeImplied / totalImplied) * 100;
+
+            // CORE 4: WIN % FROM LAST 10
+            let awayWinPercent = awayLast10Total > 0 ? (awayWins / awayLast10Total) * 100 : 50;
+            let homeWinPercent = homeLast10Total > 0 ? (homeWins / homeLast10Total) * 100 : 50;
+
+            // Add up 4 cores
+            let awayTotalValue = awayTablePercent + awayTeamStrength + awayNoVigOddsPercent + awayWinPercent;
+            let homeTotalValue = homeTablePercent + homeTeamStrength + homeNoVigOddsPercent + homeWinPercent;
+
+            // Apply seed gap multiplier
+            const seedGap = Math.abs(awaySeed - homeSeed);
+            if (seedGap >= 4) {
+                const talentDiff = homeTotalValue - awayTotalValue;
+                if (homeSeed < awaySeed) {
+                    homeTotalValue = homeTotalValue + (talentDiff * 0.3);
+                } else {
+                    awayTotalValue = awayTotalValue + (Math.abs(talentDiff) * 0.3);
+                }
+            } else if (seedGap >= 2) {
+                const talentDiff = homeTotalValue - awayTotalValue;
+                if (homeSeed < awaySeed) {
+                    homeTotalValue = homeTotalValue + (talentDiff * 0.15);
+                } else {
+                    awayTotalValue = awayTotalValue + (Math.abs(talentDiff) * 0.15);
+                }
+            }
+
+            // Divide by 4 (average)
+            let awayAverage = awayTotalValue / 4;
+            let homeAverage = homeTotalValue / 4;
+
+            // If average exceeds 100, pick that team immediately
+            if (homeAverage > 100 || awayAverage > 100) {
+                return homeAverage > awayAverage ? homeTeam : awayTeam;
+            }
+
+            // Convert to odds and back to final percentages
+            function percentToOdds(percent) {
+                if (percent >= 50) {
+                    return -(percent / (100 - percent)) * 100;
+                } else {
+                    return ((100 - percent) / percent) * 100;
+                }
+            }
+            function oddsToImplied(odds) {
+                if (odds < 0) {
+                    return Math.abs(odds) / (Math.abs(odds) + 100);
+                } else {
+                    return 100 / (odds + 100);
+                }
+            }
+            const awayOddsCalculated = percentToOdds(awayAverage);
+            const homeOddsCalculated = percentToOdds(homeAverage);
+            const awayImpliedFinal = oddsToImplied(awayOddsCalculated);
+            const homeImpliedFinal = oddsToImplied(homeOddsCalculated);
+            const totalImpliedFinal = awayImpliedFinal + homeImpliedFinal;
+            const awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
+            const homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
+
+            // Pick the higher percentage
+            return awayFinalPercent > homeFinalPercent ? awayTeam : homeTeam;
+        }
+
+        // Generate app picks for all days in betLog
+        function generateAllAppPicks() {
+            betLog.forEach(day => {
+                if (day.games && day.games.length > 0) {
+                    day.appPicks = day.games.map(game => calculateCore4Pick(game));
+                } else {
+                    day.appPicks = [];
+                }
+            });
+            console.log('✅ Generated app picks for', betLog.length, 'days');
+            saveAppPicksToFirebase();
+        }
+
+        // Save app picks to Firebase
+        function saveAppPicksToFirebase() {
+            // Convert betLog array to date-keyed object with appPicks
+            const appPicksData = {};
+            betLog.forEach(day => {
+                if (day.date && day.appPicks) {
+                    appPicksData[day.date] = day.appPicks;
+                }
+            });
+
+            fetch(BACKEND_URL + '/api/nba/appPicks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(appPicksData)
+            })
+            .then(r => r.json())
+            .then(data => console.log('✅ Saved app picks to Firebase:', data))
+            .catch(err => console.error('❌ Failed to save app picks:', err));
+        }
+
         function loadAppState(callback) {
             // Load NBA data from backend (backend transforms Firebase structure)
             fetch(BACKEND_URL + '/api/state/nba')
@@ -11248,6 +11399,8 @@
                         // Replace betLog entirely with backend data
                         betLog.length = 0;
                         data.betLog.forEach(day => betLog.push(day));
+                        // Generate app picks using Core 4 logic
+                        generateAllAppPicks();
                         // Render immediately after loading
                         if (typeof renderBetLog === 'function') {
                             renderBetLog();
