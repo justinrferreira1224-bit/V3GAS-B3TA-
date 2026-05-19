@@ -11800,11 +11800,19 @@
             if (gameIndex === -1) return;
             const game = day.games[gameIndex];
 
+            // Auto-set pick to app pick if not already set
+            const appPick = day.appPicks && day.appPicks[gameIndex] ? day.appPicks[gameIndex] : null;
+            if (!game.pick && appPick) {
+                game.pick = appPick;
+            }
+
             game.res = result;
             const pickWon = result === 'W';
             const opponent = game.pick === game.t1 ? game.t2 : game.t1;
-            updateStandings(game.pick, pickWon ? 'W' : 'L');
-            updateStandings(opponent, pickWon ? 'L' : 'W');
+            if (game.pick) {
+                updateStandings(game.pick, pickWon ? 'W' : 'L');
+                updateStandings(opponent, pickWon ? 'L' : 'W');
+            }
 
             // Save result to Firebase
             fetch(BACKEND_URL + '/api/nba/gameResult', {
@@ -11813,7 +11821,7 @@
                 body: JSON.stringify({
                     date: day.date,
                     gameIndex: gameIndex,
-                    pick: game.pick,
+                    pick: game.pick || '',
                     res: result
                 })
             })
