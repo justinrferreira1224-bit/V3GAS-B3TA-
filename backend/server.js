@@ -230,6 +230,32 @@ app.post('/api/:sport/gameResult', async (req, res) => {
     }
 });
 
+// ── ADD new game to bet log ──────────────────────────────────
+app.post('/api/:sport/addGame', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const { date, game } = req.body;
+
+        if (!date || !game) {
+            return res.status(400).json({ error: 'Missing required fields: date, game' });
+        }
+
+        // Add game to the games array for this date
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(game)
+        });
+
+        const data = await r.json();
+        console.log(`✅ Added game to ${sport} ${date}`);
+        res.json({ success: true, gameId: data.name });
+    } catch(e) {
+        console.error('Add game failed:', e);
+        res.status(500).json({ error: 'Failed to add game' });
+    }
+});
+
 // Legacy /api/state endpoint (no sport param) for backwards compatibility
 app.get('/api/state', async (req, res) => {
     try {
