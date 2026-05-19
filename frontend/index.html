@@ -10921,7 +10921,11 @@
           { day:137, date:'6/23', type:'', overall:'', games:[] },
         ];
 
-        let activeBetDay = 33;
+        // Calculate current day of year (Day 1 = Jan 1)
+        const today = new Date();
+        const jan1 = new Date(today.getFullYear(), 0, 1);
+        const dayOfYear = Math.floor((today - jan1) / (1000 * 60 * 60 * 24)) + 1;
+        let activeBetDay = dayOfYear;
 
         // ===== FIREBASE PERSISTENCE =====
         let db, dbRef;
