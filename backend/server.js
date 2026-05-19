@@ -256,6 +256,31 @@ app.post('/api/:sport/addGame', async (req, res) => {
     }
 });
 
+// ── SAVE day unlocked state ──────────────────────────────────
+app.post('/api/:sport/unlockDay', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const { date, unlocked } = req.body;
+
+        if (!date || unlocked === undefined) {
+            return res.status(400).json({ error: 'Missing required fields: date, unlocked' });
+        }
+
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/unlocked.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(unlocked)
+        });
+
+        const data = await r.json();
+        console.log(`✅ Set ${sport} ${date} unlocked: ${unlocked}`);
+        res.json({ success: true });
+    } catch(e) {
+        console.error('Unlock day failed:', e);
+        res.status(500).json({ error: 'Failed to save unlock state' });
+    }
+});
+
 // Legacy /api/state endpoint (no sport param) for backwards compatibility
 app.get('/api/state', async (req, res) => {
     try {
