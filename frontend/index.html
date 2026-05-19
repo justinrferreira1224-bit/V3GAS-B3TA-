@@ -11796,13 +11796,31 @@
         function setBetResult(dayNum, betId, result) {
             const day = betLog.find(d => d.day === dayNum);
             if (!day) return;
-            const game = day.games.find(g => g._id == betId);
-            if (!game) return;
+            const gameIndex = day.games.findIndex(g => g._id == betId);
+            if (gameIndex === -1) return;
+            const game = day.games[gameIndex];
+
             game.res = result;
             const pickWon = result === 'W';
             const opponent = game.pick === game.t1 ? game.t2 : game.t1;
             updateStandings(game.pick, pickWon ? 'W' : 'L');
             updateStandings(opponent, pickWon ? 'L' : 'W');
+
+            // Save result to Firebase
+            fetch(BACKEND_URL + '/api/nba/gameResult', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date: day.date,
+                    gameIndex: gameIndex,
+                    pick: game.pick,
+                    res: result
+                })
+            })
+            .then(r => r.json())
+            .then(data => console.log('✅ Saved game result:', data))
+            .catch(err => console.error('❌ Failed to save result:', err));
+
             saveAppState();
             updateBetLogSubtitle();
             renderBetDayCards();

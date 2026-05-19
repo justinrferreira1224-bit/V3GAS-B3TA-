@@ -199,6 +199,37 @@ app.post('/api/:sport/appPicks', async (req, res) => {
     }
 });
 
+// ── SAVE game result (pick and res) ──────────────────────────────
+app.post('/api/:sport/gameResult', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const { date, gameIndex, pick, res } = req.body;
+
+        if (!date || gameIndex === undefined || !pick || !res) {
+            return res.status(400).json({ error: 'Missing required fields: date, gameIndex, pick, res' });
+        }
+
+        // Save pick and res to the specific game
+        const updates = {
+            pick: pick,
+            res: res
+        };
+
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games/${gameIndex}.json`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+
+        const data = await r.json();
+        console.log(`✅ Saved game result: ${sport} ${date} game ${gameIndex} - ${pick} ${res}`);
+        res.json({ success: true, data });
+    } catch(e) {
+        console.error('Game result save failed:', e);
+        res.status(500).json({ error: 'Failed to save game result' });
+    }
+});
+
 // Legacy /api/state endpoint (no sport param) for backwards compatibility
 app.get('/api/state', async (req, res) => {
     try {
