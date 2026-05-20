@@ -9292,7 +9292,28 @@
                 }
 
                 // Save to betLog - find most recent unlocked day OR paper period (days 1-28)
-                const targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
+                let targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
+
+                // If no unlocked day found, create entry for today
+                if (!targetDay) {
+                    const today = new Date();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    const dateStr = `${month}-${day}`;
+                    const jan1 = new Date(today.getFullYear(), 0, 1);
+                    const dayOfYear = Math.floor((today - jan1) / (1000 * 60 * 60 * 24)) + 1;
+
+                    targetDay = {
+                        day: dayOfYear,
+                        date: dateStr,
+                        type: 'REAL',
+                        overall: '',
+                        unlocked: true,
+                        games: []
+                    };
+                    betLog.push(targetDay);
+                    betLog.sort((a, b) => a.day - b.day);
+                }
 
                 if (targetDay) {
                     const betId = Date.now();
