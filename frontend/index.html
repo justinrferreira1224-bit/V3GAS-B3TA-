@@ -9179,23 +9179,24 @@
                 // ── NBA GAME WINNER SAVE ──────────────────────────────
                 // FORCE FRESH RECALCULATION
                 calculateGameWinnerEdge();
-                
+
                 // Get all current inputs
                 const awayTeamSeedInput = document.getElementById('awayTeamSeed');
                 const homeTeamSeedInput = document.getElementById('homeTeamSeed');
                 const awayOddsInput = document.getElementById('awayTeamOdds');
                 const homeOddsInput = document.getElementById('homeTeamOdds');
                 const finalEdgeValueEl = document.getElementById('finalEdgeValue');
-                
-                const awaySeed = parseFloat(awayTeamSeedInput?.value) || 0;
-                const homeSeed = parseFloat(homeTeamSeedInput?.value) || 0;
+
                 const awayOddsStr = awayOddsInput?.value.trim() || '';
                 const homeOddsStr = homeOddsInput?.value.trim() || '';
-                const finalEdgeText = finalEdgeValueEl?.textContent || '—';
-                
-                // Validate all inputs exist
-                if (!awaySeed || !homeSeed || !awayOddsStr || !homeOddsStr || finalEdgeText === '—') {
-                    alert('Please fill in all fields (seeds and odds) before saving!');
+
+                // Validate minimum required fields
+                if (!selectedAwayTeam || !selectedHomeTeam) {
+                    alert('Please select both teams!');
+                    return;
+                }
+                if (!awayOddsStr || !homeOddsStr) {
+                    alert('Please enter odds for both teams!');
                     return;
                 }
                 
@@ -9232,7 +9233,11 @@
                     winnerColor1 = awayColor1;
                     winnerColor2 = awayColor2;
                 }
-                
+
+                // Get confidence score for betLog
+                const winnerExtraBox = document.getElementById('winnerExtraBox');
+                const confScore = parseInt(winnerExtraBox?.dataset?.confidenceScore || '0');
+
                 // Add to log book
                 const logContent = document.getElementById('logContent');
                 if (logContent) {
@@ -9257,13 +9262,11 @@
                         logEntry.style.display = 'grid'; // Show the cloned entry
                         
                         // Get the recommendation type from winnerExtraBox
-                        const winnerExtraBox = document.getElementById('winnerExtraBox');
                         const recommendation = winnerExtraBox?.querySelector('.winner-extra-text')?.textContent.trim() || 'CAREFUL';
-                        
+
                         // Add bet type, odds, and confidence as data attributes
                         logEntry.setAttribute('data-bet-type', recommendation);
                         logEntry.setAttribute('data-odds', winnerOdds);
-                        const confScore = parseInt(winnerExtraBox?.dataset?.confidenceScore || '0');
                         logEntry.setAttribute('data-confidence', confScore);
                         
                         // Update the odds in the cloned entry
@@ -9290,41 +9293,88 @@
                             calculateBetAmounts();
                         }, 50);
 
-                        // Push to bet log — find newest unlocked/active day
-                        const targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
-                        if (targetDay) {
-                            const betId = Date.now();
-                            const aWins = selectedAwayTeam ? (selectedAwayTeam.displayWins !== undefined ? selectedAwayTeam.displayWins : selectedAwayTeam.wins) : 0;
-                            const aLoss = selectedAwayTeam ? (selectedAwayTeam.displayLosses !== undefined ? selectedAwayTeam.displayLosses : selectedAwayTeam.losses) : 0;
-                            const hWins = selectedHomeTeam ? (selectedHomeTeam.displayWins !== undefined ? selectedHomeTeam.displayWins : selectedHomeTeam.wins) : 0;
-                            const hLoss = selectedHomeTeam ? (selectedHomeTeam.displayLosses !== undefined ? selectedHomeTeam.displayLosses : selectedHomeTeam.losses) : 0;
-                            const aL10 = selectedAwayTeam?.last10Results || [];
-                            const hL10 = selectedHomeTeam?.last10Results || [];
-                            const aL10w = aL10.filter(r=>r==='W').length;
-                            const hL10w = hL10.filter(r=>r==='W').length;
-                            targetDay.games.push({
-                                t1: awayName, o1: awayOddsStr,
-                                s1: parseFloat(awayTeamSeedInput?.value)||0,
-                                i1: awayInjuries||0,
-                                wl1: `${aWins}-${aLoss}`,
-                                l1: `${aL10w}-${10-aL10w}`,
-                                t2: homeName, o2: homeOddsStr,
-                                s2: parseFloat(homeTeamSeedInput?.value)||0,
-                                i2: homeInjuries||0,
-                                wl2: `${hWins}-${hLoss}`,
-                                l2: `${hL10w}-${10-hL10w}`,
-                                pick: winnerName, res: null, _id: betId, conf: confScore, sport: currentSport
-                            });
-                            saveAppState();
-                            if (activeBetDay === targetDay.day) renderBetDayCards();
-                        }
-                        
                         // Visual feedback
                         gwRecordBtn.style.transform = 'scale(1.2)';
                         setTimeout(() => {
                             gwRecordBtn.style.transform = 'scale(1)';
                         }, 200);
                     }
+                }
+
+                // Save to betLog - find newest unlocked/active day
+                const targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
+
+                if (targetDay) {
+                    const betId = Date.now();
+                    const aWins = selectedAwayTeam.displayWins !== undefined ? selectedAwayTeam.displayWins : selectedAwayTeam.wins;
+                    const aLoss = selectedAwayTeam.displayLosses !== undefined ? selectedAwayTeam.displayLosses : selectedAwayTeam.losses;
+                    const hWins = selectedHomeTeam.displayWins !== undefined ? selectedHomeTeam.displayWins : selectedHomeTeam.wins;
+                    const hLoss = selectedHomeTeam.displayLosses !== undefined ? selectedHomeTeam.displayLosses : selectedHomeTeam.losses;
+                    const aL10 = selectedAwayTeam.last10Results || [];
+                    const hL10 = selectedHomeTeam.last10Results || [];
+                    const aL10w = aL10.filter(r=>r==='W').length;
+                    const hL10w = hL10.filter(r=>r==='W').length;
+
+                    // Build local format for betLog array
+                    const localGame = {
+                        t1: awayName,
+                        o1: awayOddsStr,
+                        s1: parseFloat(awayTeamSeedInput?.value) || 0,
+                        i1: awayInjuries || 0,
+                        wl1: `${aWins}-${aLoss}`,
+                        l1: `${aL10w}-${10-aL10w}`,
+                        t2: homeName,
+                        o2: homeOddsStr,
+                        s2: parseFloat(homeTeamSeedInput?.value) || 0,
+                        i2: homeInjuries || 0,
+                        wl2: `${hWins}-${hLoss}`,
+                        l2: `${hL10w}-${10-hL10w}`,
+                        pick: winnerName,
+                        res: null,
+                        _id: betId,
+                        conf: confScore,
+                        sport: currentSport
+                    };
+                    targetDay.games.push(localGame);
+
+                    // Build Firebase format for backend
+                    const firebaseGame = {
+                        away: {
+                            team: awayName,
+                            odds: awayOddsStr,
+                            seed: parseFloat(awayTeamSeedInput?.value) || 0,
+                            injuries: awayInjuries || 0,
+                            record: `${aWins}-${aLoss}`,
+                            last10: `${aL10w}-${10-aL10w}`
+                        },
+                        home: {
+                            team: homeName,
+                            odds: homeOddsStr,
+                            seed: parseFloat(homeTeamSeedInput?.value) || 0,
+                            injuries: homeInjuries || 0,
+                            record: `${hWins}-${hLoss}`,
+                            last10: `${hL10w}-${10-hL10w}`
+                        },
+                        pick: winnerName,
+                        res: null,
+                        edge: finalEdgeValueEl?.textContent || ''
+                    };
+
+                    // Save to Firebase via backend
+                    fetch(BACKEND_URL + '/api/nba/addGame', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            date: targetDay.date,
+                            game: firebaseGame
+                        })
+                    });
+
+                    // Regenerate app picks for this day
+                    targetDay.appPicks = targetDay.games.map(game => calculateCore4Pick(game));
+
+                    // Re-render if viewing this day
+                    if (activeBetDay === targetDay.day) renderBetDayCards();
                 }
             });
         }
