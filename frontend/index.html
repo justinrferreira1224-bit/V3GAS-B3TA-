@@ -12005,7 +12005,7 @@
             // Get pick from appPicks (single source of truth)
             const appPick = day.appPicks && day.appPicks[gameIndex] ? day.appPicks[gameIndex] : null;
 
-            // Set pick on game for this result (for history tracking)
+            // Set pick and result on game (for history tracking)
             game.pick = appPick || '';
             game.res = result;
 
@@ -12016,17 +12016,19 @@
                 updateStandings(opponent, pickWon ? 'L' : 'W');
             }
 
-            // Save result and pick to Firebase using game's Firebase ID
-            fetch(BACKEND_URL + '/api/nba/gameResult', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: day.date,
-                    gameId: game._id,
-                    pick: game.pick,
-                    res: result
-                })
-            });
+            // Only save to Firebase if game has valid Firebase ID (starts with -)
+            if (game._id && typeof game._id === 'string' && game._id.startsWith('-')) {
+                fetch(BACKEND_URL + '/api/nba/gameResult', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: day.date,
+                        gameId: game._id,
+                        pick: game.pick,
+                        res: result
+                    })
+                });
+            }
 
             saveAppState();
             updateBetLogSubtitle();
