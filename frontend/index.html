@@ -8227,6 +8227,7 @@
                                 calculateGameWinnerEdge();
                             });
                             updateWinnerDisplay();
+                            updateTeamNamesWithSeriesState();
                         } else if (selectingFor === 'home') {
                             selectedHomeTeam = team;
                             const homeTeamNameContent = document.getElementById('homeTeamNameContent');
@@ -8241,6 +8242,7 @@
                                 calculateGameWinnerEdge();
                             });
                             updateWinnerDisplay();
+                            updateTeamNamesWithSeriesState();
                         } else if (selectingFor === 'bbAway') {
                             selectedBBAwayTeam = team;
                             // Refresh MLB standings silently on team select
@@ -11427,6 +11429,46 @@
                 awayPercent: awayProb,
                 homePercent: homeProb
             };
+        }
+
+        // Update team name display with series state (playoffs only)
+        function updateTeamNamesWithSeriesState() {
+            if (!selectedAwayTeam || !selectedHomeTeam) return;
+
+            const awayTeamNameContent = document.getElementById('awayTeamNameContent');
+            const homeTeamNameContent = document.getElementById('homeTeamNameContent');
+
+            if (!awayTeamNameContent || !homeTeamNameContent) return;
+
+            // Get current day number
+            const currentDayIndex = betLog.findIndex(d => d.date === selectedDay);
+            const currentDayNumber = currentDayIndex >= 0 ? betLog[currentDayIndex].day : 0;
+
+            // Only show series state during playoffs (days 71-133)
+            const isPlayoffs = currentDayNumber >= 71 && currentDayNumber <= 133;
+
+            if (isPlayoffs) {
+                // Get series state
+                const seriesState = getSeriesState(selectedAwayTeam.name, selectedHomeTeam.name, currentDayNumber);
+
+                if (seriesState) {
+                    const { awayWins, homeWins } = seriesState;
+
+                    // Update away team with series state
+                    awayTeamNameContent.innerHTML = `<img src="${selectedAwayTeam.logo}" class="winner-team-logo" alt="${selectedAwayTeam.name}"><span>${selectedAwayTeam.name} (${awayWins}-${homeWins})</span>`;
+
+                    // Update home team with series state
+                    homeTeamNameContent.innerHTML = `<img src="${selectedHomeTeam.logo}" class="winner-team-logo" alt="${selectedHomeTeam.name}"><span>${selectedHomeTeam.name} (${homeWins}-${awayWins})</span>`;
+                } else {
+                    // First game of series - show (0-0)
+                    awayTeamNameContent.innerHTML = `<img src="${selectedAwayTeam.logo}" class="winner-team-logo" alt="${selectedAwayTeam.name}"><span>${selectedAwayTeam.name} (0-0)</span>`;
+                    homeTeamNameContent.innerHTML = `<img src="${selectedHomeTeam.logo}" class="winner-team-logo" alt="${selectedHomeTeam.name}"><span>${selectedHomeTeam.name} (0-0)</span>`;
+                }
+            } else {
+                // Regular season - no series state
+                awayTeamNameContent.innerHTML = `<img src="${selectedAwayTeam.logo}" class="winner-team-logo" alt="${selectedAwayTeam.name}"><span>${selectedAwayTeam.name}</span>`;
+                homeTeamNameContent.innerHTML = `<img src="${selectedHomeTeam.logo}" class="winner-team-logo" alt="${selectedHomeTeam.name}"><span>${selectedHomeTeam.name}</span>`;
+            }
         }
 
         // Core 4 calculation for a single game - returns winning team name
