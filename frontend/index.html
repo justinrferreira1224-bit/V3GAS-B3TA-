@@ -11338,6 +11338,7 @@
 
         // Get series state by scanning betLog for games between these two teams
         function getSeriesState(team1, team2, currentDay) {
+            console.log(`🔍 getSeriesState: ${team1} vs ${team2}, currentDay: ${currentDay}`);
             let team1Wins = 0;
             let team2Wins = 0;
 
@@ -11347,6 +11348,10 @@
                     for (const game of (day.games || [])) {
                         const isMatch = (game.t1 === team1 && game.t2 === team2) ||
                                        (game.t1 === team2 && game.t2 === team1);
+
+                        if (isMatch) {
+                            console.log(`   Found game on day ${day.day}: ${game.t1} vs ${game.t2}, pick: ${game.pick}, res: ${game.res}`);
+                        }
 
                         if (isMatch && game.res) {
                             // Determine which team actually won based on pick + result
@@ -11358,12 +11363,16 @@
                                 winner = game.pick === game.t1 ? game.t2 : game.t1;
                             }
 
+                            console.log(`   Winner: ${winner}`);
+
                             if (winner === team1) team1Wins++;
                             else if (winner === team2) team2Wins++;
                         }
                     }
                 }
             }
+
+            console.log(`   Final: ${team1} ${team1Wins}-${team2Wins} ${team2}`);
 
             const totalGames = team1Wins + team2Wins;
             if (totalGames === 0) return null; // No previous games in series
