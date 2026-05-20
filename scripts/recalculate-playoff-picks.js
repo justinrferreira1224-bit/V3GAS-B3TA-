@@ -151,7 +151,15 @@ function getSeriesState(team1, team2, currentDay, betLog) {
                 const isMatch = (game.t1 === team1 && game.t2 === team2) ||
                                (game.t1 === team2 && game.t2 === team1);
                 if (isMatch && game.res) {
-                    const winner = game.pick;
+                    // Determine which team actually won based on pick + result
+                    let winner;
+                    if (game.res === 'W') {
+                        winner = game.pick; // Pick won
+                    } else if (game.res === 'L') {
+                        // Pick lost, so the other team won
+                        winner = game.pick === game.t1 ? game.t2 : game.t1;
+                    }
+
                     if (winner === team1) team1Wins++;
                     else if (winner === team2) team2Wins++;
                 }
