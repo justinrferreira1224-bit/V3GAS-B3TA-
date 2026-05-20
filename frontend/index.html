@@ -9291,8 +9291,8 @@
                     }
                 }
 
-                // Save to betLog - use the active day you're currently viewing
-                const targetDay = betLog.find(d => d.day === activeBetDay);
+                // Save to betLog - find most recent appended (unlocked) day
+                const targetDay = betLog.slice().reverse().find(d => d.unlocked);
 
                 if (targetDay) {
                     const betId = Date.now();
