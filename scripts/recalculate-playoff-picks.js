@@ -34,7 +34,7 @@ function calculateCore4Pick(game, dayNumber, betLog) {
     const awayInjuries = game.i1 || 0;
     const homeInjuries = game.i2 || 0;
 
-    const isPlayoffs = dayNumber >= 71 && dayNumber <= 133;
+    const isPlayoffs = dayNumber >= 104 && dayNumber <= 167;
 
     // Parse odds
     const awayOddsStr = game.o1 || '+100';
@@ -146,7 +146,7 @@ function getSeriesState(team1, team2, currentDay, betLog) {
     let team2Wins = 0;
 
     for (const day of betLog) {
-        if (day.day >= 71 && day.day < currentDay) {
+        if (day.day >= 104 && day.day < currentDay) {
             for (const game of (day.games || [])) {
                 const isMatch = (game.t1 === team1 && game.t2 === team2) ||
                                (game.t1 === team2 && game.t2 === team1);
@@ -264,11 +264,11 @@ async function main() {
     betLog.sort((a, b) => a.day - b.day);
 
     console.log(`✅ Loaded ${betLog.length} days`);
-    console.log('🔄 Recalculating app picks for playoff days (71-133)...');
+    console.log('🔄 Recalculating app picks for playoff days (104-167)...');
 
     let updatedCount = 0;
     for (const day of betLog) {
-        if (day.day >= 71 && day.day <= 133 && day.games.length > 0) {
+        if (day.day >= 104 && day.day <= 167 && day.games.length > 0) {
             const newAppPicks = day.games.map(game => calculateCore4Pick(game, day.day, betLog));
 
             // Save to Firebase

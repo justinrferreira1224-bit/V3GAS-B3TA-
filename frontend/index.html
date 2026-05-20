@@ -11343,7 +11343,7 @@
 
             // Scan betLog for all playoff days up to current day
             for (const day of betLog) {
-                if (day.day >= 71 && day.day < currentDay) {
+                if (day.day >= 104 && day.day < currentDay) {
                     for (const game of (day.games || [])) {
                         const isMatch = (game.t1 === team1 && game.t2 === team2) ||
                                        (game.t1 === team2 && game.t2 === team1);
@@ -11444,8 +11444,8 @@
             const currentDayIndex = betLog.findIndex(d => d.date === selectedDay);
             const currentDayNumber = currentDayIndex >= 0 ? betLog[currentDayIndex].day : 0;
 
-            // Only show series state during playoffs (days 71-133)
-            const isPlayoffs = currentDayNumber >= 71 && currentDayNumber <= 133;
+            // Only show series state during playoffs (days 104-167)
+            const isPlayoffs = currentDayNumber >= 104 && currentDayNumber <= 167;
 
             if (isPlayoffs) {
                 // Get series state
@@ -11480,8 +11480,8 @@
             const awayInjuries = game.i1 || 0;
             const homeInjuries = game.i2 || 0;
 
-            // Check if we're in NBA playoff range (days 71-133 = April 18 - June 19)
-            const isPlayoffs = dayNumber >= 71 && dayNumber <= 133;
+            // Check if we're in NBA playoff range (days 104-167 = April 14 - June 16)
+            const isPlayoffs = dayNumber >= 104 && dayNumber <= 167;
 
             // Parse odds
             const awayOddsStr = game.o1 || '+100';
