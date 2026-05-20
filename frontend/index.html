@@ -12343,14 +12343,14 @@
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                                     <div style="display:flex;align-items:center;gap:6px;">
                                         <span style="font-size:10px;font-weight:700;color:#555;">#${g.s1}</span>
-                                        <span style="font-size:13px;font-weight:${g.pick===g.t1?'800':'500'};color:${g.pick===g.t1?'#fff':'#555'};">${g.t1}</span>
+                                        <span style="font-size:13px;font-weight:${g.pick?.trim()===g.t1?.trim()?'800':'500'};color:${g.pick?.trim()===g.t1?.trim()?'#fff':'#555'};">${g.t1}</span>
                                     </div>
                                     <span style="font-size:12px;color:#555;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t1);return t?`${t.wins}-${t.losses}`:g.wl1;})()}  <span style="color:#444;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t1);if(!t)return g.l1;const w=t.last10.filter(x=>x==='W').length;return `${w}-${10-w}`;})()}</span></span>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;align-items:center;">
                                     <div style="display:flex;align-items:center;gap:6px;">
                                         <span style="font-size:10px;font-weight:700;color:#555;">#${g.s2}</span>
-                                        <span style="font-size:13px;font-weight:${g.pick===g.t2?'800':'500'};color:${g.pick===g.t2?'#fff':'#555'};">${g.t2}</span>
+                                        <span style="font-size:13px;font-weight:${g.pick?.trim()===g.t2?.trim()?'800':'500'};color:${g.pick?.trim()===g.t2?.trim()?'#fff':'#555'};">${g.t2}</span>
                                     </div>
                                     <span style="font-size:12px;color:#555;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t2);return t?`${t.wins}-${t.losses}`:g.wl2;})()}  <span style="color:#444;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t2);if(!t)return g.l2;const w=t.last10.filter(x=>x==='W').length;return `${w}-${10-w}`;})()}</span></span>
                                 </div>
