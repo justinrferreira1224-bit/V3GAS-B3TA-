@@ -9326,7 +9326,7 @@
                     const aL10w = aL10.filter(r=>r==='W').length;
                     const hL10w = hL10.filter(r=>r==='W').length;
 
-                    // Build local format for betLog array
+                    // Build local format for betLog array (no pick - appPicks handles that)
                     const localGame = {
                         t1: awayName,
                         o1: awayOddsStr,
@@ -9340,7 +9340,6 @@
                         i2: homeInjuries || 0,
                         wl2: `${hWins}-${hLoss}`,
                         l2: `${hL10w}-${10-hL10w}`,
-                        pick: winnerName,
                         res: null,
                         _id: betId,
                         conf: confScore,
@@ -9348,7 +9347,7 @@
                     };
                     targetDay.games.push(localGame);
 
-                    // Build Firebase format for backend
+                    // Build Firebase format for backend (no pick - appPicks handles that)
                     const firebaseGame = {
                         away: {
                             team: awayName,
@@ -9366,7 +9365,6 @@
                             record: `${hWins}-${hLoss}`,
                             last10: `${hL10w}-${10-hL10w}`
                         },
-                        pick: winnerName,
                         res: null,
                         edge: finalEdgeValueEl?.textContent || ''
                     };
@@ -12004,13 +12002,13 @@
             if (gameIndex === -1) return;
             const game = day.games[gameIndex];
 
-            // Auto-set pick to app pick if not already set
+            // Get pick from appPicks (single source of truth)
             const appPick = day.appPicks && day.appPicks[gameIndex] ? day.appPicks[gameIndex] : null;
-            if (!game.pick && appPick) {
-                game.pick = appPick;
-            }
 
+            // Set pick on game for this result (for history tracking)
+            game.pick = appPick || '';
             game.res = result;
+
             const pickWon = result === 'W';
             const opponent = game.pick === game.t1 ? game.t2 : game.t1;
             if (game.pick) {
@@ -12018,14 +12016,14 @@
                 updateStandings(opponent, pickWon ? 'L' : 'W');
             }
 
-            // Save result to Firebase using game's Firebase ID
+            // Save result and pick to Firebase using game's Firebase ID
             fetch(BACKEND_URL + '/api/nba/gameResult', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     date: day.date,
                     gameId: game._id,
-                    pick: game.pick || '',
+                    pick: game.pick,
                     res: result
                 })
             });
