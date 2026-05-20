@@ -29,14 +29,31 @@ function transformBetLog(betLogObj) {
         // Transform games from new format to old format
         // Convert games object to array (Firebase stores arrays as objects)
         const gamesObj = dayData.games || {};
-        const gamesArray = Array.isArray(gamesObj) ? gamesObj : Object.entries(gamesObj);
 
-        const transformedGames = gamesArray.map(([key, game]) => {
-            // If it's already an array, key is the index and game is the value
-            // If it's from Object.entries, key is the Firebase key and game is the value
-            const firebaseKey = Array.isArray(gamesObj) ? (game._id || key) : key;
-
-            return {
+        let transformedGames = [];
+        if (Array.isArray(gamesObj)) {
+            // Already an array
+            transformedGames = gamesObj.map(game => ({
+                t1: game.away?.team || '',
+                t2: game.home?.team || '',
+                o1: game.away?.odds || '',
+                o2: game.home?.odds || '',
+                s1: parseInt(game.away?.seed) || 0,
+                s2: parseInt(game.home?.seed) || 0,
+                i1: parseInt(game.away?.injuries) || 0,
+                i2: parseInt(game.home?.injuries) || 0,
+                wl1: game.away?.record || '',
+                wl2: game.home?.record || '',
+                l1: game.away?.last10 || '',
+                l2: game.home?.last10 || '',
+                pick: game.pick || '',
+                res: game.res || null,
+                edge: game.edge || '',
+                _id: game._id || Date.now() + Math.random()
+            }));
+        } else {
+            // Object - convert to array and preserve Firebase keys as _id
+            transformedGames = Object.entries(gamesObj).map(([firebaseKey, game]) => ({
                 t1: game.away?.team || '',
                 t2: game.home?.team || '',
                 o1: game.away?.odds || '',
@@ -53,8 +70,8 @@ function transformBetLog(betLogObj) {
                 res: game.res || null,
                 edge: game.edge || '',
                 _id: firebaseKey
-            };
-        });
+            }));
+        }
 
         betLogArray.push({
             day: dayOfYear,
