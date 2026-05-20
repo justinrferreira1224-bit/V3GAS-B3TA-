@@ -12265,6 +12265,7 @@
         function renderBetDayCards() {
             const cards = document.getElementById('betLogCards');
             const day = betLog.find(d => d.day === activeBetDay);
+            console.log('renderBetDayCards for day', activeBetDay, 'found:', day, 'games:', day?.games);
             if (!day) return;
             const isReal = day.type.includes('REAL');
 
@@ -12273,6 +12274,7 @@
                 if (currentSport === 'mlb') return g.sport === 'mlb';
                 return !g.sport || g.sport === 'nba';
             });
+            console.log('filteredGames:', filteredGames.length, filteredGames);
 
             const isBlank = filteredGames.length === 0 && !day.unlocked;
 
