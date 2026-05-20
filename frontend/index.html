@@ -9328,7 +9328,7 @@
                     const aL10w = aL10.filter(r=>r==='W').length;
                     const hL10w = hL10.filter(r=>r==='W').length;
 
-                    // Build local format for betLog array (no pick - appPicks handles that)
+                    // Build local format for betLog array
                     const localGame = {
                         t1: awayName,
                         o1: awayOddsStr,
@@ -9349,7 +9349,7 @@
                     };
                     targetDay.games.push(localGame);
 
-                    // Build Firebase format for backend (no pick - appPicks handles that)
+                    // Build Firebase format for backend
                     const firebaseGame = {
                         away: {
                             team: awayName,
@@ -9381,16 +9381,6 @@
                             game: firebaseGame
                         })
                     });
-
-                    // Regenerate app picks for this day
-                    targetDay.appPicks = targetDay.games.map(game => calculateCore4Pick(game, targetDay.day));
-
-                    // Save app picks to Firebase immediately
-                    fetch(BACKEND_URL + '/api/nba/appPicks', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ [targetDay.date]: targetDay.appPicks })
-                    }).catch(err => console.error('Failed to save app picks:', err));
 
                     // Re-render if viewing this day
                     if (activeBetDay === targetDay.day) renderBetDayCards();
@@ -11617,38 +11607,6 @@
         }
 
         // Generate app picks for all days in betLog
-        function generateAllAppPicks() {
-            betLog.forEach(day => {
-                if (day.games && day.games.length > 0) {
-                    day.appPicks = day.games.map(game => calculateCore4Pick(game, day.day));
-                } else {
-                    day.appPicks = [];
-                }
-            });
-            console.log('✅ Generated app picks for', betLog.length, 'days');
-            saveAppPicksToFirebase();
-        }
-
-        // Save app picks to Firebase
-        function saveAppPicksToFirebase() {
-            // Convert betLog array to date-keyed object with appPicks
-            const appPicksData = {};
-            betLog.forEach(day => {
-                if (day.date && day.appPicks) {
-                    appPicksData[day.date] = day.appPicks;
-                }
-            });
-
-            fetch(BACKEND_URL + '/api/nba/appPicks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(appPicksData)
-            })
-            .then(r => r.json())
-            .then(data => console.log('✅ Saved app picks to Firebase:', data))
-            .catch(err => console.error('❌ Failed to save app picks:', err));
-        }
-
         function loadAppState(callback) {
             // Load NBA data from backend (backend transforms Firebase structure)
             fetch(BACKEND_URL + '/api/state/nba')
@@ -11658,8 +11616,6 @@
                         // Replace betLog entirely with backend data
                         betLog.length = 0;
                         data.betLog.forEach(day => betLog.push(day));
-                        // Generate app picks using Core 4 logic
-                        generateAllAppPicks();
                         // Render immediately after loading
                         if (typeof renderBetLog === 'function') {
                             renderBetLog();
@@ -12059,11 +12015,7 @@
             if (gameIndex === -1) return;
             const game = day.games[gameIndex];
 
-            // Get pick from appPicks (single source of truth)
-            const appPick = day.appPicks && day.appPicks[gameIndex] ? day.appPicks[gameIndex] : null;
-
-            // Set pick and result on game (for history tracking)
-            game.pick = appPick || '';
+            // Set result on game (pick should already be set when game was saved)
             game.res = result;
 
             const pickWon = result === 'W';
@@ -12381,7 +12333,6 @@
                     const won = g.res === 'W';
                     const pickOdds = g.pick === g.t1 ? g.o1 : g.o2;
                     const gid = g._id || '';
-                    const appPick = day.appPicks && day.appPicks[idx] ? day.appPicks[idx] : null;
                     const hasResult = g.res !== null && g.res !== undefined;
                     return `<div style="position:relative;margin-bottom:8px;overflow:hidden;border-radius:10px;">
                         <div style="position:absolute;right:0;top:0;bottom:0;width:80px;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:0 10px 10px 0;">🗑️</div>
