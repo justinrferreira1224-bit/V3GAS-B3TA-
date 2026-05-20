@@ -11893,7 +11893,7 @@
         }
 
         function reapplyStandingsFromBetLog() {
-            // Reset to 3/16 baseline (day 75), then apply day 76+ for W-L
+            // Reset to 3/16 baseline (day 76), then apply day 77+ for W-L
             // Full bet log used for last10
             [...nbaStandings.east, ...nbaStandings.west].forEach(t => {
                 t.wins = t._baseWins;
@@ -11910,11 +11910,11 @@
                     const pickTeam = allTeams.find(t => t.name.toLowerCase() === g.pick.toLowerCase());
                     const oppTeam = allTeams.find(t => t.name.toLowerCase() === opponent.toLowerCase());
                     if (pickTeam) {
-                        if (day.day >= 76) { if (pickWon) pickTeam.wins++; else pickTeam.losses++; }
+                        if (day.day >= 77) { if (pickWon) pickTeam.wins++; else pickTeam.losses++; }
                         pickTeam._allResults.push(pickWon ? 'W' : 'L');
                     }
                     if (oppTeam) {
-                        if (day.day >= 76) { if (pickWon) oppTeam.losses++; else oppTeam.wins++; }
+                        if (day.day >= 77) { if (pickWon) oppTeam.losses++; else oppTeam.wins++; }
                         oppTeam._allResults.push(pickWon ? 'L' : 'W');
                     }
                 });
