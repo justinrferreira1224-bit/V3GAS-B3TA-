@@ -11197,7 +11197,7 @@
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
-                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/mlbSeries/' + encodeURIComponent(cleanName) + '.json';
+                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/mlb/scrapers/series/' + encodeURIComponent(cleanName) + '.json';
                 const r = await fetch(FB_URL);
                 const d = await r.json();
                 if (!d) return;

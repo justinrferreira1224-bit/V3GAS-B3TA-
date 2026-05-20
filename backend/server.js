@@ -200,30 +200,6 @@ app.delete('/api/state/:sport/:dayIndex/:gameIndex', async (req, res) => {
     }
 });
 
-// ── SAVE app picks for all days ──────────────────────────────────
-app.post('/api/:sport/appPicks', async (req, res) => {
-    try {
-        const sport = req.params.sport;
-        const appPicksData = req.body; // { "02-01": ["Celtics", "Spurs", ...], "02-02": [...], ... }
-
-        // Save appPicks for each day
-        const promises = Object.entries(appPicksData).map(([dateKey, picks]) => {
-            return fetch(`${FB_BASE}/${sport}/betLog/${dateKey}/appPicks.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(picks)
-            });
-        });
-
-        await Promise.all(promises);
-        console.log(`✅ Saved app picks for ${Object.keys(appPicksData).length} days in ${sport}`);
-        res.json({ success: true, daysUpdated: Object.keys(appPicksData).length });
-    } catch(e) {
-        console.error('App picks save failed:', e);
-        res.status(500).json({ error: 'Failed to save app picks' });
-    }
-});
-
 // ── SAVE game result (pick and res) ──────────────────────────────
 app.post('/api/:sport/gameResult', async (req, res) => {
     try {
@@ -247,7 +223,7 @@ app.post('/api/:sport/gameResult', async (req, res) => {
         });
 
         const data = await r.json();
-        console.log(`✅ Saved game result: ${sport} ${date} game ${gameIndex} - ${pick} ${res}`);
+        console.log(`✅ Saved game result: ${sport} ${date} game ${gameId} - ${pick} ${res}`);
         res.json({ success: true, data });
     } catch(e) {
         console.error('Game result save failed:', e);
@@ -319,13 +295,67 @@ app.get('/api/state', async (req, res) => {
 
 app.post('/api/state', async (req, res) => {
     try {
-        const r = await fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta.json', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req.body)
+        const payload = { ...req.body };
+
+        // Extract settings fields
+        const settingsFields = ['activeBetDay', 'monthStartOverrides'];
+        const settings = {};
+        settingsFields.forEach(field => {
+            if (payload[field] !== undefined) {
+                settings[field] = payload[field];
+                delete payload[field];
+            }
         });
-        const data = await r.json();
-        res.json(data);
+
+        // Extract userData fields
+        const userDataFields = ['bankroll', 'bankrollGoal', 'previousBankroll', 'gwBankroll'];
+        const userData = {};
+        userDataFields.forEach(field => {
+            if (payload[field] !== undefined) {
+                userData[field] = payload[field];
+                delete payload[field];
+            }
+        });
+
+        // Remove fields that shouldn't be saved at root
+        delete payload.betLog;
+        delete payload.logbookEntries;
+
+        // Save to organized paths
+        const promises = [];
+
+        if (Object.keys(settings).length > 0) {
+            promises.push(
+                fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/settings.json', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                })
+            );
+        }
+
+        if (Object.keys(userData).length > 0) {
+            promises.push(
+                fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/userData.json', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                })
+            );
+        }
+
+        if (Object.keys(payload).length > 0) {
+            promises.push(
+                fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta.json', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+            );
+        }
+
+        await Promise.all(promises);
+        res.json({ success: true });
     } catch(e) {
         res.status(500).json({ error: 'Failed to save data' });
     }
@@ -464,6 +494,33 @@ app.get('/api/mlb/gameStats/:gameId', async (req, res) => {
         res.json(data);
     } catch(e) {
         res.status(500).json({ error: 'Failed to load game stats' });
+    }
+});
+
+app.get('/api/mlb/series/:team', async (req, res) => {
+    try {
+        const team = req.params.team;
+        const r = await fetch(`${FB_BASE}/mlb/scrapers/series/${encodeURIComponent(team)}.json`);
+        const data = await r.json();
+        if (!data) return res.json({ gamesInSeries: 0, seriesGameNumber: 0 });
+        res.json(data);
+    } catch(e) {
+        res.status(500).json({ error: 'Failed to load series data' });
+    }
+});
+
+app.post('/api/mlb/series/:team', async (req, res) => {
+    try {
+        const team = req.params.team;
+        const r = await fetch(`${FB_BASE}/mlb/scrapers/series/${encodeURIComponent(team)}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req.body)
+        });
+        const data = await r.json();
+        res.json(data);
+    } catch(e) {
+        res.status(500).json({ error: 'Failed to save series data' });
     }
 });
 
