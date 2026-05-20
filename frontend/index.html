@@ -9382,7 +9382,7 @@
                     });
 
                     // Regenerate app picks for this day
-                    targetDay.appPicks = targetDay.games.map(game => calculateCore4Pick(game));
+                    targetDay.appPicks = targetDay.games.map(game => calculateCore4Pick(game, targetDay.day));
 
                     // Re-render if viewing this day
                     if (activeBetDay === targetDay.day) renderBetDayCards();
@@ -11304,14 +11304,144 @@
 
         let deletedLogbookTeams = [];
 
+        // Apply playoff model - returns combined playoff + regular season percentages
+        function applyPlayoffModel(awayTeam, homeTeam, awaySeed, homeSeed, awayCore4Pct, homeCore4Pct, dayNumber) {
+            // Get series state by scanning betLog for previous games
+            const seriesState = getSeriesState(awayTeam, homeTeam, dayNumber);
+            if (!seriesState) return null; // No previous games, use regular Core 4
+
+            const { awayWins, homeWins, gameNumber } = seriesState;
+
+            // Determine home court advantage (better seed gets home court)
+            const homeCourtTeam = awaySeed < homeSeed ? awayTeam : homeTeam;
+
+            // Determine if current game is at home court team's arena (2-2-1-1-1 format)
+            const homeGames = [1, 2, 5, 7]; // Games at home court team's arena
+            const isHomeCourtGame = homeGames.includes(gameNumber);
+            const gameHomeTeam = isHomeCourtGame ? homeCourtTeam : (homeCourtTeam === awayTeam ? homeTeam : awayTeam);
+
+            // Get playoff probability based on series state
+            let playoffProb = getSeriesStateProbability(awayWins, homeWins, gameNumber, gameHomeTeam, awayTeam, homeTeam);
+
+            // Combine: 70% playoff model + 30% regular Core 4
+            const awayPlayoffPct = playoffProb.awayPercent;
+            const homePlayoffPct = playoffProb.homePercent;
+
+            const awayFinal = (awayPlayoffPct * 0.70) + (awayCore4Pct * 0.30);
+            const homeFinal = (homePlayoffPct * 0.70) + (homeCore4Pct * 0.30);
+
+            return {
+                awayPercent: awayFinal,
+                homePercent: homeFinal
+            };
+        }
+
+        // Get series state by scanning betLog for games between these two teams
+        function getSeriesState(team1, team2, currentDay) {
+            let team1Wins = 0;
+            let team2Wins = 0;
+
+            // Scan betLog for all playoff days up to current day
+            for (const day of betLog) {
+                if (day.day >= 71 && day.day < currentDay) {
+                    for (const game of (day.games || [])) {
+                        const isMatch = (game.t1 === team1 && game.t2 === team2) ||
+                                       (game.t1 === team2 && game.t2 === team1);
+
+                        if (isMatch && game.res) {
+                            // Determine which team won
+                            const winner = game.pick;
+                            if (winner === team1) team1Wins++;
+                            else if (winner === team2) team2Wins++;
+                        }
+                    }
+                }
+            }
+
+            const totalGames = team1Wins + team2Wins;
+            if (totalGames === 0) return null; // No previous games in series
+
+            return {
+                awayWins: team1Wins,
+                homeWins: team2Wins,
+                gameNumber: totalGames + 1
+            };
+        }
+
+        // Get probability based on series state (from playbook)
+        function getSeriesStateProbability(awayWins, homeWins, gameNumber, gameHomeTeam, awayTeam, homeTeam) {
+            const seriesLeader = awayWins > homeWins ? awayTeam : (homeWins > awayWins ? homeTeam : null);
+            const leaderWins = Math.max(awayWins, homeWins);
+            const trailerWins = Math.min(awayWins, homeWins);
+
+            let leaderProb = 50; // Default 50-50
+
+            // Sweep protection (3-0)
+            if (leaderWins === 3 && trailerWins === 0) {
+                leaderProb = 5; // Trailing team gets 95%
+            }
+            // Tied series states
+            else if (awayWins === homeWins) {
+                if (gameNumber === 1) leaderProb = 60; // Game 1: home court team favored
+                else if (gameNumber === 3) leaderProb = 73; // Game 3
+                else if (gameNumber === 5) leaderProb = 83; // Game 5
+                else if (gameNumber === 7) leaderProb = 74; // Game 7
+            }
+            // Leader advantage states
+            else if (leaderWins === 1 && trailerWins === 0) {
+                leaderProb = 76;
+            }
+            else if (leaderWins === 2 && trailerWins === 0) {
+                leaderProb = 93;
+            }
+            else if (leaderWins === 2 && trailerWins === 1) {
+                leaderProb = 68;
+            }
+            else if (leaderWins === 3 && trailerWins === 1) {
+                leaderProb = 92;
+            }
+            else if (leaderWins === 3 && trailerWins === 2) {
+                leaderProb = 68;
+            }
+
+            // Determine which team gets the probability
+            let awayProb, homeProb;
+            if (seriesLeader) {
+                if (seriesLeader === awayTeam) {
+                    awayProb = leaderProb;
+                    homeProb = 100 - leaderProb;
+                } else {
+                    homeProb = leaderProb;
+                    awayProb = 100 - leaderProb;
+                }
+            } else {
+                // Tied - game home team gets advantage
+                if (gameHomeTeam === awayTeam) {
+                    awayProb = leaderProb;
+                    homeProb = 100 - leaderProb;
+                } else {
+                    homeProb = leaderProb;
+                    awayProb = 100 - leaderProb;
+                }
+            }
+
+            return {
+                awayPercent: awayProb,
+                homePercent: homeProb
+            };
+        }
+
         // Core 4 calculation for a single game - returns winning team name
-        function calculateCore4Pick(game) {
+        function calculateCore4Pick(game, dayNumber = 0) {
             const awayTeam = game.t1;
             const homeTeam = game.t2;
             const awaySeed = game.s1 || 8;
             const homeSeed = game.s2 || 8;
             const awayInjuries = game.i1 || 0;
             const homeInjuries = game.i2 || 0;
+
+            // Check if we're in NBA playoff range (days 71-133 = April 18 - June 19)
+            const isPlayoffs = dayNumber >= 71 && dayNumber <= 133;
 
             // Parse odds
             const awayOddsStr = game.o1 || '+100';
@@ -11415,8 +11545,17 @@
             const awayImpliedFinal = oddsToImplied(awayOddsCalculated);
             const homeImpliedFinal = oddsToImplied(homeOddsCalculated);
             const totalImpliedFinal = awayImpliedFinal + homeImpliedFinal;
-            const awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
-            const homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
+            let awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
+            let homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
+
+            // Apply playoff model if in playoff range
+            if (isPlayoffs) {
+                const playoffResult = applyPlayoffModel(awayTeam, homeTeam, awaySeed, homeSeed, awayFinalPercent, homeFinalPercent, dayNumber);
+                if (playoffResult) {
+                    awayFinalPercent = playoffResult.awayPercent;
+                    homeFinalPercent = playoffResult.homePercent;
+                }
+            }
 
             // Pick the higher percentage
             return awayFinalPercent > homeFinalPercent ? awayTeam : homeTeam;
@@ -11426,7 +11565,7 @@
         function generateAllAppPicks() {
             betLog.forEach(day => {
                 if (day.games && day.games.length > 0) {
-                    day.appPicks = day.games.map(game => calculateCore4Pick(game));
+                    day.appPicks = day.games.map(game => calculateCore4Pick(game, day.day));
                 } else {
                     day.appPicks = [];
                 }
