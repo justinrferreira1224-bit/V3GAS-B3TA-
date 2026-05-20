@@ -11440,9 +11440,10 @@
 
             if (!awayTeamNameContent || !homeTeamNameContent) return;
 
-            // Get current day number
-            const currentDayIndex = betLog.findIndex(d => d.date === selectedDay);
-            const currentDayNumber = currentDayIndex >= 0 ? betLog[currentDayIndex].day : 0;
+            // Get target day (same logic as bet save - find unlocked day or last day)
+            const unlockedDay = betLog.find(d => d.unlocked);
+            const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1]?.day));
+            const currentDayNumber = targetDay ? targetDay.day : activeBetDay;
 
             // Only show series state during playoffs (days 104-167)
             const isPlayoffs = currentDayNumber >= 104 && currentDayNumber <= 167;
