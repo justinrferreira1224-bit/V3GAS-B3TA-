@@ -11879,20 +11879,17 @@
                 updateStandings(opponent, pickWon ? 'L' : 'W');
             }
 
-            // Save result to Firebase
+            // Save result to Firebase using game's Firebase ID
             fetch(BACKEND_URL + '/api/nba/gameResult', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     date: day.date,
-                    gameIndex: gameIndex,
+                    gameId: game._id,
                     pick: game.pick || '',
                     res: result
                 })
-            })
-            .then(r => r.json())
-            .then(data => console.log('✅ Saved game result:', data))
-            .catch(err => console.error('❌ Failed to save result:', err));
+            });
 
             saveAppState();
             updateBetLogSubtitle();

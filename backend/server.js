@@ -29,9 +29,13 @@ function transformBetLog(betLogObj) {
         // Transform games from new format to old format
         // Convert games object to array (Firebase stores arrays as objects)
         const gamesObj = dayData.games || {};
-        const gamesArray = Array.isArray(gamesObj) ? gamesObj : Object.values(gamesObj);
+        const gamesArray = Array.isArray(gamesObj) ? gamesObj : Object.entries(gamesObj);
 
-        const transformedGames = gamesArray.map(game => {
+        const transformedGames = gamesArray.map(([key, game]) => {
+            // If it's already an array, key is the index and game is the value
+            // If it's from Object.entries, key is the Firebase key and game is the value
+            const firebaseKey = Array.isArray(gamesObj) ? (game._id || key) : key;
+
             return {
                 t1: game.away?.team || '',
                 t2: game.home?.team || '',
@@ -40,7 +44,7 @@ function transformBetLog(betLogObj) {
                 s1: parseInt(game.away?.seed) || 0,
                 s2: parseInt(game.home?.seed) || 0,
                 i1: parseInt(game.away?.injuries) || 0,
-                i2: parseInt(game.away?.injuries) || 0,
+                i2: parseInt(game.home?.injuries) || 0,
                 wl1: game.away?.record || '',
                 wl2: game.home?.record || '',
                 l1: game.away?.last10 || '',
@@ -48,7 +52,7 @@ function transformBetLog(betLogObj) {
                 pick: game.pick || '',
                 res: game.res || null,
                 edge: game.edge || '',
-                _id: game._id || Date.now() + Math.random()
+                _id: firebaseKey
             };
         });
 
@@ -207,19 +211,19 @@ app.post('/api/:sport/appPicks', async (req, res) => {
 app.post('/api/:sport/gameResult', async (req, res) => {
     try {
         const sport = req.params.sport;
-        const { date, gameIndex, pick, res } = req.body;
+        const { date, gameId, pick, res } = req.body;
 
-        if (!date || gameIndex === undefined || !pick || !res) {
-            return res.status(400).json({ error: 'Missing required fields: date, gameIndex, pick, res' });
+        if (!date || !gameId || !pick || !res) {
+            return res.status(400).json({ error: 'Missing required fields: date, gameId, pick, res' });
         }
 
-        // Save pick and res to the specific game
+        // Save pick and res to the specific game using Firebase key
         const updates = {
             pick: pick,
             res: res
         };
 
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games/${gameIndex}.json`, {
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games/${gameId}.json`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
