@@ -27,7 +27,11 @@ function transformBetLog(betLogObj) {
         const dayOfYear = Math.floor((date - jan1) / (1000 * 60 * 60 * 24)) + 1;
 
         // Transform games from new format to old format
-        const transformedGames = (dayData.games || []).map(game => {
+        // Convert games object to array (Firebase stores arrays as objects)
+        const gamesObj = dayData.games || {};
+        const gamesArray = Array.isArray(gamesObj) ? gamesObj : Object.values(gamesObj);
+
+        const transformedGames = gamesArray.map(game => {
             return {
                 t1: game.away?.team || '',
                 t2: game.home?.team || '',
@@ -36,7 +40,7 @@ function transformBetLog(betLogObj) {
                 s1: parseInt(game.away?.seed) || 0,
                 s2: parseInt(game.home?.seed) || 0,
                 i1: parseInt(game.away?.injuries) || 0,
-                i2: parseInt(game.home?.injuries) || 0,
+                i2: parseInt(game.away?.injuries) || 0,
                 wl1: game.away?.record || '',
                 wl2: game.home?.record || '',
                 l1: game.away?.last10 || '',
