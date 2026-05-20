@@ -11236,24 +11236,22 @@
         }
 
         async function fetchInjuryForTeam(teamName) {
-            const today = new Date().toISOString().split('T')[0];
-            if (cachedInjuries[teamName] !== undefined && cachedInjuries[teamName + '_date'] === today) {
-                return cachedInjuries[teamName];
-            }
             try {
-                const teamID = NBA_TEAM_IDS[teamName];
-                if (!teamID) { console.warn('No ESPN ID for team:', teamName); return 0; }
-                const r = await fetch('https://site.web.api.espn.com/apis/site/v2/sports/basketball/nba/teams/' + teamID + '?enable=roster,injuries');
-                const d = await r.json();
-                const athletes = d?.team?.athletes || [];
-                let count = 0;
-                for (const athlete of athletes) {
-                    if (athlete.injuries && athlete.injuries.length > 0) count += athlete.injuries.length;
+                // Fetch from Firebase scraper data
+                const r = await fetch(FB_URL + '/nba/scrapers/injuries/teams.json');
+                const teams = await r.json();
+
+                // Find team by matching name
+                for (const [code, data] of Object.entries(teams)) {
+                    if (data.team && data.team.includes(teamName)) {
+                        const count = data.count || 0;
+                        console.log('✅ ' + teamName + ' injuries: ' + count);
+                        return count;
+                    }
                 }
-                cachedInjuries[teamName] = count;
-                cachedInjuries[teamName + '_date'] = today;
-                console.log('✅ ' + teamName + ' injuries: ' + count);
-                return count;
+
+                console.warn('Team not found in injury data:', teamName);
+                return 0;
             } catch(e) {
                 console.warn('Injury fetch failed for', teamName, e);
                 return 0;
