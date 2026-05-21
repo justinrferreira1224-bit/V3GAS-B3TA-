@@ -23181,12 +23181,18 @@
         let currentMoneyTab = 'mar'; // legacy compat
 
         const MONTH_RANGES = {
-            jan: { label: 'January',  startDay: 1,   endDay: 31  },
-            feb: { label: 'February', startDay: 32,  endDay: 59  },
-            mar: { label: 'March',    startDay: 60,  endDay: 90  },
-            apr: { label: 'April',    startDay: 91,  endDay: 120 },
-            may: { label: 'May',      startDay: 121, endDay: 151 },
-            jun: { label: 'June',     startDay: 152, endDay: 181 },
+            jan: { label: 'January',   startDay: 1,   endDay: 31  },
+            feb: { label: 'February',  startDay: 32,  endDay: 59  },
+            mar: { label: 'March',     startDay: 60,  endDay: 90  },
+            apr: { label: 'April',     startDay: 91,  endDay: 120 },
+            may: { label: 'May',       startDay: 121, endDay: 151 },
+            jun: { label: 'June',      startDay: 152, endDay: 181 },
+            jul: { label: 'July',      startDay: 182, endDay: 212 },
+            aug: { label: 'August',    startDay: 213, endDay: 243 },
+            sep: { label: 'September', startDay: 244, endDay: 273 },
+            oct: { label: 'October',   startDay: 274, endDay: 304 },
+            nov: { label: 'November',  startDay: 305, endDay: 334 },
+            dec: { label: 'December',  startDay: 335, endDay: 365 },
         };
 
         let monthStartOverrides = { nba: { robego: {}, justin: {} }, mlb: { robego: {}, justin: {} } };
@@ -23297,7 +23303,7 @@
             const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
             const overrides = (monthStartOverrides[sport] && monthStartOverrides[sport][sub]) || {};
             if (overrides[month] !== undefined) return overrides[month];
-            const order = ['feb', 'mar', 'apr', 'may', 'jun'];
+            const order = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
             const idx = order.indexOf(month);
             if (idx === 0) return 100;
             return calcMonthEndBankroll(order[idx - 1], sub);
@@ -23449,8 +23455,8 @@
         }
 
         let currentMoneySubTab = 'robego';
-        const MONTH_ORDER = ['jan', 'feb', 'mar', 'apr', 'may', 'jun'];
-        const MONTH_LABELS = { jan: 'JANUARY', feb: 'FEBRUARY', mar: 'MARCH', apr: 'APRIL', may: 'MAY', jun: 'JUNE' };
+        const MONTH_ORDER = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const MONTH_LABELS = { jan: 'JANUARY', feb: 'FEBRUARY', mar: 'MARCH', apr: 'APRIL', may: 'MAY', jun: 'JUNE', jul: 'JULY', aug: 'AUGUST', sep: 'SEPTEMBER', oct: 'OCTOBER', nov: 'NOVEMBER', dec: 'DECEMBER' };
 
         function prevMonth() {
             const idx = MONTH_ORDER.indexOf(currentMonthTab);
