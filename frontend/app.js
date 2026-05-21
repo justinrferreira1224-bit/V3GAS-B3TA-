@@ -23195,24 +23195,26 @@
             dec: { label: 'December',  startDay: 335, endDay: 365 },
         };
 
-        let monthStartOverrides = { nba: { robego: {}, justin: {} }, mlb: { robego: {}, justin: {} } };
+        let monthStartOverrides = { nba: { robego: {}, justin: {}, kelly: {} }, mlb: { robego: {}, justin: {}, kelly: {} } };
 
         function loadMonthStarts() {
             try {
                 const saved = localStorage.getItem('monthStartOverrides3');
                 if (saved) monthStartOverrides = JSON.parse(saved);
-                if (!monthStartOverrides.nba) monthStartOverrides.nba = { robego: {}, justin: {} };
-                if (!monthStartOverrides.mlb) monthStartOverrides.mlb = { robego: {}, justin: {} };
+                if (!monthStartOverrides.nba) monthStartOverrides.nba = { robego: {}, justin: {}, kelly: {} };
+                if (!monthStartOverrides.mlb) monthStartOverrides.mlb = { robego: {}, justin: {}, kelly: {} };
                 if (!monthStartOverrides.nba.robego) monthStartOverrides.nba.robego = {};
                 if (!monthStartOverrides.nba.justin) monthStartOverrides.nba.justin = {};
+                if (!monthStartOverrides.nba.kelly) monthStartOverrides.nba.kelly = {};
                 if (!monthStartOverrides.mlb.robego) monthStartOverrides.mlb.robego = {};
                 if (!monthStartOverrides.mlb.justin) monthStartOverrides.mlb.justin = {};
+                if (!monthStartOverrides.mlb.kelly) monthStartOverrides.mlb.kelly = {};
                 if (monthStartOverrides.nba.robego['apr'] === undefined) monthStartOverrides.nba.robego['apr'] = 100;
                 if (monthStartOverrides.nba.justin['apr'] === undefined) monthStartOverrides.nba.justin['apr'] = 100;
                 if (monthStartOverrides.mlb.robego['apr'] === undefined) monthStartOverrides.mlb.robego['apr'] = 100;
                 if (monthStartOverrides.mlb.justin['apr'] === undefined) monthStartOverrides.mlb.justin['apr'] = 100;
             } catch(e) {
-                monthStartOverrides = { nba: { robego: { apr: 100 }, justin: { apr: 100 } }, mlb: { robego: { apr: 100 }, justin: { apr: 100 } } };
+                monthStartOverrides = { nba: { robego: { apr: 100 }, justin: { apr: 100 }, kelly: { apr: 100 } }, mlb: { robego: { apr: 100 }, justin: { apr: 100 }, kelly: { apr: 100 } } };
             }
         }
 
