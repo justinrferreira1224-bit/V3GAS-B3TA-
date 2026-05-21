@@ -23181,11 +23181,12 @@
         let currentMoneyTab = 'mar'; // legacy compat
 
         const MONTH_RANGES = {
-            feb: { label: 'February', startDay: 1,   endDay: 28  },
-            mar: { label: 'March',    startDay: 29,  endDay: 59  },
-            apr: { label: 'April',    startDay: 60,  endDay: 89  },
-            may: { label: 'May',      startDay: 90,  endDay: 120 },
-            jun: { label: 'June',     startDay: 121, endDay: 150 },
+            jan: { label: 'January',  startDay: 1,   endDay: 31  },
+            feb: { label: 'February', startDay: 32,  endDay: 59  },
+            mar: { label: 'March',    startDay: 60,  endDay: 90  },
+            apr: { label: 'April',    startDay: 91,  endDay: 120 },
+            may: { label: 'May',      startDay: 121, endDay: 151 },
+            jun: { label: 'June',     startDay: 152, endDay: 181 },
         };
 
         let monthStartOverrides = { nba: { robego: {}, justin: {} }, mlb: { robego: {}, justin: {} } };
@@ -23448,8 +23449,8 @@
         }
 
         let currentMoneySubTab = 'robego';
-        const MONTH_ORDER = ['feb', 'mar', 'apr', 'may', 'jun'];
-        const MONTH_LABELS = { feb: 'FEBRUARY', mar: 'MARCH', apr: 'APRIL', may: 'MAY', jun: 'JUNE' };
+        const MONTH_ORDER = ['jan', 'feb', 'mar', 'apr', 'may', 'jun'];
+        const MONTH_LABELS = { jan: 'JANUARY', feb: 'FEBRUARY', mar: 'MARCH', apr: 'APRIL', may: 'MAY', jun: 'JUNE' };
 
         function prevMonth() {
             const idx = MONTH_ORDER.indexOf(currentMonthTab);
