@@ -2348,7 +2348,12 @@
                 const pickTeam = winner.includes(selectedBBHomeTeam.name) ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                 const pickOdds = winner.includes(selectedBBHomeTeam.name) ? homeOdds : awayOdds;
 
-                const targetDay = betLog.find(d => d.day === activeBetDay) || betLog[betLog.length-1];
+                // For MLB, find day by DATE (MM-DD) not day number
+                const now = new Date();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const currentDate = `${month}-${day}`;
+                const targetDay = betLog.find(d => d.date === currentDate) || betLog[betLog.length-1];
                 if (targetDay) {
                     const gameId = Date.now();
 
