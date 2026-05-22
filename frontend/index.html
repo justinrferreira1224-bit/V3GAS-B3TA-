@@ -9075,9 +9075,11 @@
         const gwRecordBtn = document.getElementById('gwRecordBtn');
         if (gwRecordBtn) {
             gwRecordBtn.addEventListener('click', () => {
+                alert(`DEBUG: currentSport=${currentSport}, currentBetType=${currentBetType}`);
 
                 // ── MLB GAME WINNER SAVE ──────────────────────────────
                 if (currentSport === 'mlb' && currentBetType === 'winner') {
+                    alert('DEBUG: Inside MLB save block');
                     if (!selectedBBAwayTeam || !selectedBBHomeTeam) {
                         alert('Please select both teams first!');
                         return;
