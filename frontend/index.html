@@ -8746,9 +8746,13 @@
                 
                 // Update sport settings (quarter length, etc.)
                 updateSportSettings();
-                // Re-render game log for new sport
-                renderGameLogForDay(activeBetDay);
-                sortGameLog(currentLogSort);
+
+                // Load betLog for new sport from Firebase
+                loadAppState(() => {
+                    renderBetLog();
+                    renderGameLogForDay(activeBetDay);
+                    sortGameLog(currentLogSort);
+                });
                 
                 // Remove gold highlight from nav
                 navSports.classList.remove('active');
