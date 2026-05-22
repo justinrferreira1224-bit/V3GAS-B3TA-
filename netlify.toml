@@ -1,7 +1,7 @@
 [build]
   base = "."
   publish = "frontend"
-  command = "echo 'No build needed - static site'"
+  command = "echo 'Deploy triggered - static site'"
 
 [[redirects]]
   from = "/*"
