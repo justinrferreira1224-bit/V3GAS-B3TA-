@@ -11655,8 +11655,9 @@
 
         // Generate app picks for all days in betLog
         function loadAppState(callback) {
-            // Load NBA data from backend (backend transforms Firebase structure)
-            fetch(BACKEND_URL + '/api/state/nba')
+            // Load current sport data from backend (backend transforms Firebase structure)
+            const sport = currentSport || 'nba';
+            fetch(BACKEND_URL + '/api/state/' + sport)
                 .then(r => r.json())
                 .then(data => {
                     if (data && data.betLog && Array.isArray(data.betLog)) {
