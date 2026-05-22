@@ -9108,12 +9108,13 @@
                     const pickTeam   = pickIsHome ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                     const pickOdds   = pickIsHome ? homeOdds : awayOdds;
 
-                    // Find target day by current date
-                    const now = new Date();
-                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                    const day = String(now.getDate()).padStart(2, '0');
-                    const currentDate = `${month}-${day}`;
-                    const targetDay = betLog.find(d => d.date === currentDate) || betLog[betLog.length-1];
+                    // Find last unlocked day to append to
+                    const targetDay = betLog.slice().reverse().find(d => d.unlocked);
+                    if (!targetDay) {
+                        alert('Please unlock a day first (tap lock 5x)');
+                        return;
+                    }
+                    const currentDate = targetDay.date;
 
                     if (targetDay) {
                         const awayStand = [...(mlbStandings.al||[]),...(mlbStandings.nl||[])].find(t => t.abbr === selectedBBAwayTeam.prefix);
