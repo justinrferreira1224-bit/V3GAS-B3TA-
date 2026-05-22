@@ -9172,6 +9172,15 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ date: currentDate, game: firebaseGame })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            console.log('🔥 SAVED TO FIREBASE:', currentDate, data);
+                            alert('✅ Game saved to Firebase!');
+                        })
+                        .catch(err => {
+                            console.error('❌ FIREBASE SAVE FAILED:', err);
+                            alert('❌ Firebase save failed: ' + err.message);
                         });
 
                         console.log('✅ MLB game saved:', selectedBBAwayTeam.name, 'vs', selectedBBHomeTeam.name, '→', pickTeam);
