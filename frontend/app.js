@@ -7282,7 +7282,12 @@
                     const pickTeam   = pickIsHome ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                     const pickOdds   = pickIsHome ? homeOdds : awayOdds;
 
-                    const targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
+                    // Find target day by current date instead of day number
+                    const now = new Date();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const currentDate = `${month}-${day}`;
+                    const targetDay = betLog.find(d => d.date === currentDate) || betLog[betLog.length-1];
 
                     if (targetDay) {
                         const awayStand = [...(mlbStandings.al||[]),...(mlbStandings.nl||[])].find(t => t.abbr === selectedBBAwayTeam.prefix);
@@ -7321,6 +7326,40 @@
                         });
                         saveAppState();
                         if (activeBetDay === targetDay.day) renderBetDayCards();
+
+                        // Save game to Firebase betLog (nested structure)
+                        fetch(BACKEND_URL + '/api/mlb/addGame', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                date: currentDate,
+                                game: {
+                                    away: {
+                                        team: selectedBBAwayTeam.name,
+                                        odds: awayOdds,
+                                        seed: awayStand?.rank || 0,
+                                        injuries: aInj,
+                                        record: `${aWins}-${aLoss}`,
+                                        last10: `${aL10w}-${10-aL10w}`
+                                    },
+                                    home: {
+                                        team: selectedBBHomeTeam.name,
+                                        odds: homeOdds,
+                                        seed: homeStand?.rank || 0,
+                                        injuries: hInj,
+                                        record: `${hWins}-${hLoss}`,
+                                        last10: `${hL10w}-${10-hL10w}`
+                                    },
+                                    pick: pickTeam,
+                                    res: null,
+                                    edge: edge,
+                                    _id: betId
+                                }
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(data => console.log('✅ MLB game saved to Firebase betLog:', currentDate, betId))
+                        .catch(err => console.error('❌ Failed to save MLB game to betLog:', err));
 
                         // Save full stats to Firebase
                         console.log('📊 Saving MLB stats to Firebase...', betId);
