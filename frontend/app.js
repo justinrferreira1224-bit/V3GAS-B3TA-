@@ -2332,6 +2332,7 @@
         saveBetBtn.addEventListener('click', async () => {
             // MLB Game Winner mode — save differently
             if (currentSport === 'mlb' && currentBetType === 'winner') {
+                console.log('🔵 MLB SAVE STARTED');
                 try {
                 if (!selectedBBAwayTeam || !selectedBBHomeTeam) {
                     alert('Please select both teams first!');
@@ -2353,7 +2354,10 @@
                 const month = String(now.getMonth() + 1).padStart(2, '0');
                 const day = String(now.getDate()).padStart(2, '0');
                 const currentDate = `${month}-${day}`;
+                console.log('🔵 Looking for date:', currentDate, 'in betLog with', betLog.length, 'days');
+                console.log('🔵 First day:', betLog[0]);
                 const targetDay = betLog.find(d => d.date === currentDate) || betLog[betLog.length-1];
+                console.log('🔵 targetDay found:', !!targetDay, targetDay);
                 if (targetDay) {
                     const gameId = Date.now();
 
