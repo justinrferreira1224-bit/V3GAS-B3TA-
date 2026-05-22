@@ -2427,9 +2427,18 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ date: saveDate, game: newGame })
                     })
-                    .then(r => r.json())
-                    .then(data => console.log('✅ MLB game saved to Firebase betLog:', saveDate, data.gameId))
-                    .catch(err => console.error('❌ Failed to save to Firebase betLog:', err));
+                    .then(r => {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    })
+                    .then(data => {
+                        console.log('✅ MLB game saved to Firebase betLog:', saveDate, data.gameId);
+                        alert('✅ SAVED TO FIREBASE: ' + saveDate);
+                    })
+                    .catch(err => {
+                        console.error('❌ Failed to save to Firebase betLog:', err);
+                        alert('❌ FIREBASE SAVE FAILED: ' + err.message);
+                    });
 
                     // Save full stats to Firebase backup
                     fetch(BACKEND_URL + '/api/mlb/gameStats', {
