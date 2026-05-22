@@ -2402,6 +2402,26 @@
                     saveAppState();
                     if (activeBetDay === targetDay.day) renderBetDayCards();
 
+                    // Save game to Firebase betLog
+                    // Calculate MM-DD format from targetDay or current date
+                    let saveDate;
+                    if (targetDay.date) {
+                        saveDate = targetDay.date; // Already in MM-DD format
+                    } else {
+                        const now = new Date();
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const day = String(now.getDate()).padStart(2, '0');
+                        saveDate = `${month}-${day}`;
+                    }
+                    fetch(BACKEND_URL + '/api/mlb/addGame', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ date: saveDate, game: newGame })
+                    })
+                    .then(r => r.json())
+                    .then(data => console.log('✅ MLB game saved to Firebase betLog:', saveDate, data.gameId))
+                    .catch(err => console.error('❌ Failed to save to Firebase betLog:', err));
+
                     // Save full stats to Firebase backup
                     fetch(BACKEND_URL + '/api/mlb/gameStats', {
                         method: 'POST',
