@@ -581,6 +581,26 @@ app.post('/api/nba/playoffSeries/:seriesKey', async (req, res) => {
     }
 });
 
+// ── SCRAPER ENDPOINTS ────────────────────────────────────────
+
+app.post('/api/scrapers/nba/standings', async (req, res) => {
+    try {
+        const { exec } = require('child_process');
+        const scraperPath = '/Users/justinferreira/Desktop/vegas-scrapers/nba_standings_scraper.py';
+
+        exec(`python3 ${scraperPath}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error('❌ Scraper failed:', error);
+                return res.status(500).json({ error: 'Scraper failed', details: stderr });
+            }
+            console.log('✅ NBA standings scraper completed');
+            res.json({ success: true, output: stdout });
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Failed to run scraper' });
+    }
+});
+
 app.get('/', (req, res) => res.send('V3GAS B3TA Backend Running'));
 
 const PORT = process.env.PORT || 3000;
