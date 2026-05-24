@@ -257,7 +257,7 @@ app.post('/api/:sport/addGame', async (req, res) => {
     }
 });
 
-// ── SAVE day unlocked state ──────────────────────────────────
+// ── SAVE day unlocked state (SYNCS ACROSS ALL SPORTS) ──────────────────────────────────
 app.post('/api/:sport/unlockDay', async (req, res) => {
     try {
         const sport = req.params.sport;
@@ -267,15 +267,22 @@ app.post('/api/:sport/unlockDay', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields: date, unlocked' });
         }
 
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/unlocked.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(unlocked)
-        });
+        // List of all sports to sync lock/unlock state across
+        const allSports = ['mlb', 'nba', 'nfl', 'ncaab', 'ncaaf'];
 
-        const data = await r.json();
-        console.log(`✅ Set ${sport} ${date} unlocked: ${unlocked}`);
-        res.json({ success: true });
+        // Update unlocked state for this date across ALL sports
+        const promises = allSports.map(s =>
+            fetch(`${FB_BASE}/${s}/betLog/${date}/unlocked.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(unlocked)
+            })
+        );
+
+        await Promise.all(promises);
+
+        console.log(`✅ Set ${date} unlocked: ${unlocked} (synced across all sports)`);
+        res.json({ success: true, syncedSports: allSports });
     } catch(e) {
         console.error('Unlock day failed:', e);
         res.status(500).json({ error: 'Failed to save unlock state' });
