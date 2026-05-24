@@ -85,17 +85,15 @@ function transformBetLog(betLogObj, sport) {
                 }));
         }
 
-        // Only add days that have actual games (skip empty days)
-        if (transformedGames.length > 0) {
-            betLogArray.push({
-                day: dayOfYear,
-                date: dateKey,
-                type: dayData.type || 'REAL',
-                overall: dayData.overall || '',
-                unlocked: dayData.unlocked || false,
-                games: transformedGames
-            });
-        }
+        // Add all days (even empty ones) for calendar navigation
+        betLogArray.push({
+            day: dayOfYear,
+            date: dateKey,
+            type: dayData.type || 'REAL',
+            overall: dayData.overall || '',
+            unlocked: dayData.unlocked || false,
+            games: transformedGames
+        });
     });
 
     // Sort by day number
