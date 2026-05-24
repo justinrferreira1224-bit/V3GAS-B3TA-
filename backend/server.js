@@ -13,7 +13,7 @@ const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
 // Helper: Transform new Firebase structure to old frontend format
-function transformBetLog(betLogObj) {
+function transformBetLog(betLogObj, sport) {
     if (!betLogObj) return [];
 
     const betLogArray = [];
@@ -80,6 +80,7 @@ function transformBetLog(betLogObj) {
                     pick: game.pick || '',
                     res: game.res || null,
                     edge: game.edge || '',
+                    sport: sport,
                     _id: firebaseKey
                 }));
         }
@@ -112,7 +113,7 @@ app.get('/api/state/:sport', async (req, res) => {
 
         // Transform betLog if it exists
         if (data && data.betLog) {
-            data.betLog = transformBetLog(data.betLog);
+            data.betLog = transformBetLog(data.betLog, sport);
         }
 
         res.json(data || {});
