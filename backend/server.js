@@ -53,34 +53,48 @@ function transformBetLog(betLogObj) {
             }));
         } else {
             // Object - convert to array and preserve Firebase keys as _id
-            transformedGames = Object.entries(gamesObj).map(([firebaseKey, game]) => ({
-                t1: game.away?.team || '',
-                t2: game.home?.team || '',
-                o1: game.away?.odds || '',
-                o2: game.home?.odds || '',
-                s1: parseInt(game.away?.seed) || 0,
-                s2: parseInt(game.home?.seed) || 0,
-                i1: parseInt(game.away?.injuries) || 0,
-                i2: parseInt(game.home?.injuries) || 0,
-                wl1: game.away?.record || '',
-                wl2: game.home?.record || '',
-                l1: game.away?.last10 || '',
-                l2: game.home?.last10 || '',
-                pick: game.pick || '',
-                res: game.res || null,
-                edge: game.edge || '',
-                _id: firebaseKey
-            }));
+            // Filter out placeholder entries (where key is "_" or game is not an object with real data)
+            transformedGames = Object.entries(gamesObj)
+                .filter(([firebaseKey, game]) => {
+                    // Skip placeholder "_" entries
+                    if (firebaseKey === '_') return false;
+                    // Skip if game is not an object or doesn't have away/home structure
+                    if (typeof game !== 'object' || game === null) return false;
+                    // Skip if no team names (empty game)
+                    if (!game.away?.team && !game.home?.team && !game.t1 && !game.t2) return false;
+                    return true;
+                })
+                .map(([firebaseKey, game]) => ({
+                    t1: game.away?.team || game.t1 || '',
+                    t2: game.home?.team || game.t2 || '',
+                    o1: game.away?.odds || game.o1 || '',
+                    o2: game.home?.odds || game.o2 || '',
+                    s1: parseInt(game.away?.seed || game.s1) || 0,
+                    s2: parseInt(game.home?.seed || game.s2) || 0,
+                    i1: parseInt(game.away?.injuries || game.i1) || 0,
+                    i2: parseInt(game.home?.injuries || game.i2) || 0,
+                    wl1: game.away?.record || game.wl1 || '',
+                    wl2: game.home?.record || game.wl2 || '',
+                    l1: game.away?.last10 || game.l1 || '',
+                    l2: game.home?.last10 || game.l2 || '',
+                    pick: game.pick || '',
+                    res: game.res || null,
+                    edge: game.edge || '',
+                    _id: firebaseKey
+                }));
         }
 
-        betLogArray.push({
-            day: dayOfYear,
-            date: dateKey,
-            type: dayData.type || 'REAL',
-            overall: dayData.overall || '',
-            unlocked: dayData.unlocked || false,
-            games: transformedGames
-        });
+        // Only add days that have actual games (skip empty days)
+        if (transformedGames.length > 0) {
+            betLogArray.push({
+                day: dayOfYear,
+                date: dateKey,
+                type: dayData.type || 'REAL',
+                overall: dayData.overall || '',
+                unlocked: dayData.unlocked || false,
+                games: transformedGames
+            });
+        }
     });
 
     // Sort by day number
