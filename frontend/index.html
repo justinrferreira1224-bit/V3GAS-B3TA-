@@ -12198,19 +12198,18 @@
                         setTimeout(() => {
                             if (day) day.games = day.games.filter(g => g._id != id);
                             saveAppState();
-                            // Force push deletion to backend immediately
-                            try {
-                                const betLogState = betLog.map(d => ({
-                                    day: d.day, unlocked: d.unlocked || false,
-                                    type: d.type || '', overall: d.overall || '',
-                                    games: d.games.map(g => ({...g, res: g.res === null ? 'pending' : g.res}))
-                                }));
-                                fetch(BACKEND_URL + '/api/state', {
-                                    method: 'POST',
+                            // Delete game from Firebase
+                            if (game && game._id && typeof game._id === 'string' && game._id.startsWith('-')) {
+                                const sport = game.sport || 'nba';
+                                fetch(BACKEND_URL + `/api/${sport}/deleteGame`, {
+                                    method: 'DELETE',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ betLog: betLogState })
+                                    body: JSON.stringify({
+                                        date: day.date,
+                                        gameId: game._id
+                                    })
                                 });
-                            } catch(e) {}
+                            }
                             renderBetDayCards();
                         }, 220);
                     };

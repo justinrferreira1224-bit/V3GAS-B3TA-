@@ -197,7 +197,7 @@ app.post("/api/state/:sport", async (req, res) => {
     }
 });
 
-// ── DELETE game from bet log ──────────────────────────────────
+// ── DELETE game from bet log (legacy - uses day index) ──────────────────────────────────
 app.delete('/api/state/:sport/:dayIndex/:gameIndex', async (req, res) => {
     try {
         const { sport, dayIndex, gameIndex } = req.params;
@@ -209,6 +209,29 @@ app.delete('/api/state/:sport/:dayIndex/:gameIndex', async (req, res) => {
         res.json(data);
     } catch(e) {
         console.error('DELETE failed:', e);
+        res.status(500).json({ error: 'Failed to delete game' });
+    }
+});
+
+// ── DELETE game by date and gameId ──────────────────────────────────
+app.delete('/api/:sport/deleteGame', async (req, res) => {
+    try {
+        const sport = req.params.sport;
+        const { date, gameId } = req.body;
+
+        if (!date || !gameId) {
+            return res.status(400).json({ error: 'Missing required fields: date, gameId' });
+        }
+
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games/${gameId}.json`, {
+            method: 'DELETE'
+        });
+
+        const data = await r.json();
+        console.log(`✅ Deleted game ${gameId} from ${sport} ${date}`);
+        res.json({ success: true });
+    } catch(e) {
+        console.error('Delete game failed:', e);
         res.status(500).json({ error: 'Failed to delete game' });
     }
 });
