@@ -3175,9 +3175,32 @@
             const awayImpliedFinal = oddsToImplied(awayOddsCalculated);
             const homeImpliedFinal = oddsToImplied(homeOddsCalculated);
             const totalImpliedFinal = awayImpliedFinal + homeImpliedFinal;
-            const awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
-            const homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
-            
+            let awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
+            let homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
+
+            // Apply playoff model if in playoff range (April 14 - June 16)
+            const now = new Date();
+            const jan1 = new Date(now.getFullYear(), 0, 1);
+            const currentDayNumber = Math.floor((now - jan1) / (1000 * 60 * 60 * 24)) + 1;
+            const isPlayoffs = currentDayNumber >= 104 && currentDayNumber <= 167;
+
+            if (isPlayoffs && selectedAwayTeam && selectedHomeTeam) {
+                const playoffResult = applyPlayoffModel(
+                    selectedAwayTeam.name,
+                    selectedHomeTeam.name,
+                    awaySeed,
+                    homeSeed,
+                    awayFinalPercent,
+                    homeFinalPercent,
+                    currentDayNumber
+                );
+                if (playoffResult) {
+                    awayFinalPercent = playoffResult.awayPercent;
+                    homeFinalPercent = playoffResult.homePercent;
+                    console.log("PLAYOFF MODEL APPLIED - Adjusted:", awayFinalPercent.toFixed(4), homeFinalPercent.toFixed(4));
+                }
+            }
+
             console.log("FINAL PERCENTS:", awayFinalPercent.toFixed(4), homeFinalPercent.toFixed(4));
             console.log("======================");
             
