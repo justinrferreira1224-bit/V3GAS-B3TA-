@@ -2136,6 +2136,7 @@
                             <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
                                 <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">away</div>
                                 <div id="bbAwayPitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="text" id="bbAwayPitcherName" placeholder="pitcher name" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                                     <input type="number" id="bbAwayStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                                     <input type="number" id="bbAwayStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                                     <input type="number" id="bbAwayBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
@@ -2149,6 +2150,7 @@
                             <div style="background:rgba(60,60,70,0.95);border-radius:10px;border:2px solid rgba(255,255,255,0.8);box-shadow:0 4px 16px rgba(255,255,255,0.3);padding:6px;display:flex;flex-direction:column;gap:4px;">
                                 <div style="font-size:8px;font-weight:300;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:center;">home</div>
                                 <div id="bbHomePitchVerbose" style="display:flex;flex-direction:column;gap:4px;">
+                                    <input type="text" id="bbHomePitcherName" placeholder="pitcher name" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                                     <input type="number" id="bbHomeStarterERA" placeholder="ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                                     <input type="number" id="bbHomeStarterIP" placeholder="avg IP" step="0.1" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
                                     <input type="number" id="bbHomeBullpenERA" placeholder="bull ERA" step="0.01" oninput="calculateBaseballEdge()" style="background:rgba(40,40,50,0.9);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;font-size:11px;text-align:center;padding:4px;outline:none;width:100%;">
@@ -9176,9 +9178,11 @@
 
                         // Save to Firebase
                         // Capture pitcher stats
+                        const awayPitcherName = document.getElementById('bbAwayPitcherName')?.value || null;
                         const awayStarterERA = parseFloat(document.getElementById('bbAwayStarterERA')?.value) || null;
                         const awayStarterIP = parseFloat(document.getElementById('bbAwayStarterIP')?.value) || null;
                         const awayBullpenERA = parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || null;
+                        const homePitcherName = document.getElementById('bbHomePitcherName')?.value || null;
                         const homeStarterERA = parseFloat(document.getElementById('bbHomeStarterERA')?.value) || null;
                         const homeStarterIP = parseFloat(document.getElementById('bbHomeStarterIP')?.value) || null;
                         const homeBullpenERA = parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || null;
@@ -9206,6 +9210,7 @@
                                 record: `${aWins}-${aLoss}`,
                                 last10: `${aL10w}-${10-aL10w}`,
                                 pitching: {
+                                    name: awayPitcherName,
                                     starterERA: awayStarterERA,
                                     starterIP: awayStarterIP,
                                     bullpenERA: awayBullpenERA
@@ -9224,6 +9229,7 @@
                                 record: `${hWins}-${hLoss}`,
                                 last10: `${hL10w}-${10-hL10w}`,
                                 pitching: {
+                                    name: homePitcherName,
                                     starterERA: homeStarterERA,
                                     starterIP: homeStarterIP,
                                     bullpenERA: homeBullpenERA
