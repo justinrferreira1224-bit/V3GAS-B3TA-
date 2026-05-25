@@ -12076,7 +12076,9 @@
 
             // Only save to Firebase if game has valid Firebase ID (starts with -)
             if (game._id && typeof game._id === 'string' && game._id.startsWith('-')) {
-                fetch(BACKEND_URL + '/api/nba/gameResult', {
+                // Use correct sport endpoint based on game's sport field
+                const sport = game.sport || 'nba';
+                fetch(BACKEND_URL + `/api/${sport}/gameResult`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
