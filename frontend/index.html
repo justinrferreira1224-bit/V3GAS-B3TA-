@@ -9175,6 +9175,28 @@
                         if (activeBetDay === targetDay.day) renderBetDayCards();
 
                         // Save to Firebase
+                        // Capture pitcher stats
+                        const awayStarterERA = parseFloat(document.getElementById('bbAwayStarterERA')?.value) || null;
+                        const awayStarterIP = parseFloat(document.getElementById('bbAwayStarterIP')?.value) || null;
+                        const awayBullpenERA = parseFloat(document.getElementById('bbAwayBullpenERA')?.value) || null;
+                        const homeStarterERA = parseFloat(document.getElementById('bbHomeStarterERA')?.value) || null;
+                        const homeStarterIP = parseFloat(document.getElementById('bbHomeStarterIP')?.value) || null;
+                        const homeBullpenERA = parseFloat(document.getElementById('bbHomeBullpenERA')?.value) || null;
+
+                        // Capture batting stats
+                        const awayAvg = parseFloat(document.getElementById('bbAwayAvg')?.value) || null;
+                        const awayOBP = parseFloat(document.getElementById('bbAwayOBP')?.value) || null;
+                        const awaySLG = parseFloat(document.getElementById('bbAwaySLG')?.value) || null;
+                        const homeAvg = parseFloat(document.getElementById('bbHomeAvg')?.value) || null;
+                        const homeOBP = parseFloat(document.getElementById('bbHomeOBP')?.value) || null;
+                        const homeSLG = parseFloat(document.getElementById('bbHomeSLG')?.value) || null;
+
+                        // Capture series and park info
+                        const seriesCount = document.getElementById('bbSeriesCount')?.value || null;
+                        const seriesGames = parseInt(document.getElementById('bbSeriesGames')?.value) || null;
+                        const parkAway = document.getElementById('bbParkAway')?.value || null;
+                        const parkHome = document.getElementById('bbParkHome')?.value || null;
+
                         const firebaseGame = {
                             away: {
                                 team: selectedBBAwayTeam.name,
@@ -9182,7 +9204,17 @@
                                 seed: awayStand?.rank || 0,
                                 injuries: aInj,
                                 record: `${aWins}-${aLoss}`,
-                                last10: `${aL10w}-${10-aL10w}`
+                                last10: `${aL10w}-${10-aL10w}`,
+                                pitching: {
+                                    starterERA: awayStarterERA,
+                                    starterIP: awayStarterIP,
+                                    bullpenERA: awayBullpenERA
+                                },
+                                batting: {
+                                    avg: awayAvg,
+                                    obp: awayOBP,
+                                    slg: awaySLG
+                                }
                             },
                             home: {
                                 team: selectedBBHomeTeam.name,
@@ -9190,11 +9222,29 @@
                                 seed: homeStand?.rank || 0,
                                 injuries: hInj,
                                 record: `${hWins}-${hLoss}`,
-                                last10: `${hL10w}-${10-hL10w}`
+                                last10: `${hL10w}-${10-hL10w}`,
+                                pitching: {
+                                    starterERA: homeStarterERA,
+                                    starterIP: homeStarterIP,
+                                    bullpenERA: homeBullpenERA
+                                },
+                                batting: {
+                                    avg: homeAvg,
+                                    obp: homeOBP,
+                                    slg: homeSLG
+                                }
                             },
                             pick: pickTeam,
                             res: null,
-                            edge: edge
+                            edge: edge,
+                            series: {
+                                count: seriesCount,
+                                games: seriesGames
+                            },
+                            parks: {
+                                away: parkAway,
+                                home: parkHome
+                            }
                         };
                         fetch('https://v3gas-b3ta-backend.onrender.com/api/mlb/addGame', {
                             method: 'POST',
