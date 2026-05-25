@@ -9181,7 +9181,6 @@
                         .then(r => r.json())
                         .then(data => {
                             console.log('🔥 SAVED TO FIREBASE:', currentDate, data);
-                            alert('✅ Game saved to Firebase!');
                         })
                         .catch(err => {
                             console.error('❌ FIREBASE SAVE FAILED:', err);
