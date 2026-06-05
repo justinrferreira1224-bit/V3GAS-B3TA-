@@ -11502,55 +11502,55 @@
             const leaderWins = Math.max(awayWins, homeWins);
             const trailerWins = Math.min(awayWins, homeWins);
 
-            let leaderProb = 50; // Default 50-50
+            // HOME COURT REIGNS SUPREME - always assign probability to home team
+            let homeTeamProb = 50; // Default 50-50
+
+            // Determine if home team is leading, trailing, or tied
+            const homeTeamWins = gameHomeTeam === awayTeam ? awayWins : homeWins;
+            const homeTeamIsLeader = seriesLeader === gameHomeTeam;
+            const homeTeamIsTrailer = seriesLeader && seriesLeader !== gameHomeTeam;
+            const seriesTied = awayWins === homeWins;
 
             // Sweep protection (3-0)
             if (leaderWins === 3 && trailerWins === 0) {
-                leaderProb = 5; // Trailing team gets 95%
+                homeTeamProb = homeTeamIsTrailer ? 95 : 5; // Trailing team gets 95% when facing sweep
             }
-            // Tied series states
-            else if (awayWins === homeWins) {
-                if (gameNumber === 1) leaderProb = 60; // Game 1: home court team favored
-                else if (gameNumber === 3) leaderProb = 73; // Game 3
-                else if (gameNumber === 5) leaderProb = 83; // Game 5
-                else if (gameNumber === 7) leaderProb = 74; // Game 7
+            // Tied series states - home court advantage
+            else if (seriesTied) {
+                if (gameNumber === 1) homeTeamProb = 60; // Game 1: home court team favored
+                else if (gameNumber === 3) homeTeamProb = 73; // Game 3
+                else if (gameNumber === 5) homeTeamProb = 83; // Game 5
+                else if (gameNumber === 7) homeTeamProb = 74; // Game 7
             }
-            // Leader advantage states
+            // 1-0 series
             else if (leaderWins === 1 && trailerWins === 0) {
-                leaderProb = 76;
+                homeTeamProb = homeTeamIsLeader ? 76 : 55; // Leader at home: 76%, Trailer at home: 55% (home court still matters)
             }
+            // 2-0 series
             else if (leaderWins === 2 && trailerWins === 0) {
-                leaderProb = 93;
+                homeTeamProb = homeTeamIsLeader ? 93 : 35; // Leader at home: 93%, Trailer at home: 35% (deep hole but home court helps)
             }
+            // 2-1 series
             else if (leaderWins === 2 && trailerWins === 1) {
-                leaderProb = 68;
+                homeTeamProb = homeTeamIsLeader ? 68 : 50; // Leader at home: 68%, Trailer at home: 50% (even fight at home)
             }
+            // 3-1 series
             else if (leaderWins === 3 && trailerWins === 1) {
-                leaderProb = 92;
+                homeTeamProb = homeTeamIsLeader ? 92 : 25; // Leader at home: 92%, Trailer at home: 25% (nearly over)
             }
+            // 3-2 series
             else if (leaderWins === 3 && trailerWins === 2) {
-                leaderProb = 68;
+                homeTeamProb = homeTeamIsLeader ? 68 : 50; // Leader at home: 68%, Trailer at home: 50% (toss-up at home)
             }
 
-            // Determine which team gets the probability
+            // Assign probabilities based on who is home
             let awayProb, homeProb;
-            if (seriesLeader) {
-                if (seriesLeader === awayTeam) {
-                    awayProb = leaderProb;
-                    homeProb = 100 - leaderProb;
-                } else {
-                    homeProb = leaderProb;
-                    awayProb = 100 - leaderProb;
-                }
+            if (gameHomeTeam === awayTeam) {
+                awayProb = homeTeamProb;
+                homeProb = 100 - homeTeamProb;
             } else {
-                // Tied - game home team gets advantage
-                if (gameHomeTeam === awayTeam) {
-                    awayProb = leaderProb;
-                    homeProb = 100 - leaderProb;
-                } else {
-                    homeProb = leaderProb;
-                    awayProb = 100 - leaderProb;
-                }
+                homeProb = homeTeamProb;
+                awayProb = 100 - homeTeamProb;
             }
 
             return {
