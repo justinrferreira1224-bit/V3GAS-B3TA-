@@ -12921,26 +12921,44 @@
                 if (decided.length === 0) return;
                 if (bankroll <= 0) bankroll = 100; // Auto-reload
                 let newBankroll = bankroll;
+                let dayHadBets = false;
                 decided.forEach(g => {
                     const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
                     // Use confidence if available, otherwise edge, otherwise estimate
                     let winProb;
+                    let source = '';
                     if (g.conf) {
                         winProb = g.conf / 100;
+                        source = 'conf';
                     } else if (g.edge) {
                         winProb = parseFloat(g.edge) / 100;
+                        source = 'edge';
                     } else {
                         // Estimate edge for old games
                         winProb = estimateEdgeFromGame(g) / 100;
+                        source = 'estimate';
                     }
-                    if (!winProb || winProb <= 0) return;
+                    if (!winProb || winProb <= 0) {
+                        console.log(`[KELLY] ${day.date} - ${g.pick}: SKIPPED (no winProb)`);
+                        return;
+                    }
                     const f = calcKelly(oddsStr, winProb);
-                    if (f <= 0) return;
+                    if (f <= 0) {
+                        console.log(`[KELLY] ${day.date} - ${g.pick}: SKIPPED (Kelly=0, winProb=${(winProb*100).toFixed(1)}%, odds=${oddsStr}, source=${source})`);
+                        return;
+                    }
+                    dayHadBets = true;
                     const stake = bankroll * f;
                     const o = parseInt(oddsStr);
+                    const oldBankroll = newBankroll;
                     if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
                     else newBankroll -= stake;
+                    const profit = newBankroll - oldBankroll;
+                    console.log(`[KELLY] ${day.date} - ${g.pick}: BET $${stake.toFixed(2)} (${(f*100).toFixed(1)}% of $${bankroll.toFixed(2)}) | ${g.res} | Profit: ${profit >= 0 ? '+' : ''}$${profit.toFixed(2)} | winProb=${(winProb*100).toFixed(1)}% (${source})`);
                 });
+                if (!dayHadBets) {
+                    console.log(`[KELLY] ${day.date} - NO BETS (${decided.length} games but all skipped)`);
+                }
                 bankroll = Math.round(Math.max(0, newBankroll) * 100) / 100;
                 if (bankroll <= 0) bankroll = 100; // Auto-reload
                 data.push({ date: day.date, bankroll });
