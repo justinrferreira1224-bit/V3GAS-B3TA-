@@ -12682,9 +12682,13 @@
         
 
         // ===== MONTH MONEY CHART =====
-        let currentMonthTab = 'mar';
+        // Auto-detect current month
+        const now = new Date();
+        const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        const currentMonth = monthNames[now.getMonth()];
+        let currentMonthTab = currentMonth;
         let monthChartInstance = null;
-        let currentMoneyTab = 'mar'; // legacy compat
+        let currentMoneyTab = currentMonth; // legacy compat
 
         const MONTH_RANGES = {
             jan: { label: 'January',   startDay: 1,   endDay: 31  },
