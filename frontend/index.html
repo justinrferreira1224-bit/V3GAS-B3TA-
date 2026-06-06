@@ -12871,6 +12871,40 @@
             return Math.max(0, Math.min(f, 0.25)); // Cap at 25% max bet
         }
 
+        function estimateEdgeFromGame(g) {
+            // Fallback edge calculation for old games without edge saved
+            // Uses simplified version based on seeds, injuries, last10
+            const s1 = parseInt(g.s1) || 8;
+            const s2 = parseInt(g.s2) || 8;
+            const i1 = parseInt(g.i1) || 0;
+            const i2 = parseInt(g.i2) || 0;
+
+            // Parse last10 (format: "7-3")
+            const l1Parts = (g.l1 || "5-5").split('-');
+            const l2Parts = (g.l2 || "5-5").split('-');
+            const l1Wins = parseInt(l1Parts[0]) || 5;
+            const l2Wins = parseInt(l2Parts[0]) || 5;
+
+            // Simple scoring: seed advantage + last10 + injuries
+            let score1 = (16 - s1) * 4; // Better seed = higher score
+            let score2 = (16 - s2) * 4;
+            score1 += l1Wins * 1.5; // Last 10 wins
+            score2 += l2Wins * 1.5;
+            score1 -= i1 * 3; // Injury penalty
+            score2 -= i2 * 3;
+
+            // Add home court advantage to team 2
+            score2 += 5;
+
+            // Convert to percentage (50-75% range typically)
+            const total = score1 + score2;
+            const pickScore = g.pick === g.t1 ? score1 : score2;
+            let edge = (pickScore / total) * 100;
+            edge = Math.max(50, Math.min(75, edge)); // Cap between 50-75%
+
+            return edge;
+        }
+
         function calcKellyData(month) {
             // Kelly logic: uses Kelly Criterion formula, starts at $100, auto-reloads if broke
             const range = MONTH_RANGES[month];
@@ -12884,9 +12918,17 @@
                 let newBankroll = bankroll;
                 decided.forEach(g => {
                     const oddsStr = g.pick === g.t1 ? g.o1 : g.o2;
-                    // Use confidence if available, otherwise derive from edge
-                    const winProb = g.conf ? g.conf / 100 : (g.edge ? parseFloat(g.edge) / 100 : 0);
-                    if (!winProb) return;
+                    // Use confidence if available, otherwise edge, otherwise estimate
+                    let winProb;
+                    if (g.conf) {
+                        winProb = g.conf / 100;
+                    } else if (g.edge) {
+                        winProb = parseFloat(g.edge) / 100;
+                    } else {
+                        // Estimate edge for old games
+                        winProb = estimateEdgeFromGame(g) / 100;
+                    }
+                    if (!winProb || winProb <= 0) return;
                     const f = calcKelly(oddsStr, winProb);
                     if (f <= 0) return;
                     const stake = bankroll * f;
