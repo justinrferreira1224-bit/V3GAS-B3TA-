@@ -12900,11 +12900,12 @@
             // Add home court advantage to team 2
             score2 += 5;
 
-            // Convert to percentage (50-75% range typically)
+            // Convert to percentage
             const total = score1 + score2;
             const pickScore = g.pick === g.t1 ? score1 : score2;
             let edge = (pickScore / total) * 100;
-            edge = Math.max(50, Math.min(75, edge)); // Cap between 50-75%
+            // Cap between 51-95% (Kelly rejects 100%+ so we stay under)
+            edge = Math.max(51, Math.min(95, edge));
 
             return edge;
         }
