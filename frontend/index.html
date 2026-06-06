@@ -12872,16 +12872,32 @@
             if (!odds) return 0;
             const b = odds > 0 ? odds / 100 : 100 / Math.abs(odds);
             const f = (b * winProb - (1 - winProb)) / b;
+
+            // If Kelly says 0 or negative (bad bet mathematically),
+            // still bet minimum 1% if we have ANY confidence
+            if (f <= 0 && winProb > 0.5) {
+                return 0.01; // 1% minimum bet
+            }
+
             return Math.max(0, Math.min(f, 0.25)); // Cap at 25% max bet
         }
 
         function estimateEdgeFromGame(g) {
-            // Fallback edge calculation for old games without edge saved
-            // Uses simplified version based on seeds, injuries, last10
+            // Use REAL confidence calculation (same as app uses when making picks)
+            // 5-core system: seed gap, record, last10, odds, injuries
+
             const s1 = parseInt(g.s1) || 8;
             const s2 = parseInt(g.s2) || 8;
             const i1 = parseInt(g.i1) || 0;
             const i2 = parseInt(g.i2) || 0;
+
+            // Parse W-L records (format: "45-30")
+            const wl1Parts = (g.wl1 || "41-41").split('-');
+            const wl2Parts = (g.wl2 || "41-41").split('-');
+            const w1 = parseInt(wl1Parts[0]) || 41;
+            const l1Loss = parseInt(wl1Parts[1]) || 41;
+            const w2 = parseInt(wl2Parts[0]) || 41;
+            const l2Loss = parseInt(wl2Parts[1]) || 41;
 
             // Parse last10 (format: "7-3")
             const l1Parts = (g.l1 || "5-5").split('-');
@@ -12889,25 +12905,75 @@
             const l1Wins = parseInt(l1Parts[0]) || 5;
             const l2Wins = parseInt(l2Parts[0]) || 5;
 
-            // Simple scoring: seed advantage + last10 + injuries
-            let score1 = (16 - s1) * 4; // Better seed = higher score
-            let score2 = (16 - s2) * 4;
-            score1 += l1Wins * 1.5; // Last 10 wins
-            score2 += l2Wins * 1.5;
-            score1 -= i1 * 3; // Injury penalty
-            score2 -= i2 * 3;
+            // Parse odds
+            const o1 = parseInt(g.o1) || 0;
+            const o2 = parseInt(g.o2) || 0;
+            const o1IsFav = g.o1.includes('-');
+            const o2IsFav = g.o2.includes('-');
 
-            // Add home court advantage to team 2
-            score2 += 5;
+            // Figure out which team was picked and which is opponent
+            const pickedIsTeam1 = g.pick === g.t1;
+            const pickedSeed = pickedIsTeam1 ? s1 : s2;
+            const oppSeed = pickedIsTeam1 ? s2 : s1;
+            const pickedWins = pickedIsTeam1 ? w1 : w2;
+            const pickedLosses = pickedIsTeam1 ? l1Loss : l2Loss;
+            const oppWins = pickedIsTeam1 ? w2 : w1;
+            const oppLosses = pickedIsTeam1 ? l2Loss : l1Loss;
+            const pickedL10Wins = pickedIsTeam1 ? l1Wins : l2Wins;
+            const oppL10Wins = pickedIsTeam1 ? l2Wins : l1Wins;
+            const pickedInj = pickedIsTeam1 ? i1 : i2;
+            const oppInj = pickedIsTeam1 ? i2 : i1;
+            const pickedOdds = pickedIsTeam1 ? Math.abs(o1) : Math.abs(o2);
+            const pickedIsFav = pickedIsTeam1 ? o1IsFav : o2IsFav;
 
-            // Convert to percentage
-            const total = score1 + score2;
-            const pickScore = g.pick === g.t1 ? score1 : score2;
-            let edge = (pickScore / total) * 100;
-            // Cap between 51-95% (Kelly rejects 100%+ so we stay under)
-            edge = Math.max(51, Math.min(95, edge));
+            // 1. SEED GAP SCORE (max 35)
+            const seedGap = Math.abs(pickedSeed - oppSeed);
+            const seedGapScore = seedGap >= 10 ? 35
+                               : seedGap >= 7  ? 27
+                               : seedGap >= 4  ? 18
+                               : seedGap >= 1  ? 9
+                               : 0;
 
-            return edge;
+            // 2. RECORD SCORE (max 25)
+            const pickedWinPct = pickedWins / (pickedWins + pickedLosses);
+            const oppWinPct = oppWins / (oppWins + oppLosses);
+            const recordGap = pickedWinPct - oppWinPct;
+            const recordScore = recordGap >= 0.20 ? 25
+                              : recordGap >= 0.12 ? 19
+                              : recordGap >= 0.06 ? 13
+                              : recordGap >= 0    ? 7
+                              : recordGap >= -0.1 ? 2
+                              : 0;
+
+            // 3. LAST 10 SCORE (max 20)
+            const pickedL10Pct = (pickedL10Wins / 10) * 100;
+            const oppL10Pct = (oppL10Wins / 10) * 100;
+            const l10Score = (pickedL10Pct >= 70 && oppL10Pct <= 40) ? 20
+                           : (pickedL10Pct >= 70)                     ? 14
+                           : (pickedL10Pct >= 50 && oppL10Pct <= 30)  ? 11
+                           : (pickedL10Pct >= 50)                     ? 7
+                           : 0;
+
+            // 4. ODDS SCORE (max 12)
+            const oddsScore = pickedIsFav
+                ? (pickedOdds >= 500 ? 12
+                 : pickedOdds >= 300 ? 10
+                 : pickedOdds >= 200 ? 7
+                 : 4)
+                : 1;
+
+            // 5. INJURY SCORE (max 8)
+            const injGapVal = oppInj - pickedInj;
+            const injScore = injGapVal >= 4  ? 8
+                           : injGapVal >= 1  ? 5
+                           : injGapVal === 0 ? 1
+                           : injGapVal >= -2 ? -3
+                           : -6;
+
+            // TOTAL CONFIDENCE (0-100)
+            const confidenceScore = Math.max(0, Math.min(100, seedGapScore + recordScore + l10Score + oddsScore + injScore));
+
+            return confidenceScore;
         }
 
         function calcKellyData(month) {
