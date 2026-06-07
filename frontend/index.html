@@ -12806,12 +12806,15 @@
                 const dep = getDeposits('robego')[day.day];
                 if (dep) { bankroll += dep; bankroll = Math.round(bankroll * 100) / 100; }
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
-                if (decided.length === 0) { 
+                if (decided.length === 0) {
                     const dep2 = getDeposits('robego')[day.day];
                     if (dep2) data.push({ date: day.date + ' (+$' + dep2 + ')', bankroll });
-                    return; 
+                    return;
                 }
-                if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
+                // If busted, reload to $100 for this day
+                if (bankroll <= 0) {
+                    bankroll = 100;
+                }
                 const n = decided.length;
                 const stake = bankroll / n;
                 let newBankroll = 0;
@@ -12821,8 +12824,15 @@
                     if (g.res === 'W') newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
                 });
                 bankroll = Math.round(newBankroll * 100) / 100;
-                if (bankroll < 0) bankroll = 0;
-                data.push({ date: day.date, bankroll });
+                // Mark bust with black dot
+                if (bankroll === 0) {
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else if (bankroll < 0) {
+                    bankroll = 0;
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else {
+                    data.push({ date: day.date, bankroll });
+                }
             });
             return data;
         }
@@ -13116,10 +13126,18 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, `rgba(${chartColorRgb},0.4)`);
             gradient.addColorStop(1, `rgba(${chartColorRgb},0)`);
+            // Mark bust points with black dots
+            const pointColors = values.map((v, i) => {
+                if (data[i].bust) return '#000'; // Black dot for bust
+                if (i > 0 && v < data[i-1].bankroll) return '#555'; // Gray for loss
+                return chartColor; // Normal color
+            });
+            const pointRadii = values.map((v, i) => data[i].bust ? 8 : 5); // Bigger dots for busts
+
             monthChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: { labels, datasets: [{ data: values, borderColor: chartColor, borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: values.map((v,i) => i > 0 && v < data[i-1].bankroll ? '#555' : chartColor), pointRadius: 5, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
-                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtMoney(ctx.raw) }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
+                data: { labels, datasets: [{ data: values, borderColor: chartColor, borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: pointColors, pointRadius: pointRadii, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
+                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => data[ctx.dataIndex].bust ? 'BUST - Reload $100' : fmtMoney(ctx.raw) }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
             });
             const startInput = document.getElementById('monthStartInput');
             if (startInput) {
