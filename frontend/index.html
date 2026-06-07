@@ -12850,7 +12850,10 @@
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
                 const jdep2 = getDeposits('justin')[day.day];
                 if (decided.length === 0) { if (jdep2) data.push({ date: day.date + ' (+$' + jdep2 + ')', bankroll }); return; }
-                if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
+                // If busted, reload to $100 for this day
+                if (bankroll <= 0) {
+                    bankroll = 100;
+                }
                 // Sort by odds descending (most positive first)
                 const sorted = [...decided].sort((a, b) => {
                     const oA = parseInt(a.pick === a.t1 ? a.o1 : a.o2);
@@ -12866,8 +12869,15 @@
                     else newBankroll -= stake;
                 });
                 bankroll = Math.round(newBankroll * 100) / 100;
-                if (bankroll < 0) bankroll = 0;
-                data.push({ date: day.date, bankroll });
+                // Mark bust with black dot
+                if (bankroll === 0) {
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else if (bankroll < 0) {
+                    bankroll = 0;
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else {
+                    data.push({ date: day.date, bankroll });
+                }
             });
             return data;
         }
@@ -12998,7 +13008,10 @@
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
                 if (decided.length === 0) return;
-                if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
+                // If busted, reload to $100 for this day
+                if (bankroll <= 0) {
+                    bankroll = 100;
+                }
 
                 const n = decided.length;
                 // Bet sizing: 5+ games = split 100%, 1-4 games = 20% each
@@ -13042,8 +13055,15 @@
                 });
 
                 bankroll = Math.round(newBankroll * 100) / 100;
-                if (bankroll < 0) bankroll = 0;
-                data.push({ date: day.date, bankroll });
+                // Mark bust with black dot
+                if (bankroll === 0) {
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else if (bankroll < 0) {
+                    bankroll = 0;
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else {
+                    data.push({ date: day.date, bankroll });
+                }
             });
 
             return data;
@@ -13060,7 +13080,10 @@
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
                 if (decided.length === 0) return;
-                if (bankroll <= 0) bankroll = 100; // Auto-reload
+                // If busted, reload to $100 for this day
+                if (bankroll <= 0) {
+                    bankroll = 100;
+                }
 
                 // Calculate confidence for each game and attach it
                 const gamesWithConf = decided.map(g => {
@@ -13099,8 +13122,16 @@
                 });
 
                 bankroll = Math.round(Math.max(0, newBankroll) * 100) / 100;
-                if (bankroll <= 0) bankroll = 100; // Auto-reload
-                data.push({ date: day.date, bankroll });
+                // Mark bust with black dot
+                if (bankroll === 0) {
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                    bankroll = 100; // Reload for next day
+                } else if (bankroll < 0) {
+                    bankroll = 0;
+                    data.push({ date: day.date, bankroll: 0, bust: true });
+                } else {
+                    data.push({ date: day.date, bankroll });
+                }
             });
 
             return data;
