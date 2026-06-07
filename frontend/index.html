@@ -2321,6 +2321,7 @@
                             <div id="subTabRobego" onclick="showMoneySubTab('robego')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#ef4444; cursor:pointer; border-bottom:2px solid #ef4444; letter-spacing:1px;">ROB</div>
                             <div id="subTabJustin" onclick="showMoneySubTab('justin')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">JUSTIN</div>
                             <div id="subTabKelly" onclick="showMoneySubTab('kelly')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">KELLY</div>
+                            <div id="subTabEV" onclick="showMoneySubTab('ev')" style="flex:1; padding:8px; text-align:center; font-size:10px; font-weight:800; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">+EV</div>
                         </div>
                     </div>
                     <div id="monthChartContent" style="flex:1; padding:16px 14px; display:flex; flex-direction:column; gap:12px;">
@@ -12976,6 +12977,68 @@
             return confidenceScore;
         }
 
+        function calcEVData(month) {
+            // +EV logic: always bet the underdog (highest odds)
+            // Bet sizing: 5+ games = split 100%, 1-4 games = 20% each
+            const range = MONTH_RANGES[month];
+            let bankroll = 100;
+            const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
+
+            betLog.forEach(day => {
+                if (day.day < range.startDay || day.day > range.endDay) return;
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                if (decided.length === 0) return;
+                if (bankroll <= 0) { data.push({ date: day.date, bankroll: 0 }); return; }
+
+                const n = decided.length;
+                // Bet sizing: 5+ games = split 100%, 1-4 games = 20% each
+                const stake = n >= 5 ? bankroll / n : bankroll * 0.20;
+                let newBankroll = 0;
+
+                decided.forEach((g, i) => {
+                    // Determine actual stake (last game gets remainder if splitting 100%)
+                    const s = (n >= 5 && i === n - 1) ? bankroll - (stake * (n - 1)) : stake;
+
+                    // Compare odds to find underdog (higher odds = underdog)
+                    const o1 = parseInt(g.o1);
+                    const o2 = parseInt(g.o2);
+
+                    // Determine underdog (highest odds)
+                    let underdog, underdogOdds;
+                    if (o1 > o2) {
+                        underdog = g.t1;
+                        underdogOdds = o1;
+                    } else {
+                        underdog = g.t2;
+                        underdogOdds = o2;
+                    }
+
+                    // Check if underdog won
+                    let underdogWon;
+                    if (g.pick === underdog) {
+                        // Our pick was the underdog
+                        underdogWon = g.res === 'W';
+                    } else {
+                        // Our pick was NOT the underdog, so invert result
+                        underdogWon = g.res === 'L';
+                    }
+
+                    // Calculate payout
+                    if (underdogWon) {
+                        const payout = underdogOdds > 0 ? s + s * (underdogOdds / 100) : s + s * (100 / Math.abs(underdogOdds));
+                        newBankroll += payout;
+                    }
+                    // If underdog lost, we get nothing (newBankroll stays at 0 or doesn't add)
+                });
+
+                bankroll = Math.round(newBankroll * 100) / 100;
+                if (bankroll < 0) bankroll = 0;
+                data.push({ date: day.date, bankroll });
+            });
+
+            return data;
+        }
+
         function calcKellyData(month) {
             // Kelly logic: confidence-based splits (same as game log bet sizing)
             // Top 3 games by confidence get 35%, 25%, 20%; rest split remaining 20%
@@ -13041,14 +13104,15 @@
             let data;
             if (currentMoneySubTab === 'justin') data = calcJustinData(month);
             else if (currentMoneySubTab === 'kelly') data = calcKellyData(month);
+            else if (currentMoneySubTab === 'ev') data = calcEVData(month);
             else data = calcMonthData(month);
             const startAmount = getMonthStart(month);
             const ctx = canvas.getContext('2d');
             const labels = data.map(d => d.date);
             const values = data.map(d => d.bankroll);
-            // Color per tab: Rob=red, Justin=blue, Kelly=gold
-            const chartColor = currentMoneySubTab === 'robego' ? '#ef4444' : (currentMoneySubTab === 'kelly' ? '#fbbf24' : '#3b82f6');
-            const chartColorRgb = currentMoneySubTab === 'robego' ? '239,68,68' : (currentMoneySubTab === 'kelly' ? '251,191,36' : '59,130,246');
+            // Color per tab: Rob=red, Justin=blue, Kelly=gold, +EV=purple
+            const chartColor = currentMoneySubTab === 'robego' ? '#ef4444' : (currentMoneySubTab === 'kelly' ? '#fbbf24' : (currentMoneySubTab === 'ev' ? '#a855f7' : '#3b82f6'));
+            const chartColorRgb = currentMoneySubTab === 'robego' ? '239,68,68' : (currentMoneySubTab === 'kelly' ? '251,191,36' : (currentMoneySubTab === 'ev' ? '168,85,247' : '59,130,246'));
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, `rgba(${chartColorRgb},0.4)`);
             gradient.addColorStop(1, `rgba(${chartColorRgb},0)`);
@@ -13060,15 +13124,17 @@
             const startInput = document.getElementById('monthStartInput');
             if (startInput) {
                 startInput.textContent = fmtMoney(startAmount);
-                const color = currentMoneySubTab === 'robego' ? '#ef4444' : (currentMoneySubTab === 'kelly' ? '#fbbf24' : '#3b82f6');
+                const color = currentMoneySubTab === 'robego' ? '#ef4444' : (currentMoneySubTab === 'kelly' ? '#fbbf24' : (currentMoneySubTab === 'ev' ? '#a855f7' : '#3b82f6'));
                 startInput.style.color = color;
             }
             const robegoTab = document.getElementById('subTabRobego');
             const justinTab = document.getElementById('subTabJustin');
             const kellyTab = document.getElementById('subTabKelly');
+            const evTab = document.getElementById('subTabEV');
             if (robegoTab) { robegoTab.style.color = currentMoneySubTab === 'robego' ? '#ef4444' : '#555'; robegoTab.style.borderBottomColor = currentMoneySubTab === 'robego' ? '#ef4444' : 'transparent'; }
             if (justinTab) { justinTab.style.color = currentMoneySubTab === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = currentMoneySubTab === 'justin' ? '#3b82f6' : 'transparent'; }
             if (kellyTab) { kellyTab.style.color = currentMoneySubTab === 'kelly' ? '#fbbf24' : '#555'; kellyTab.style.borderBottomColor = currentMoneySubTab === 'kelly' ? '#fbbf24' : 'transparent'; }
+            if (evTab) { evTab.style.color = currentMoneySubTab === 'ev' ? '#a855f7' : '#555'; evTab.style.borderBottomColor = currentMoneySubTab === 'ev' ? '#a855f7' : 'transparent'; }
             const current = values[values.length - 1] || startAmount;
             const gain = current - startAmount;
             const gainPct = startAmount > 0 ? Math.round((gain / startAmount) * 100) : 0;
@@ -13121,13 +13187,15 @@
             const robegoTab = document.getElementById('subTabRobego');
             const justinTab = document.getElementById('subTabJustin');
             const kellyTab = document.getElementById('subTabKelly');
+            const evTab = document.getElementById('subTabEV');
             const startInput = document.getElementById('monthStartInput');
             // Highlight active tab with its color
             if (robegoTab) { robegoTab.style.color = sub === 'robego' ? '#ef4444' : '#555'; robegoTab.style.borderBottomColor = sub === 'robego' ? '#ef4444' : 'transparent'; }
             if (justinTab) { justinTab.style.color = sub === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = sub === 'justin' ? '#3b82f6' : 'transparent'; }
             if (kellyTab) { kellyTab.style.color = sub === 'kelly' ? '#fbbf24' : '#555'; kellyTab.style.borderBottomColor = sub === 'kelly' ? '#fbbf24' : 'transparent'; }
+            if (evTab) { evTab.style.color = sub === 'ev' ? '#a855f7' : '#555'; evTab.style.borderBottomColor = sub === 'ev' ? '#a855f7' : 'transparent'; }
             // Update start input color
-            const color = sub === 'robego' ? '#ef4444' : (sub === 'kelly' ? '#fbbf24' : '#3b82f6');
+            const color = sub === 'robego' ? '#ef4444' : (sub === 'kelly' ? '#fbbf24' : (sub === 'ev' ? '#a855f7' : '#3b82f6'));
             if (startInput) startInput.style.color = color;
             setTimeout(() => buildMonthChart(currentMonthTab), 50);
         }
