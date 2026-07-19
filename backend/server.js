@@ -3,6 +3,7 @@ const cors = require('cors');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fs = require('fs').promises;
 const path = require('path');
+const { getSeasonYear } = require('./lib/seasonYear');
 
 const app = express();
 app.use(cors());
@@ -111,7 +112,8 @@ app.get('/api/state/:sport', async (req, res) => {
 
         // Transform betLog if it exists
         if (data && data.betLog) {
-            data.betLog = transformBetLog(data.betLog, sport);
+            const seasonYear = getSeasonYear(sport, new Date());
+            data.betLog = transformBetLog(data.betLog[seasonYear] || {}, sport);
         }
 
         res.json(data || {});
@@ -223,7 +225,8 @@ app.delete('/api/:sport/deleteGame', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields: date, gameId' });
         }
 
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games/${gameId}.json`, {
+        const seasonYear = getSeasonYear(sport, new Date());
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${seasonYear}/${date}/games/${gameId}.json`, {
             method: 'DELETE'
         });
 
@@ -252,7 +255,8 @@ app.post('/api/:sport/gameResult', async (req, res) => {
             res: res
         };
 
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games/${gameId}.json`, {
+        const seasonYear = getSeasonYear(sport, new Date());
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${seasonYear}/${date}/games/${gameId}.json`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
@@ -278,7 +282,8 @@ app.post('/api/:sport/addGame', async (req, res) => {
         }
 
         // Add game to the games array for this date
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${date}/games.json`, {
+        const seasonYear = getSeasonYear(sport, new Date());
+        const r = await fetch(`${FB_BASE}/${sport}/betLog/${seasonYear}/${date}/games.json`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(game)
@@ -307,13 +312,14 @@ app.post('/api/:sport/unlockDay', async (req, res) => {
         const allSports = ['mlb', 'nba', 'nfl', 'ncaab', 'ncaaf'];
 
         // Update unlocked state for this date across ALL sports
-        const promises = allSports.map(s =>
-            fetch(`${FB_BASE}/${s}/betLog/${date}/unlocked.json`, {
+        const promises = allSports.map(s => {
+            const seasonYear = getSeasonYear(s, new Date());
+            return fetch(`${FB_BASE}/${s}/betLog/${seasonYear}/${date}/unlocked.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(unlocked)
-            })
-        );
+            });
+        });
 
         await Promise.all(promises);
 
