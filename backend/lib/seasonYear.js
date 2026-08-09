@@ -27,4 +27,30 @@ function getSeasonYear(sport, date) {
     return `${startYear}-${endYearShort}`;
 }
 
-module.exports = { getSeasonYear, SEASON_START_MONTH };
+// Given a sport and a "MM-DD" date (no year, as received from the frontend),
+// resolves the correct season-year by testing which real calendar year for
+// that month/day is closest to today, then running that through
+// getSeasonYear. This is what lets saves near a season boundary (e.g.
+// pre-loading next season's opener before the new season has "started"
+// relative to today) land in the right season-year folder, instead of
+// always inheriting whatever season today happens to fall in.
+function resolveSeasonYear(sport, mmdd) {
+    const [month, day] = mmdd.split('-').map(Number);
+    const now = new Date();
+    const thisYear = now.getFullYear();
+
+    let closest = null;
+    let closestDiff = Infinity;
+    for (const year of [thisYear - 1, thisYear, thisYear + 1]) {
+        const candidate = new Date(year, month - 1, day);
+        const diff = Math.abs(candidate - now);
+        if (diff < closestDiff) {
+            closestDiff = diff;
+            closest = candidate;
+        }
+    }
+
+    return getSeasonYear(sport, closest);
+}
+
+module.exports = { getSeasonYear, resolveSeasonYear, SEASON_START_MONTH };
