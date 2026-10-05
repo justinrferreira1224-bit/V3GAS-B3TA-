@@ -2562,6 +2562,22 @@
         const USER_DATA_FIELDS = ['bankroll', 'bankrollGoal', 'previousBankroll', 'gwBankroll'];
         let userDataLoaded = false;
 
+        // Game log cards hidden by swipe-delete, keyed "<sport>_<gameId>" and
+        // synced with Firebase so they stay hidden on every device
+        let hiddenLogCards = {};
+
+        // Logbook entries used to be saved only as a localStorage snapshot (and
+        // were never shown). Set them aside once, before any save rewrites
+        // appState, so loadLogbookHidden() can back them up to Firebase.
+        try {
+            if (localStorage.getItem('legacyLogbookEntries') === null) {
+                const legacy = JSON.parse(localStorage.getItem('appState') || '{}').logbookEntries;
+                if (Array.isArray(legacy) && legacy.length > 0) {
+                    localStorage.setItem('legacyLogbookEntries', JSON.stringify(legacy));
+                }
+            }
+        } catch(e) {}
+
         // NBA Teams data with logos, prefixes, and team colors (Updated 2025-26 Season)
         const nbaTeams = [
             { name: 'Hawks', wins: 31, losses: 31, conference: 'East', seed: 9, prefix: 'ATL', logo: 'https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2021/01/atlanta_hawks_2021-pres_w.png', color1: '#E03A3E', color2: '#C1D32F', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
@@ -8122,22 +8138,6 @@
                 nationalsMLBEntry.style.display = 'none';
                 logContent.appendChild(nationalsMLBEntry);
 
-                // Restore saved logbook entries from Firebase (or localStorage fallback)
-                if (pendingLogbookEntries) {
-                    restoreLogbookEntries(pendingLogbookEntries);
-                    pendingLogbookEntries = null;
-                } else {
-                    // Firebase may not have loaded yet — try localStorage immediately
-                    try {
-                        const raw = localStorage.getItem('appState');
-                        if (raw) {
-                            const data = JSON.parse(raw);
-                            if (data.logbookEntries && data.logbookEntries.length > 0) {
-                                restoreLogbookEntries(data.logbookEntries);
-                            }
-                        }
-                    } catch(e) {}
-                }
             }
             
             // Initialize with current sport (MLB)
@@ -9264,6 +9264,9 @@
                         .then(r => r.json())
                         .then(data => {
                             console.log('🔥 SAVED TO FIREBASE:', currentDate, data);
+                            // Use the Firebase id so result/delete/hide target this game
+                            const saved = targetDay.games.find(g => g._id === betId);
+                            if (saved && data.gameId) saved._id = data.gameId;
                         })
                         .catch(err => {
                             console.error('❌ FIREBASE SAVE FAILED:', err);
@@ -9491,7 +9494,13 @@
                             date: targetDay.date,
                             game: firebaseGame
                         })
-                    });
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            // Use the Firebase id so result/delete/hide target this game
+                            if (data.gameId) localGame._id = data.gameId;
+                        })
+                        .catch(err => console.error('❌ Failed to save game to Firebase:', err));
 
                     // Re-render if viewing this day
                     if (activeBetDay === targetDay.day) renderBetDayCards();
@@ -10162,19 +10171,13 @@
                     entry.style.opacity = '0';
                     setTimeout(() => {
                         entry.remove();
-                        // Save deleted team to Firebase hidden list
-                        if (teamName) {
-                            try {
-                                fetch(BACKEND_URL + '/api/deletedLogbook').then(r => r.json()).then(existing => {
-                                    const deleted = existing || [];
-                                    if (!deleted.includes(teamName)) deleted.push(teamName);
-                                    fetch(BACKEND_URL + '/api/deletedLogbook', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify(deleted)
-                                    });
-                                });
-                            } catch(e) {}
+                        // Hide this game's card on every device (the bet log itself is untouched)
+                        const cardId = entry.getAttribute('data-card-id');
+                        if (cardId) {
+                            hiddenLogCards[cardId] = true;
+                            fetch(BACKEND_URL + '/api/logbook/hidden/' + encodeURIComponent(cardId), { method: 'POST' })
+                                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); })
+                                .catch(err => console.error('❌ Failed to hide game log card in Firebase:', cardId, err));
                         }
                         saveAppState();
                     }, 300);
@@ -11125,7 +11128,6 @@
             .catch(e => console.warn('MLB standings fetch failed', e));
 
         // ===== AUTO INJURY FETCH =====
-        let pendingLogbookEntries = null;
         let cachedInjuries = {};
 
         const MLB_TEAM_IDS = {
@@ -11376,24 +11378,9 @@
                     overall: d.overall || '',
                     games: d.games.map(g => ({...g, res: g.res === null ? 'pending' : g.res}))
                 }));
-                const logContent = document.getElementById('logContent');
-                const logbookEntries = [];
-                if (logContent) {
-                    logContent.querySelectorAll('.log-entry:not(.permanent-example)').forEach(entry => {
-                        const spans = entry.querySelectorAll('span');
-                        const teamName = spans[0] ? spans[0].textContent.trim() : '';
-                        const odds = entry.getAttribute('data-odds') || '';
-                        const betType = entry.getAttribute('data-bet-type') || '';
-                        const confidence = entry.getAttribute('data-confidence') || '0';
-                        const betInput = entry.querySelector('.bet-amount-input');
-                        const betAmount = betInput ? betInput.value : '';
-                        logbookEntries.push({ teamName, odds, betType, confidence, betAmount });
-                    });
-                }
                 const payload = {
                     betLog: betLogState,
-                    activeBetDay: activeBetDay,
-                    logbookEntries: logbookEntries
+                    activeBetDay: activeBetDay
                 };
                 // Bankroll only goes out once it's been loaded from Firebase, and
                 // only fields this device actually has (never defaults)
@@ -11414,7 +11401,6 @@
         }
 
 
-        let deletedLogbookTeams = [];
 
         // Apply playoff model - returns combined playoff + regular season percentages
         function applyPlayoffModel(awayTeam, homeTeam, awaySeed, homeSeed, awayCore4Pct, homeCore4Pct, dayNumber) {
@@ -11755,6 +11741,7 @@
 
         function loadAppState(callback) {
             loadUserData();
+            loadLogbookHidden();
             // Load current sport data from backend (backend transforms Firebase structure)
             const sport = currentSport || 'nba';
             fetch(BACKEND_URL + '/api/state/' + sport)
@@ -11770,17 +11757,6 @@
                         }
                     }
                     if (data && data.activeBetDay) activeBetDay = data.activeBetDay;
-                    if (data && data.logbookEntries && data.logbookEntries.length > 0) {
-                        pendingLogbookEntries = data.logbookEntries;
-                        // If logContent already exists (page already built), restore now
-                        const logContent = document.getElementById('logContent');
-                        if (logContent && logContent.querySelectorAll('.permanent-example').length > 0) {
-                            // Clear any already-restored entries first to avoid duplicates
-                            logContent.querySelectorAll('.log-entry:not(.permanent-example)').forEach(e => e.remove());
-                            restoreLogbookEntries(data.logbookEntries);
-                            pendingLogbookEntries = null;
-                        }
-                    }
                     if (callback) callback();
                 })
                 .catch(() => {
@@ -11815,40 +11791,56 @@
                 });
         }
 
-        function restoreLogbookEntries(entries) {
-            if (!entries || entries.length === 0) return;
-            const logContent = document.getElementById('logContent');
-            if (!logContent) return;
-            const permanentExamples = logContent.querySelectorAll('.log-entry.permanent-example');
-            entries.forEach(saved => {
-                // Skip if this team was deleted
-                if (deletedLogbookTeams.includes(saved.teamName)) return;
-                let matchingExample = null;
-                permanentExamples.forEach(example => {
-                    const span = example.querySelector('span');
-                    if (span && span.textContent.trim() === saved.teamName) matchingExample = example;
-                });
-                if (!matchingExample) return;
-                const logEntry = matchingExample.cloneNode(true);
-                logEntry.classList.remove('permanent-example');
-                logEntry.style.display = 'grid';
-                logEntry.setAttribute('data-bet-type', saved.betType);
-                logEntry.setAttribute('data-odds', saved.odds);
-                logEntry.setAttribute('data-confidence', saved.confidence);
-                const oddsSpans = logEntry.querySelectorAll('span');
-                if (oddsSpans.length >= 2) oddsSpans[1].textContent = saved.odds;
-                const betInput = logEntry.querySelector('input');
-                if (betInput) {
-                    betInput.removeAttribute('disabled');
-                    betInput.classList.add('bet-amount-input');
-                    betInput.setAttribute('readonly', 'true');
-                    betInput.style.cursor = 'default';
-                    if (saved.betAmount) betInput.value = saved.betAmount;
-                }
-                logContent.insertBefore(logEntry, logContent.firstChild);
+        // Game log card id: "<sport>_<gameId>" (Firebase-safe characters only)
+        function logCardId(game) {
+            return ((game.sport || 'nba') + '_' + String(game._id || '')).replace(/[^A-Za-z0-9_-]/g, '_');
+        }
+
+        // Load hidden game log cards from Firebase, re-render the log if it's
+        // open, and back up any old localStorage logbook entries (add-only)
+        function loadLogbookHidden() {
+            fetch(BACKEND_URL + '/api/logbook/hidden')
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(hidden => {
+                    // Merge so a card hidden on this device before the load stays hidden
+                    hiddenLogCards = { ...hiddenLogCards, ...(hidden || {}) };
+                    const logPanel = document.getElementById('logPanel');
+                    if (logPanel && logPanel.classList.contains('open')) renderGameLogForDay(activeBetDay);
+                })
+                .catch(err => console.warn('Hidden game log cards failed to load', err));
+
+            let legacy = null;
+            try { legacy = JSON.parse(localStorage.getItem('legacyLogbookEntries') || 'null'); } catch(e) {}
+            if (!Array.isArray(legacy) || legacy.length === 0) return;
+
+            // Id from the entry's content, so the same entry backed up from two
+            // devices lands on the same key instead of duplicating
+            const entries = {};
+            legacy.forEach(e => {
+                const key = [e.teamName, e.odds, e.betType, e.confidence].join('|');
+                let h = 5381;
+                for (let i = 0; i < key.length; i++) h = ((h * 33) ^ key.charCodeAt(i)) >>> 0;
+                entries['legacy_' + h.toString(16)] = e;
             });
-            sortLogByConfidence();
-            setTimeout(() => { calculateBetAmounts(); renderConfChips(); }, 50);
+            fetch(BACKEND_URL + '/api/logbook/legacy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entries })
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    // Backed up — drop both local copies so it isn't re-sent every load
+                    localStorage.removeItem('legacyLogbookEntries');
+                    try {
+                        const appState = JSON.parse(localStorage.getItem('appState') || '{}');
+                        delete appState.logbookEntries;
+                        localStorage.setItem('appState', JSON.stringify(appState));
+                    } catch(e) {}
+                })
+                .catch(err => console.warn('Logbook backup failed; will retry next load', err));
         }
 
         function reapplyMLBStandingsFromBetLog() {
@@ -12579,7 +12571,11 @@
             const day = betLog.find(d => d.day === dayNum);
             if (!day || !day.games) return;
 
-            day.games.filter(g => (g.sport || "nba") === currentSport).forEach(game => {
+            day.games.filter(gameMatchesCurrentSport).forEach(game => {
+                // Swipe-deleted cards stay hidden on every device
+                const cardId = logCardId(game);
+                if (hiddenLogCards[cardId]) return;
+
                 const pickName = game.pick;
                 const pickIsHome = game.pick === game.t2;
                 const pickOdds = pickIsHome ? game.o2 : game.o1;
@@ -12627,6 +12623,7 @@
                     card.style.display = 'grid';
                     card.setAttribute('data-confidence', conf);
                     card.setAttribute('data-odds', pickOdds || '+100');
+                    card.setAttribute('data-card-id', cardId);
                     // Update odds display
                     const spans = card.querySelectorAll('span');
                     if (spans.length >= 2) spans[1].textContent = pickOdds || '+100';

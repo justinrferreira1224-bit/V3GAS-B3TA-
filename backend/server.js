@@ -504,6 +504,79 @@ app.post('/api/state', async (req, res) => {
     }
 });
 
+// ── GAME LOG ─────────────────────────────────────────────────
+// The game log is built from the bet log. Swipe-delete hides a card (by
+// "<sport>_<gameId>") without touching the bet log; the hidden list lives in
+// Firebase so a hidden card stays hidden on every device.
+// Old localStorage logbook snapshots are backed up add-only to legacyEntries.
+
+const LOG_ID_RE = /^[A-Za-z0-9_-]{1,120}$/;
+
+app.get('/api/logbook/hidden', async (req, res) => {
+    try {
+        const r = await fetch(`${FB_BASE}/logbook/hidden.json`);
+        if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        res.json((await r.json()) || {});
+    } catch(e) {
+        console.error('Logbook hidden GET failed:', e);
+        res.status(500).json({ error: 'Failed to load hidden game log cards' });
+    }
+});
+
+app.post('/api/logbook/hidden/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        if (!LOG_ID_RE.test(id)) return res.status(400).json({ error: 'Invalid card id' });
+        const r = await fetch(`${FB_BASE}/logbook/hidden/${id}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: 'true'
+        });
+        if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        console.log(`✅ Hid game log card ${id}`);
+        res.json({ success: true });
+    } catch(e) {
+        console.error('Logbook hide failed:', e);
+        res.status(500).json({ error: 'Failed to hide game log card' });
+    }
+});
+
+// Add-only: entries whose id already exists in Firebase are never overwritten
+app.post('/api/logbook/legacy', async (req, res) => {
+    try {
+        const entries = (req.body && req.body.entries) || {};
+        const existingRes = await fetch(`${FB_BASE}/logbook/legacyEntries.json?shallow=true`);
+        if (!existingRes.ok) throw new Error(`Firebase responded ${existingRes.status}`);
+        const existing = (await existingRes.json()) || {};
+
+        const toAdd = {};
+        Object.entries(entries).forEach(([id, e]) => {
+            if (!LOG_ID_RE.test(id) || existing[id] || !e || typeof e !== 'object') return;
+            toAdd[id] = {
+                teamName: String(e.teamName || ''),
+                odds: String(e.odds || ''),
+                betType: String(e.betType || ''),
+                confidence: String(e.confidence || ''),
+                betAmount: String(e.betAmount || '')
+            };
+        });
+
+        if (Object.keys(toAdd).length > 0) {
+            const r = await fetch(`${FB_BASE}/logbook/legacyEntries.json`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(toAdd)
+            });
+            if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        }
+        console.log(`✅ Legacy logbook backup: ${Object.keys(toAdd).length} added`);
+        res.json({ success: true, added: Object.keys(toAdd).length, skipped: Object.keys(entries).length - Object.keys(toAdd).length });
+    } catch(e) {
+        console.error('Legacy logbook backup failed:', e);
+        res.status(500).json({ error: 'Failed to back up logbook entries' });
+    }
+});
+
 // ── MLB ROUTES ───────────────────────────────────────────────
 
 app.get('/api/mlb/pitching/:team', async (req, res) => {
