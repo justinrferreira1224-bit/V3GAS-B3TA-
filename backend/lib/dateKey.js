@@ -22,4 +22,22 @@ function fromStorageKey(storageKey) {
     return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-module.exports = { toStorageKey, fromStorageKey };
+// Today's calendar date in Pacific time as { year, month, day }, so "today"
+// doesn't roll over at 5pm the way UTC does.
+// e.g. todayPacific(new Date('2026-10-06T00:30:00Z')) -> { year: 2026, month: 10, day: 5 }
+function todayPacific(now = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(now);
+    const get = type => Number(parts.find(p => p.type === type).value);
+    return { year: get('year'), month: get('month'), day: get('day') };
+}
+
+// True if an "MM-DD" (or "M-D") date is today in Pacific time
+function isTodayPacific(mmdd, now = new Date()) {
+    const [month, day] = String(mmdd).split('-').map(Number);
+    const today = todayPacific(now);
+    return month === today.month && day === today.day;
+}
+
+module.exports = { toStorageKey, fromStorageKey, todayPacific, isTodayPacific };

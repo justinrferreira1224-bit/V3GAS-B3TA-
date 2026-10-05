@@ -4387,8 +4387,8 @@
                 const pickTeam = winner.includes(selectedBBHomeTeam.name) ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                 const pickOdds = winner.includes(selectedBBHomeTeam.name) ? homeOdds : awayOdds;
 
-                const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0);
-                const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : betLog[betLog.length-1].day));
+                // Games can only be added to today's date
+                const targetDay = getTodayBetDay(false);
                 if (targetDay) {
                     const newGame = {
                         t1: selectedBBAwayTeam.name,
@@ -4455,9 +4455,8 @@
             updateBetHistoryDisplay();
             saveAppState();
             
-            // Auto-append to bet log on newest unlocked day
-            const unlockedDay = betLog.slice().reverse().find(d => d.unlocked || d.games.length > 0 && d.day <= 28);
-            const targetDay = betLog.find(d => d.day === (unlockedDay ? unlockedDay.day : 28));
+            // Auto-append to bet log on today's date only
+            const targetDay = getTodayBetDay(false);
             if (targetDay) {
                 const newGame = {
                     t1: betData.teamA || 'Team A',
@@ -9129,10 +9128,10 @@
                     const pickTeam   = pickIsHome ? selectedBBHomeTeam.name : selectedBBAwayTeam.name;
                     const pickOdds   = pickIsHome ? homeOdds : awayOdds;
 
-                    // Find last unlocked day to append to
-                    const targetDay = betLog.slice().reverse().find(d => d.unlocked);
-                    if (!targetDay) {
-                        alert('Please unlock a day first (tap lock 5x)');
+                    // Games can only be added to today's date, once it's unlocked
+                    const targetDay = getTodayBetDay(false);
+                    if (!targetDay || !targetDay.unlocked) {
+                        alert("Please unlock today's date first (tap lock 5x)");
                         return;
                     }
                     const currentDate = targetDay.date;
@@ -9419,29 +9418,9 @@
                     }
                 }
 
-                // Save to betLog - find most recent unlocked day OR paper period (days 1-28)
-                let targetDay = betLog.slice().reverse().find(d => d.unlocked || d.day <= 28);
-
-                // If no unlocked day found, create entry for today
-                if (!targetDay) {
-                    const today = new Date();
-                    const month = String(today.getMonth() + 1).padStart(2, '0');
-                    const day = String(today.getDate()).padStart(2, '0');
-                    const dateStr = `${month}-${day}`;
-                    const jan1 = new Date(today.getFullYear(), 0, 1);
-                    const dayOfYear = Math.floor((today - jan1) / (1000 * 60 * 60 * 24)) + 1;
-
-                    targetDay = {
-                        day: dayOfYear,
-                        date: dateStr,
-                        type: 'REAL',
-                        overall: '',
-                        unlocked: true,
-                        games: []
-                    };
-                    betLog.push(targetDay);
-                    betLog.sort((a, b) => a.day - b.day);
-                }
+                // Save to betLog - games can only be added to today's date
+                // (Pacific); creates today's entry if it doesn't exist yet
+                const targetDay = getTodayBetDay(true);
 
                 if (targetDay) {
                     const betId = Date.now();
@@ -12315,7 +12294,42 @@
             }
         }
 
+        // Today's date as "MM-DD" in Pacific time (matches the backend, which
+        // only accepts new games for today's Pacific date)
+        function todayPacificMMDD() {
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const get = type => parts.find(p => p.type === type).value;
+            return `${get('month')}-${get('day')}`;
+        }
+
+        function isTodayPacific(mmdd) {
+            const [m, d] = String(mmdd || '').split('-').map(Number);
+            const [tm, td] = todayPacificMMDD().split('-').map(Number);
+            return m === tm && d === td;
+        }
+
+        // Today's betLog day (Pacific). Day number uses the same day-of-year
+        // math as the backend's transformBetLog, so a created day lines up.
+        function getTodayBetDay(createIfMissing) {
+            let today = betLog.find(d => isTodayPacific(d.date));
+            if (!today && createIfMissing) {
+                const date = todayPacificMMDD();
+                const [m, d] = date.split('-').map(Number);
+                const dayOfYear = Math.floor((Date.UTC(2026, m - 1, d) - Date.UTC(2026, 0, 1)) / (1000 * 60 * 60 * 24)) + 1;
+                today = { day: dayOfYear, date, type: 'REAL', overall: '', unlocked: true, games: [] };
+                betLog.push(today);
+                betLog.sort((a, b) => a.day - b.day);
+            }
+            return today;
+        }
+
         function tapAppend(dayNum) {
+            // Games can only be added on today's date
+            const tappedDay = betLog.find(d => d.day === dayNum);
+            if (!tappedDay || !isTodayPacific(tappedDay.date)) return;
+
             // block if any currently unlocked day has pending W/L
             const currentUnlocked = betLog.find(d => d.unlocked && d.games.some(g => g.res === null));
             if (currentUnlocked && currentUnlocked.day !== dayNum) {
@@ -12404,7 +12418,8 @@
             });
             console.log('filteredGames:', filteredGames.length, filteredGames);
 
-            const isBlank = filteredGames.length === 0 && !day.unlocked;
+            // APPEND (unlock to add games) only shows on today's date
+            const isBlank = filteredGames.length === 0 && !day.unlocked && isTodayPacific(day.date);
 
             // daily record for this day (filtered)
             let dW = 0, dL = 0;

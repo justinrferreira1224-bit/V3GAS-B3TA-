@@ -4,7 +4,7 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const fs = require('fs').promises;
 const path = require('path');
 const { getSeasonYear, resolveSeasonYear, SEASON_START_MONTH } = require('./lib/seasonYear');
-const { toStorageKey, fromStorageKey } = require('./lib/dateKey');
+const { toStorageKey, fromStorageKey, todayPacific, isTodayPacific } = require('./lib/dateKey');
 
 const app = express();
 app.use(cors());
@@ -130,8 +130,8 @@ function fillSeasonDays(sport, seasonYear, seasonObj) {
     const seasonStart = Date.UTC(startYear, startMonth - 1, 1);
     const seasonEnd = Date.UTC(startYear + 1, startMonth - 1, 0); // day before next season starts
 
-    const now = new Date();
-    let end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const today = todayPacific();
+    let end = Date.UTC(today.year, today.month - 1, today.day);
     Object.keys(seasonObj).forEach(key => {
         const [month, day, yy] = key.split('-').map(Number);
         const saved = Date.UTC(2000 + yy, month - 1, day);
@@ -345,6 +345,14 @@ app.post('/api/:sport/addGame', async (req, res) => {
 
         if (!date || !game) {
             return res.status(400).json({ error: 'Missing required fields: date, game' });
+        }
+
+        // Bets can only be added on the present day (Pacific time). Results,
+        // edits, and deletes on past days go through their own routes.
+        if (!isTodayPacific(date)) {
+            const t = todayPacific();
+            const todayStr = `${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
+            return res.status(400).json({ error: `Games can only be added on today's date (${todayStr} Pacific), not ${date}` });
         }
 
         // Add game to the games array for this date
