@@ -3,7 +3,7 @@ const cors = require('cors');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fs = require('fs').promises;
 const path = require('path');
-const { getSeasonYear, resolveSeasonYear } = require('./lib/seasonYear');
+const { getSeasonYear, resolveSeasonYear, SEASON_START_MONTH } = require('./lib/seasonYear');
 const { toStorageKey, fromStorageKey } = require('./lib/dateKey');
 
 const app = express();
@@ -35,10 +35,11 @@ function transformBetLog(betLogObj, sport) {
 
     // Convert date-keyed object to array with day numbers
     Object.entries(betLogObj).forEach(([dateKey, dayData]) => {
-        // Parse date (MM-DD format) to calculate day of year
+        // Parse date (MM-DD format) to calculate day of year. UTC so DST
+        // doesn't shift days after March by one on non-UTC machines.
         const [month, day] = dateKey.split('-').map(Number);
-        const date = new Date(2026, month - 1, day);
-        const jan1 = new Date(2026, 0, 1);
+        const date = Date.UTC(2026, month - 1, day);
+        const jan1 = Date.UTC(2026, 0, 1);
         const dayOfYear = Math.floor((date - jan1) / (1000 * 60 * 60 * 24)) + 1;
 
         // Transform games from new format to old format
@@ -117,6 +118,37 @@ function transformBetLog(betLogObj, sport) {
     return betLogArray;
 }
 
+// Helper: Fill in empty days so the calendar has no gaps. Covers the season's
+// start through today or the last saved day (whichever is later), capped at
+// the season's end. Response-only — nothing is written to Firebase.
+function fillSeasonDays(sport, seasonYear, seasonObj) {
+    const startMonth = SEASON_START_MONTH[sport];
+    if (!startMonth || !/^\d{4}-\d{2}$/.test(seasonYear)) return seasonObj;
+
+    const DAY_MS = 1000 * 60 * 60 * 24;
+    const startYear = parseInt(seasonYear.split('-')[0], 10);
+    const seasonStart = Date.UTC(startYear, startMonth - 1, 1);
+    const seasonEnd = Date.UTC(startYear + 1, startMonth - 1, 0); // day before next season starts
+
+    const now = new Date();
+    let end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    Object.keys(seasonObj).forEach(key => {
+        const [month, day, yy] = key.split('-').map(Number);
+        const saved = Date.UTC(2000 + yy, month - 1, day);
+        if (saved > end) end = saved;
+    });
+    end = Math.min(end, seasonEnd);
+
+    const filled = { ...seasonObj };
+    const pad = n => String(n).padStart(2, '0');
+    for (let t = seasonStart; t <= end; t += DAY_MS) {
+        const d = new Date(t);
+        const key = `${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}-${pad(d.getUTCFullYear() % 100)}`;
+        if (!filled[key]) filled[key] = {};
+    }
+    return filled;
+}
+
 // GET state for ANY sport
 app.get('/api/state/:sport', async (req, res) => {
     try {
@@ -141,7 +173,8 @@ app.get('/api/state/:sport', async (req, res) => {
                 }
             }
 
-            data.betLog = transformBetLog(data.betLog[seasonYear] || {}, sport);
+            const seasonDays = fillSeasonDays(sport, seasonYear, data.betLog[seasonYear] || {});
+            data.betLog = transformBetLog(seasonDays, sport);
             data.seasons = seasons;
             data.season = seasonYear;
         }
