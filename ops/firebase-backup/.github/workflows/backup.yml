@@ -1,0 +1,55 @@
+# Daily Firebase backup. This file belongs in the PRIVATE backups repo
+# (V3GAS-B3TA-backups), not the public app repo — backups contain all app data.
+# It checks out the public app repo for the backup script and commits the
+# gzipped snapshot into this private repo.
+#
+# Needs one repo secret: FIREBASE_SERVICE_ACCOUNT (the service account JSON).
+
+name: Daily Firebase backup
+
+on:
+  schedule:
+    - cron: '17 10 * * *'   # 10:17 UTC = 3:17am Pacific (2:17am in winter)
+  workflow_dispatch:         # "Run workflow" button for a manual backup
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firebase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out backups repo
+        uses: actions/checkout@v4
+
+      - name: Check out app repo (backup script)
+        uses: actions/checkout@v4
+        with:
+          repository: justinrferreira1224-bit/V3GAS-B3TA-
+          path: app
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install backend dependencies
+        working-directory: app/backend
+        run: npm ci --omit=dev
+
+      - name: Back up vegasbeta
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node app/backend/backup-firebase.js --out backups
+
+      - name: Commit backup
+        run: |
+          git config user.name "firebase-backup-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backups
+          git commit -m "Backup $(date -u +%F)" || echo "Nothing new to commit"
+          git push

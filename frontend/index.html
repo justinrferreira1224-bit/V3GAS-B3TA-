@@ -11105,7 +11105,6 @@
 
         function initFirebase() { /* no-op, using REST */ }
 
-        const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
         const BACKEND_URL = 'https://v3gas-b3ta-backend.onrender.com';
 
         // Load MLB standings from Render backend (after BACKEND_URL is defined)
@@ -11310,10 +11309,11 @@
             try {
                 const fullName = MLB_FULL_NAMES[teamName] || teamName;
                 const cleanName = fullName.replace(/[.$#\[\]/]/g, '_').trim();
-                const FB_URL = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/mlb/scrapers/series/' + encodeURIComponent(cleanName) + '.json';
-                const r = await fetch(FB_URL);
+                const r = await fetch(BACKEND_URL + '/api/mlb/series/' + encodeURIComponent(cleanName));
+                if (!r.ok) return;
                 const d = await r.json();
-                if (!d) return;
+                // Backend answers 0/0 when there's no series data — leave the inputs alone
+                if (!d || (!d.gamesInSeries && !d.seriesGameNumber)) return;
                 const gamesEl = document.getElementById('bbSeriesGames');
                 const games2El = document.getElementById('bbSeriesGames2');
                 if (gamesEl) gamesEl.value = d.gamesInSeries || 3;
@@ -11349,7 +11349,7 @@
         async function fetchInjuryForTeam(teamName) {
             try {
                 // Fetch from Firebase scraper data
-                const r = await fetch(FB_URL + '/nba/scrapers/injuries/teams.json');
+                const r = await fetch(BACKEND_URL + '/api/nba/injuries/teams');
                 const teams = await r.json();
 
                 // Find team by matching name

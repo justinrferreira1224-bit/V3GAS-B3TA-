@@ -1,16 +1,34 @@
 const express = require('express');
 const cors = require('cors');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const nodeFetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fs = require('fs').promises;
 const path = require('path');
 const { getSeasonYear, resolveSeasonYear, SEASON_START_MONTH } = require('./lib/seasonYear');
 const { toStorageKey, fromStorageKey, todayPacific, isTodayPacific } = require('./lib/dateKey');
+const { getFirebaseAuthParam, authMode } = require('./lib/firebaseAuth');
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 const FB_BASE = process.env.FB_BASE || 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
+
+// All Firebase calls go through here: the backend's credential is appended to
+// every FB_BASE URL (see lib/firebaseAuth.js), so the database rules can deny
+// all public access. Errors are re-thrown with the credential redacted so it
+// never lands in the logs.
+async function fetch(url, opts) {
+    if (typeof url !== 'string' || !url.startsWith(FB_BASE)) return nodeFetch(url, opts);
+    const auth = await getFirebaseAuthParam();
+    const authedUrl = auth ? url + (url.includes('?') ? '&' : '?') + auth : url;
+    try {
+        return await nodeFetch(authedUrl, opts);
+    } catch (e) {
+        throw new Error(`Firebase request failed for ${url}: ${String(e.message).split(authedUrl).join(url)}`);
+    }
+}
+
+console.log(`Firebase auth mode: ${authMode}`);
 
 // Frontend sport names -> Firebase sport keys
 const SPORT_ALIASES = {
@@ -760,6 +778,17 @@ app.post('/api/nba/gameStats', async (req, res) => {
     }
 });
 
+app.get('/api/nba/injuries/teams', async (req, res) => {
+    try {
+        const r = await fetch(`${FB_BASE}/nba/scrapers/injuries/teams.json`);
+        if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        res.json((await r.json()) || {});
+    } catch(e) {
+        console.error('NBA injuries GET failed:', e);
+        res.status(500).json({ error: 'Failed to load NBA injuries' });
+    }
+});
+
 app.get('/api/nba/gameStats/:gameId', async (req, res) => {
     try {
         const r = await fetch(`${FB_BASE}/nba/scrapers/gameStats/${req.params.gameId}.json`);
@@ -814,6 +843,26 @@ app.post('/api/scrapers/nba/standings', async (req, res) => {
         });
     } catch(e) {
         res.status(500).json({ error: 'Failed to run scraper' });
+    }
+});
+
+// ── HEALTH ───────────────────────────────────────────────────
+// Confirms the backend can read Firebase with its credential. With a service
+// account or secret configured, a bad credential fails here even while the
+// rules are still public, so this must say ok before the rules are locked.
+app.get('/api/health/firebase', async (req, res) => {
+    try {
+        const r = await fetch(`${FB_BASE}/settings.json?shallow=true`);
+        const body = await r.json().catch(() => null);
+        const ok = r.ok && !(body && body.error);
+        res.status(ok ? 200 : 502).json({
+            ok,
+            authMode,
+            firebaseStatus: r.status,
+            error: ok ? undefined : (body && body.error) || `HTTP ${r.status}`
+        });
+    } catch (e) {
+        res.status(502).json({ ok: false, authMode, error: e.message });
     }
 });
 
