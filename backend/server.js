@@ -113,8 +113,24 @@ app.get('/api/state/:sport', async (req, res) => {
 
         // Transform betLog if it exists
         if (data && data.betLog) {
-            const seasonYear = getSeasonYear(sport, new Date());
+            const seasons = Object.keys(data.betLog).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+            const hasData = s => data.betLog[s] && Object.keys(data.betLog[s]).length > 0;
+
+            // Explicit ?season=YYYY-YY wins; otherwise use the current season,
+            // falling back to the most recent season with data (e.g. right after
+            // a rollover, before the new season's folder exists)
+            let seasonYear = req.query.season;
+            if (!seasonYear) {
+                seasonYear = getSeasonYear(sport, new Date());
+                if (!hasData(seasonYear)) {
+                    const latest = seasons.filter(hasData).pop();
+                    if (latest) seasonYear = latest;
+                }
+            }
+
             data.betLog = transformBetLog(data.betLog[seasonYear] || {}, sport);
+            data.seasons = seasons;
+            data.season = seasonYear;
         }
 
         res.json(data || {});
