@@ -274,16 +274,17 @@ app.delete('/api/:sport/deleteGame', async (req, res) => {
 app.post('/api/:sport/gameResult', async (req, res) => {
     try {
         const sport = req.params.sport;
-        const { date, gameId, pick, res } = req.body;
+        // Body field "res" is the bet result; renamed so it doesn't shadow the response
+        const { date, gameId, pick, res: result } = req.body;
 
-        if (!date || !gameId || !pick || !res) {
+        if (!date || !gameId || !pick || !result) {
             return res.status(400).json({ error: 'Missing required fields: date, gameId, pick, res' });
         }
 
         // Save pick and res to the specific game using Firebase key
         const updates = {
             pick: pick,
-            res: res
+            res: result
         };
 
         const seasonYear = resolveSeasonYear(sport, date);
@@ -295,7 +296,7 @@ app.post('/api/:sport/gameResult', async (req, res) => {
         });
 
         const data = await r.json();
-        console.log(`✅ Saved game result: ${sport} ${date} game ${gameId} - ${pick} ${res}`);
+        console.log(`✅ Saved game result: ${sport} ${date} game ${gameId} - ${pick} ${result}`);
         res.json({ success: true, data });
     } catch(e) {
         console.error('Game result save failed:', e);
