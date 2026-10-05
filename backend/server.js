@@ -10,7 +10,20 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-const FB_BASE = 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
+const FB_BASE = process.env.FB_BASE || 'https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta';
+
+// Frontend sport names -> Firebase sport keys
+const SPORT_ALIASES = {
+    cbb: 'ncaab',
+    cfb: 'ncaaf'
+};
+
+// Normalize :sport on every route that takes it, so Firebase paths always use
+// the canonical key (e.g. /api/cbb/addGame writes under ncaab)
+app.param('sport', (req, res, next, sport) => {
+    req.params.sport = SPORT_ALIASES[sport] || sport;
+    next();
+});
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
@@ -329,7 +342,7 @@ app.post('/api/:sport/unlockDay', async (req, res) => {
         }
 
         // List of all sports to sync lock/unlock state across
-        const allSports = ['mlb', 'nba', 'nfl', 'ncaab', 'ncaaf'];
+        const allSports = ['mlb', 'nba', 'nfl', 'nhl', 'ncaab', 'ncaaf', 'enba', 'soccer'];
 
         // Update unlocked state for this date across ALL sports
         const promises = allSports.map(s => {

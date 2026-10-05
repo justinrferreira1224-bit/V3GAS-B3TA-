@@ -5,7 +5,9 @@ const SEASON_START_MONTH = {
     mlb: 3,    // March
     mls: 2,    // February
     ncaab: 11, // November
-    ncaaf: 8   // August
+    ncaaf: 8,  // August
+    enba: 10,  // October (follows the NBA calendar)
+    soccer: 8  // August (European leagues)
 };
 
 // Returns the "YYYY-YY" season-year string for a sport + date, e.g.
