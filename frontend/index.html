@@ -9478,7 +9478,7 @@
                     };
 
                     // Save to Firebase via backend
-                    fetch(BACKEND_URL + '/api/nba/addGame', {
+                    fetch(BACKEND_URL + `/api/${currentSport}/addGame`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -11996,7 +11996,7 @@
             const day = betLog.find(d => d.day === activeBetDay);
             if (!day) return;
             // daily record
-            const sportFilter = g => currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba');
+            const sportFilter = gameMatchesCurrentSport;
             let dW = 0, dL = 0;
             day.games.filter(sportFilter).forEach(g => { if(g.res==='W') dW++; else if(g.res==='L') dL++; });
             // overall up to and including this day
@@ -12294,6 +12294,13 @@
             }
         }
 
+        // True if a bet log game belongs to the selected sport. Games with no
+        // sport tag are legacy NBA games; cbb/cfb are stored as ncaab/ncaaf.
+        function gameMatchesCurrentSport(g) {
+            const canon = s => ({ cbb: 'ncaab', cfb: 'ncaaf' }[s] || s);
+            return canon(g.sport || 'nba') === canon(currentSport);
+        }
+
         // Today's date as "MM-DD" in Pacific time (matches the backend, which
         // only accepts new games for today's Pacific date)
         function todayPacificMMDD() {
@@ -12412,10 +12419,7 @@
             const isReal = day.type.includes('REAL');
 
             // Filter games by current sport
-            const filteredGames = day.games.filter(g => {
-                if (currentSport === 'mlb') return g.sport === 'mlb';
-                return !g.sport || g.sport === 'nba';
-            });
+            const filteredGames = day.games.filter(gameMatchesCurrentSport);
             console.log('filteredGames:', filteredGames.length, filteredGames);
 
             // APPEND (unlock to add games) only shows on today's date
@@ -12427,10 +12431,7 @@
 
             // compute live overall accuracy from all decided games (filtered by sport)
             let totalW = 0, totalL = 0;
-            betLog.forEach(d => d.games.filter(g => {
-                if (currentSport === 'mlb') return g.sport === 'mlb';
-                return !g.sport || g.sport === 'nba';
-            }).forEach(g => {
+            betLog.forEach(d => d.games.filter(gameMatchesCurrentSport).forEach(g => {
                 if (g.res === 'W') totalW++;
                 else if (g.res === 'L') totalL++;
             }));
@@ -12761,7 +12762,7 @@
             let bankroll = getMonthStart(month, sub);
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0 || bankroll <= 0) return;
                 const n = decided.length;
                 const stake = bankroll / n;
@@ -12820,7 +12821,7 @@
                 // Apply any deposit for this day
                 const dep = getDeposits('robego')[day.day];
                 if (dep) { bankroll += dep; bankroll = Math.round(bankroll * 100) / 100; }
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) {
                     const dep2 = getDeposits('robego')[day.day];
                     if (dep2) data.push({ date: day.date + ' (+$' + dep2 + ')', bankroll });
@@ -12862,7 +12863,7 @@
                 if (day.day < range.startDay || day.day > range.endDay) return;
                 const jdep = getDeposits('justin')[day.day];
                 if (jdep) bankroll = Math.round((bankroll + jdep) * 100) / 100;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 const jdep2 = getDeposits('justin')[day.day];
                 if (decided.length === 0) { if (jdep2) data.push({ date: day.date + ' (+$' + jdep2 + ')', bankroll }); return; }
                 // If busted, reload to $100 for this day
@@ -13021,7 +13022,7 @@
 
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
                 // If busted, reload to $100 for this day
                 if (bankroll <= 0) {
@@ -13093,7 +13094,7 @@
 
             betLog.forEach(day => {
                 if (day.day < range.startDay || day.day > range.endDay) return;
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && (currentSport === 'mlb' ? g.sport === 'mlb' : (!g.sport || g.sport === 'nba')));
+                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
                 // If busted, reload to $100 for this day
                 if (bankroll <= 0) {
