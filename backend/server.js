@@ -410,11 +410,26 @@ app.post('/api/:sport/unlockDay', async (req, res) => {
 // Legacy /api/state endpoint (no sport param) for backwards compatibility
 app.get('/api/state', async (req, res) => {
     try {
-        const r = await fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta.json');
+        const r = await fetch(`${FB_BASE}.json`);
         const data = await r.json();
         res.json(data || {});
     } catch(e) {
         res.status(500).json({ error: 'Failed to load data' });
+    }
+});
+
+// GET bankroll fields (userData)
+const USER_DATA_FIELDS = ['bankroll', 'bankrollGoal', 'previousBankroll', 'gwBankroll'];
+
+app.get('/api/userData', async (req, res) => {
+    try {
+        const r = await fetch(`${FB_BASE}/userData.json`);
+        if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        const data = await r.json();
+        res.json(data || {});
+    } catch(e) {
+        console.error('userData GET failed:', e);
+        res.status(500).json({ error: 'Failed to load user data' });
     }
 });
 
@@ -432,12 +447,15 @@ app.post('/api/state', async (req, res) => {
             }
         });
 
-        // Extract userData fields
-        const userDataFields = ['bankroll', 'bankrollGoal', 'previousBankroll', 'gwBankroll'];
+        // Extract userData fields. Only accepted from clients that loaded them
+        // from Firebase first (userDataLoaded) — otherwise a fresh device or a
+        // stale tab would overwrite the real bankroll with its $25 default.
+        const userDataAllowed = payload.userDataLoaded === true;
+        delete payload.userDataLoaded;
         const userData = {};
-        userDataFields.forEach(field => {
+        USER_DATA_FIELDS.forEach(field => {
             if (payload[field] !== undefined) {
-                userData[field] = payload[field];
+                if (userDataAllowed) userData[field] = payload[field];
                 delete payload[field];
             }
         });
@@ -451,7 +469,7 @@ app.post('/api/state', async (req, res) => {
 
         if (Object.keys(settings).length > 0) {
             promises.push(
-                fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/settings.json', {
+                fetch(`${FB_BASE}/settings.json`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(settings)
@@ -461,7 +479,7 @@ app.post('/api/state', async (req, res) => {
 
         if (Object.keys(userData).length > 0) {
             promises.push(
-                fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta/userData.json', {
+                fetch(`${FB_BASE}/userData.json`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
@@ -471,7 +489,7 @@ app.post('/api/state', async (req, res) => {
 
         if (Object.keys(payload).length > 0) {
             promises.push(
-                fetch('https://vegas-bet-default-rtdb.firebaseio.com/vegasbeta.json', {
+                fetch(`${FB_BASE}.json`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

@@ -2556,6 +2556,12 @@
     </div>
 
     <script>
+        // Bankroll fields synced with Firebase /userData. Until they've been read
+        // from Firebase (userDataLoaded), saves leave them out entirely so a fresh
+        // device's defaults ($25) can never overwrite the real values.
+        const USER_DATA_FIELDS = ['bankroll', 'bankrollGoal', 'previousBankroll', 'gwBankroll'];
+        let userDataLoaded = false;
+
         // NBA Teams data with logos, prefixes, and team colors (Updated 2025-26 Season)
         const nbaTeams = [
             { name: 'Hawks', wins: 31, losses: 31, conference: 'East', seed: 9, prefix: 'ATL', logo: 'https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2021/01/atlanta_hawks_2021-pres_w.png', color1: '#E03A3E', color2: '#C1D32F', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
@@ -11387,12 +11393,17 @@
                 const payload = {
                     betLog: betLogState,
                     activeBetDay: activeBetDay,
-                    bankroll: localStorage.getItem('bankroll') || '$25',
-                    bankrollGoal: localStorage.getItem('bankrollGoal') || '$0',
-                    previousBankroll: localStorage.getItem('previousBankroll') || '$25',
-                    gwBankroll: localStorage.getItem('gwBankroll') || '',
                     logbookEntries: logbookEntries
                 };
+                // Bankroll only goes out once it's been loaded from Firebase, and
+                // only fields this device actually has (never defaults)
+                if (userDataLoaded) {
+                    payload.userDataLoaded = true;
+                    USER_DATA_FIELDS.forEach(f => {
+                        const v = localStorage.getItem(f);
+                        if (v !== null) payload[f] = v;
+                    });
+                }
                 localStorage.setItem('appState', JSON.stringify(payload));
                 fetch(BACKEND_URL + '/api/state', {
                     method: 'POST',
@@ -11712,7 +11723,38 @@
         }
 
         // Generate app picks for all days in betLog
+        // Read bankroll fields from Firebase first. Fields Firebase has win over
+        // localStorage; fields it doesn't have keep this device's local value.
+        // On failure userDataLoaded stays false, so saves won't send bankroll.
+        function loadUserData() {
+            return fetch(BACKEND_URL + '/api/userData')
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    USER_DATA_FIELDS.forEach(f => {
+                        if (data && data[f] !== undefined && data[f] !== null && data[f] !== '') {
+                            localStorage.setItem(f, data[f]);
+                        }
+                    });
+                    userDataLoaded = true;
+
+                    // Refresh every bankroll display from the loaded values
+                    loadBankroll();
+                    const gw = localStorage.getItem('gwBankroll');
+                    if (gw) {
+                        const gwEl = document.getElementById('gwBankroll');
+                        const logEl = document.getElementById('logBankroll');
+                        if (gwEl) gwEl.textContent = gw;
+                        if (logEl) logEl.textContent = gw;
+                    }
+                })
+                .catch(err => console.warn('Bankroll load failed; bankroll will not be saved until it loads', err));
+        }
+
         function loadAppState(callback) {
+            loadUserData();
             // Load current sport data from backend (backend transforms Firebase structure)
             const sport = currentSport || 'nba';
             fetch(BACKEND_URL + '/api/state/' + sport)
@@ -11728,10 +11770,6 @@
                         }
                     }
                     if (data && data.activeBetDay) activeBetDay = data.activeBetDay;
-                    if (data && data.bankroll) localStorage.setItem('bankroll', data.bankroll);
-                    if (data && data.bankrollGoal) localStorage.setItem('bankrollGoal', data.bankrollGoal);
-                    if (data && data.previousBankroll) localStorage.setItem('previousBankroll', data.previousBankroll);
-                    if (data && data.gwBankroll) localStorage.setItem('gwBankroll', data.gwBankroll);
                     if (data && data.logbookEntries && data.logbookEntries.length > 0) {
                         pendingLogbookEntries = data.logbookEntries;
                         // If logContent already exists (page already built), restore now
