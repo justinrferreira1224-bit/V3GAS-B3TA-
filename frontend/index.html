@@ -3039,13 +3039,21 @@
             if (!awayTeamSeedInput || !homeTeamSeedInput || !awayOddsInput || !homeOddsInput || !finalEdgeValueEl) return;
             
             // Get inputs
-            const awaySeed = parseFloat(awayTeamSeedInput.value) || 0;
-            const homeSeed = parseFloat(homeTeamSeedInput.value) || 0;
+            const awaySeedEntered = parseFloat(awayTeamSeedInput.value) || 0;
+            const homeSeedEntered = parseFloat(homeTeamSeedInput.value) || 0;
             const awayOddsStr = awayOddsInput.value.trim();
             const homeOddsStr = homeOddsInput.value.trim();
-            
-            // If any input missing, show dash
-            if (!awaySeed || !homeSeed || !awayOddsStr || !homeOddsStr) {
+
+            // No seed yet (e.g. preseason, every team 0-0): treat both teams as the
+            // same middle seed, so the seed part is an even 50/50 with no seed-gap
+            // boost, and home court, odds, injuries and last 10 decide the pick.
+            // With real seeds for both teams the math is unchanged.
+            const seedsKnown = awaySeedEntered > 0 && homeSeedEntered > 0;
+            const awaySeed = seedsKnown ? awaySeedEntered : 8;
+            const homeSeed = seedsKnown ? homeSeedEntered : 8;
+
+            // If odds are missing, show dash
+            if (!awayOddsStr || !homeOddsStr) {
                 finalEdgeValueEl.textContent = '—';
                 
                 // Reset bet size box
