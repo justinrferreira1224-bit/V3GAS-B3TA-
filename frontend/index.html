@@ -2588,39 +2588,41 @@
             }
         } catch(e) {}
 
-        // NBA Teams data with logos, prefixes, and team colors (Updated 2025-26 Season)
+        // NBA teams: names, logos, prefixes and colors. Records (wins, losses,
+        // seed, last10Results) are filled from the scraped standings.
         const nbaTeams = [
-            { name: 'Hawks', wins: 31, losses: 31, conference: 'East', seed: 9, prefix: 'ATL', logo: 'https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2021/01/atlanta_hawks_2021-pres_w.png', color1: '#E03A3E', color2: '#C1D32F', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Celtics', wins: 40, losses: 20, conference: 'East', seed: 2, prefix: 'BOS', logo: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/boston_celtics_1977-pres_w.png', color1: '#007A33', color2: '#BA9653', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Nets', wins: 15, losses: 45, conference: 'East', seed: 14, prefix: 'BKN', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Brooklyn_Nets_newlogo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/brooklyn-nets_2013-pres_w.png', color1: '#000000', color2: '#FFFFFF', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Hornets', wins: 30, losses: 31, conference: 'East', seed: 10, prefix: 'CHA', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c4/Charlotte_Hornets_%282014%29.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/charlotte_hornets_2014-pres_ww.png', color1: '#1D1160', color2: '#00788C', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Bulls', wins: 25, losses: 36, conference: 'East', seed: 12, prefix: 'CHI', logo: 'https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/chicago_bulls_1966-pres_w.png', color1: '#CE1141', color2: '#000000', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Cavaliers', wins: 38, losses: 24, conference: 'East', seed: 4, prefix: 'CLE', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Cleveland_Cavaliers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/cleveland_cavaliers_2017_w.png', color1: '#860038', color2: '#FDBB30', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Pistons', wins: 45, losses: 14, conference: 'East', seed: 1, prefix: 'DET', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_of_the_Detroit_Pistons.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/detroit_pistons_2002-pres-aa.png', color1: '#C8102E', color2: '#1D42BA', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Pacers', wins: 15, losses: 46, conference: 'East', seed: 15, prefix: 'IND', logo: 'https://upload.wikimedia.org/wikipedia/en/1/1b/Indiana_Pacers.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/indiana_pacers_2006-present_w.png', color1: '#002D62', color2: '#FDBB30', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Heat', wins: 32, losses: 29, conference: 'East', seed: 7, prefix: 'MIA', logo: 'https://upload.wikimedia.org/wikipedia/en/f/fb/Miami_Heat_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/miami_heat_2000-pres_w.png', color1: '#98002E', color2: '#F9A01B', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Bucks', wins: 26, losses: 33, conference: 'East', seed: 11, prefix: 'MIL', logo: 'https://upload.wikimedia.org/wikipedia/en/4/4a/Milwaukee_Bucks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/milwaukee_bucks_2016-present_w.png', color1: '#00471B', color2: '#EEE1C6', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Knicks', wins: 39, losses: 22, conference: 'East', seed: 3, prefix: 'NYK', logo: 'https://upload.wikimedia.org/wikipedia/en/2/25/New_York_Knicks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_york_knicks_1977-pres_w.png', color1: '#006BB6', color2: '#F58426', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Magic', wins: 31, losses: 28, conference: 'East', seed: 8, prefix: 'ORL', logo: 'https://upload.wikimedia.org/wikipedia/en/1/10/Orlando_Magic_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/orlando_magic_2001-pres_w.png', color1: '#0077C0', color2: '#C4CED4', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: '76ers', wins: 33, losses: 27, conference: 'East', seed: 6, prefix: 'PHI', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0e/Philadelphia_76ers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/philadelphia_76ers_2016-pres_w.png', color1: '#006BB6', color2: '#ED174C', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Raptors', wins: 35, losses: 25, conference: 'East', seed: 5, prefix: 'TOR', logo: 'https://upload.wikimedia.org/wikipedia/en/3/36/Toronto_Raptors_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/toronto_raptors_wordmark_2016.png', color1: '#CE1141', color2: '#000000', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Wizards', wins: 16, losses: 43, conference: 'East', seed: 13, prefix: 'WSH', logo: 'https://upload.wikimedia.org/wikipedia/en/0/02/Washington_Wizards_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/washington_wizard_2012-pres_w.png', color1: '#002B5C', color2: '#E31837', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Mavericks', wins: 21, losses: 39, conference: 'West', seed: 12, prefix: 'DAL', logo: 'https://upload.wikimedia.org/wikipedia/en/9/97/Dallas_Mavericks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/dallas_mavericks_2002-pres_w.png', color1: '#00538C', color2: '#002B5E', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Nuggets', wins: 37, losses: 24, conference: 'West', seed: 5, prefix: 'DEN', logo: 'https://upload.wikimedia.org/wikipedia/en/7/76/Denver_Nuggets.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/06/denver_nuggets_2019-pres_w.png', color1: '#0E2240', color2: '#FEC524', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Warriors', wins: 31, losses: 29, conference: 'West', seed: 8, prefix: 'GSW', logo: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/golden_state_warriors_1997-2009-ww.png', color1: '#1D428A', color2: '#FFC72C', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Rockets', wins: 37, losses: 22, conference: 'West', seed: 4, prefix: 'HOU', logo: 'https://upload.wikimedia.org/wikipedia/en/2/28/Houston_Rockets.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/houston_rockets_2003-pres_w.png', color1: '#CE1141', color2: '#000000', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Clippers', wins: 28, losses: 31, conference: 'West', seed: 9, prefix: 'LAC', logo: 'https://upload.wikimedia.org/wikipedia/en/e/ed/Los_Angeles_Clippers_%282024%29.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2025/09/los_angeles_clippers_2025-pres^w.png', color1: '#C8102E', color2: '#1D428A', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Lakers', wins: 36, losses: 24, conference: 'West', seed: 6, prefix: 'LAL', logo: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Los_Angeles_Lakers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/los_angeles_lakers_2002-pres_w.png', color1: '#552583', color2: '#FDB927', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Grizzlies', wins: 23, losses: 36, conference: 'West', seed: 11, prefix: 'MEM', logo: 'https://upload.wikimedia.org/wikipedia/en/f/f1/Memphis_Grizzlies.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2024/03/memphis_grizzlies_2018-pres_w.png', color1: '#5D76A9', color2: '#12173F', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Wolves', wins: 38, losses: 23, conference: 'West', seed: 3, prefix: 'MIN', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c2/Minnesota_Timberwolves_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/minnesota_timberwolves_1997_pres_w.png', color1: '#0C2340', color2: '#236192', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Pelicans', wins: 19, losses: 43, conference: 'West', seed: 13, prefix: 'NOP', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0d/New_Orleans_Pelicans_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_orleans_pelicans_2015-pres_ww.png', color1: '#0C2340', color2: '#C8102E', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Thunder', wins: 47, losses: 15, conference: 'West', seed: 1, prefix: 'OKC', logo: 'https://upload.wikimedia.org/wikipedia/en/5/5d/Oklahoma_City_Thunder.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/oklahoma_city_thunder_2009-pres.png', color1: '#007AC1', color2: '#EF3B24', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Suns', wins: 34, losses: 26, conference: 'West', seed: 7, prefix: 'PHX', logo: 'https://upload.wikimedia.org/wikipedia/en/d/dc/Phoenix_Suns_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/phoenix_suns_2014-pres_w.png', color1: '#1D1160', color2: '#E56020', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Blazers', wins: 29, losses: 33, conference: 'West', seed: 10, prefix: 'POR', logo: 'https://upload.wikimedia.org/wikipedia/en/2/21/Portland_Trail_Blazers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/portland_trailblazers_2003-pres-w.png', color1: '#E03A3E', color2: '#000000', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Kings', wins: 14, losses: 48, conference: 'West', seed: 15, prefix: 'SAC', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c7/SacramentoKings.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/sacramento_kings_2017-pres_w.png', color1: '#5A2D81', color2: '#63727A', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Spurs', wins: 43, losses: 17, conference: 'West', seed: 2, prefix: 'SAS', logo: 'https://upload.wikimedia.org/wikipedia/en/a/a2/San_Antonio_Spurs.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/san_antonio-spurs_1989-pres_w.png', color1: '#C4CED4', color2: '#000000', last10Results: ['W','W','W','W','W','W','W','W','W','W'] },
-            { name: 'Jazz', wins: 18, losses: 42, conference: 'West', seed: 14, prefix: 'UTA', logo: 'https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2022/09/utah_jazz_2023-pres-w.png', color1: '#5D2E8C', color2: '#FFFFFF', last10Results: ['W','W','W','W','W','W','W','W','W','W'] }
+            { name: 'Hawks', conference: 'East', prefix: 'ATL', logo: 'https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2021/01/atlanta_hawks_2021-pres_w.png', color1: '#E03A3E', color2: '#C1D32F' },
+            { name: 'Celtics', conference: 'East', prefix: 'BOS', logo: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/boston_celtics_1977-pres_w.png', color1: '#007A33', color2: '#BA9653' },
+            { name: 'Nets', conference: 'East', prefix: 'BKN', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Brooklyn_Nets_newlogo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/brooklyn-nets_2013-pres_w.png', color1: '#000000', color2: '#FFFFFF' },
+            { name: 'Hornets', conference: 'East', prefix: 'CHA', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c4/Charlotte_Hornets_%282014%29.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/charlotte_hornets_2014-pres_ww.png', color1: '#1D1160', color2: '#00788C' },
+            { name: 'Bulls', conference: 'East', prefix: 'CHI', logo: 'https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/chicago_bulls_1966-pres_w.png', color1: '#CE1141', color2: '#000000' },
+            { name: 'Cavaliers', conference: 'East', prefix: 'CLE', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Cleveland_Cavaliers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/cleveland_cavaliers_2017_w.png', color1: '#860038', color2: '#FDBB30' },
+            { name: 'Pistons', conference: 'East', prefix: 'DET', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_of_the_Detroit_Pistons.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/detroit_pistons_2002-pres-aa.png', color1: '#C8102E', color2: '#1D42BA' },
+            { name: 'Pacers', conference: 'East', prefix: 'IND', logo: 'https://upload.wikimedia.org/wikipedia/en/1/1b/Indiana_Pacers.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/indiana_pacers_2006-present_w.png', color1: '#002D62', color2: '#FDBB30' },
+            { name: 'Heat', conference: 'East', prefix: 'MIA', logo: 'https://upload.wikimedia.org/wikipedia/en/f/fb/Miami_Heat_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/miami_heat_2000-pres_w.png', color1: '#98002E', color2: '#F9A01B' },
+            { name: 'Bucks', conference: 'East', prefix: 'MIL', logo: 'https://upload.wikimedia.org/wikipedia/en/4/4a/Milwaukee_Bucks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/milwaukee_bucks_2016-present_w.png', color1: '#00471B', color2: '#EEE1C6' },
+            { name: 'Knicks', conference: 'East', prefix: 'NYK', logo: 'https://upload.wikimedia.org/wikipedia/en/2/25/New_York_Knicks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_york_knicks_1977-pres_w.png', color1: '#006BB6', color2: '#F58426' },
+            { name: 'Magic', conference: 'East', prefix: 'ORL', logo: 'https://upload.wikimedia.org/wikipedia/en/1/10/Orlando_Magic_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/orlando_magic_2001-pres_w.png', color1: '#0077C0', color2: '#C4CED4' },
+            { name: '76ers', conference: 'East', prefix: 'PHI', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0e/Philadelphia_76ers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/philadelphia_76ers_2016-pres_w.png', color1: '#006BB6', color2: '#ED174C' },
+            { name: 'Raptors', conference: 'East', prefix: 'TOR', logo: 'https://upload.wikimedia.org/wikipedia/en/3/36/Toronto_Raptors_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/toronto_raptors_wordmark_2016.png', color1: '#CE1141', color2: '#000000' },
+            { name: 'Wizards', conference: 'East', prefix: 'WSH', logo: 'https://upload.wikimedia.org/wikipedia/en/0/02/Washington_Wizards_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/washington_wizard_2012-pres_w.png', color1: '#002B5C', color2: '#E31837' },
+            { name: 'Mavericks', conference: 'West', prefix: 'DAL', logo: 'https://upload.wikimedia.org/wikipedia/en/9/97/Dallas_Mavericks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/dallas_mavericks_2002-pres_w.png', color1: '#00538C', color2: '#002B5E' },
+            { name: 'Nuggets', conference: 'West', prefix: 'DEN', logo: 'https://upload.wikimedia.org/wikipedia/en/7/76/Denver_Nuggets.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/06/denver_nuggets_2019-pres_w.png', color1: '#0E2240', color2: '#FEC524' },
+            { name: 'Warriors', conference: 'West', prefix: 'GSW', logo: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/golden_state_warriors_1997-2009-ww.png', color1: '#1D428A', color2: '#FFC72C' },
+            { name: 'Rockets', conference: 'West', prefix: 'HOU', logo: 'https://upload.wikimedia.org/wikipedia/en/2/28/Houston_Rockets.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/houston_rockets_2003-pres_w.png', color1: '#CE1141', color2: '#000000' },
+            { name: 'Clippers', conference: 'West', prefix: 'LAC', logo: 'https://upload.wikimedia.org/wikipedia/en/e/ed/Los_Angeles_Clippers_%282024%29.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2025/09/los_angeles_clippers_2025-pres^w.png', color1: '#C8102E', color2: '#1D428A' },
+            { name: 'Lakers', conference: 'West', prefix: 'LAL', logo: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Los_Angeles_Lakers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/los_angeles_lakers_2002-pres_w.png', color1: '#552583', color2: '#FDB927' },
+            { name: 'Grizzlies', conference: 'West', prefix: 'MEM', logo: 'https://upload.wikimedia.org/wikipedia/en/f/f1/Memphis_Grizzlies.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2024/03/memphis_grizzlies_2018-pres_w.png', color1: '#5D76A9', color2: '#12173F' },
+            { name: 'Wolves', conference: 'West', prefix: 'MIN', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c2/Minnesota_Timberwolves_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/minnesota_timberwolves_1997_pres_w.png', color1: '#0C2340', color2: '#236192' },
+            { name: 'Pelicans', conference: 'West', prefix: 'NOP', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0d/New_Orleans_Pelicans_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_orleans_pelicans_2015-pres_ww.png', color1: '#0C2340', color2: '#C8102E' },
+            { name: 'Thunder', conference: 'West', prefix: 'OKC', logo: 'https://upload.wikimedia.org/wikipedia/en/5/5d/Oklahoma_City_Thunder.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/oklahoma_city_thunder_2009-pres.png', color1: '#007AC1', color2: '#EF3B24' },
+            { name: 'Suns', conference: 'West', prefix: 'PHX', logo: 'https://upload.wikimedia.org/wikipedia/en/d/dc/Phoenix_Suns_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/phoenix_suns_2014-pres_w.png', color1: '#1D1160', color2: '#E56020' },
+            { name: 'Blazers', conference: 'West', prefix: 'POR', logo: 'https://upload.wikimedia.org/wikipedia/en/2/21/Portland_Trail_Blazers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/portland_trailblazers_2003-pres-w.png', color1: '#E03A3E', color2: '#000000' },
+            { name: 'Kings', conference: 'West', prefix: 'SAC', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c7/SacramentoKings.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/sacramento_kings_2017-pres_w.png', color1: '#5A2D81', color2: '#63727A' },
+            { name: 'Spurs', conference: 'West', prefix: 'SAS', logo: 'https://upload.wikimedia.org/wikipedia/en/a/a2/San_Antonio_Spurs.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/san_antonio-spurs_1989-pres_w.png', color1: '#C4CED4', color2: '#000000' },
+            { name: 'Jazz', conference: 'West', prefix: 'UTA', logo: 'https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2022/09/utah_jazz_2023-pres-w.png', color1: '#5D2E8C', color2: '#FFFFFF' }
         ];
+        nbaTeams.forEach(t => { t.wins = 0; t.losses = 0; t.seed = 0; t.last10Results = []; });
         
         // College Basketball Teams (Top March Madness Schools)
         const ncaabTeams = [
@@ -9662,9 +9664,6 @@
                     const pickedWinner = historyEntry.dataset.pickedWinner;
                     const loser = pickedWinner === historyEntry.dataset.awayTeam ? historyEntry.dataset.homeTeam : historyEntry.dataset.awayTeam;
                     
-                    // Update last-10 records for BOTH teams
-                    updateLast10Records(pickedWinner, loser);
-                    
                     // Update YOUR W-L record
                     const recordWins = document.getElementById('recordWins');
                     if (recordWins) {
@@ -9703,9 +9702,6 @@
                 lossBtn.addEventListener('click', () => {
                     const pickedWinner = historyEntry.dataset.pickedWinner;
                     const actualWinner = pickedWinner === historyEntry.dataset.awayTeam ? historyEntry.dataset.homeTeam : historyEntry.dataset.awayTeam;
-                    
-                    // Update last-10 records for BOTH teams (picked team lost, other team won)
-                    updateLast10Records(actualWinner, pickedWinner);
                     
                     // Update YOUR W-L record
                     const recordLosses = document.getElementById('recordLosses');
@@ -9749,108 +9745,6 @@
                 console.log('💾 Saved matchup to bet history');
             });
         }
-        
-        // ===== AUTO-UPDATE LAST-10 SYSTEM =====
-        // NOTE: This function will be called when you mark a game as W/L in the future
-        // For now, it's set up and ready to use
-        function updateLast10Records(winnerName, loserName) {
-            console.log(`🔄 updateLast10Records called: Winner="${winnerName}", Loser="${loserName}"`);
-            
-            // Find winner and loser teams
-            const winnerTeam = nbaTeams.find(t => t.name === winnerName);
-            const loserTeam = nbaTeams.find(t => t.name === loserName);
-            
-            console.log(`   Found winner team:`, winnerTeam ? winnerTeam.name : 'NOT FOUND');
-            console.log(`   Found loser team:`, loserTeam ? loserTeam.name : 'NOT FOUND');
-            
-            if (winnerTeam) {
-                // Update last-10
-                if (!winnerTeam.last10Results) winnerTeam.last10Results = [];
-                winnerTeam.last10Results.push('W');
-                if (winnerTeam.last10Results.length > 10) {
-                    winnerTeam.last10Results.shift(); // Remove oldest
-                }
-                
-                // Update overall W-L record
-                winnerTeam.wins = (winnerTeam.wins || 0) + 1;
-                
-                console.log(`   ${winnerName} last10: ${winnerTeam.last10Results.join(',')}`);
-                console.log(`   ${winnerName} overall: ${winnerTeam.wins}-${winnerTeam.losses}`);
-            }
-            
-            if (loserTeam) {
-                // Update last-10
-                if (!loserTeam.last10Results) loserTeam.last10Results = [];
-                loserTeam.last10Results.push('L');
-                if (loserTeam.last10Results.length > 10) {
-                    loserTeam.last10Results.shift(); // Remove oldest
-                }
-                
-                // Update overall W-L record
-                loserTeam.losses = (loserTeam.losses || 0) + 1;
-                
-                console.log(`   ${loserName} last10: ${loserTeam.last10Results.join(',')}`);
-                console.log(`   ${loserName} overall: ${loserTeam.wins}-${loserTeam.losses}`);
-            }
-            
-            // Save to localStorage
-            const last10Data = nbaTeams.map(t => ({
-                name: t.name,
-                wins: t.wins,
-                losses: t.losses,
-                last10Results: t.last10Results || []
-            }));
-            localStorage.setItem('nbaTeamsLast10', JSON.stringify(last10Data));
-            console.log(`   ✅ Saved to localStorage (including overall W-L)`);
-            
-            console.log(`✅ Updated last-10 AND overall W-L: ${winnerName} (+W), ${loserName} (+L)`);
-        }
-        
-        // Load last-10 records from localStorage on startup
-        window.addEventListener('DOMContentLoaded', () => {
-            // FORCE SAVE correct data to localStorage (overwrites old data)
-            const correctData = nbaTeams.map(t => ({
-                name: t.name,
-                wins: t.wins,
-                losses: t.losses,
-                last10Results: t.last10Results || []
-            }));
-            localStorage.setItem('nbaTeamsLast10', JSON.stringify(correctData));
-            console.log('🔄 FORCE SAVED correct team data to localStorage');
-            
-            const savedLast10 = localStorage.getItem('nbaTeamsLast10');
-            if (savedLast10) {
-                try {
-                    const last10Data = JSON.parse(savedLast10);
-                    console.log('📊 Loading last-10 AND overall W-L records from localStorage...');
-                    let loadedCount = 0;
-                    nbaTeams.forEach(team => {
-                        const saved = last10Data.find(t => t.name === team.name);
-                        if (saved) {
-                            if (saved.last10Results) {
-                                team.last10Results = saved.last10Results;
-                            }
-                            if (saved.wins !== undefined) {
-                                team.wins = saved.wins;
-                            }
-                            if (saved.losses !== undefined) {
-                                team.losses = saved.losses;
-                            }
-                            loadedCount++;
-                            const wins = (saved.last10Results || []).filter(r => r === 'W').length;
-                            const losses = (saved.last10Results || []).length - wins;
-                            console.log(`   ${team.name}: ${team.wins}-${team.losses} overall | Last-10: ${wins}-${losses} (${(saved.last10Results || []).join(',')})`);
-                        }
-                    });
-                    console.log(`✅ Loaded ${loadedCount} teams' records from localStorage`);
-                } catch (e) {
-                    console.error('Error loading last-10 data:', e);
-                }
-            } else {
-                console.log('⚠️ No saved last-10 data in localStorage - using default data');
-            }
-            
-        });
         
         // ===== BET AMOUNT CALCULATION SYSTEM =====
         function calculateBetAmounts() {
@@ -10281,42 +10175,9 @@
         }
 
         // ===== NBA STANDINGS =====
-        const nbaStandings = {
-            east: [
-                { rank:1,  name:'Pistons',   wins:48, losses:19, pct:0.716, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:2,  name:'Celtics',   wins:45, losses:23, pct:0.662, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:3,  name:'Knicks',    wins:44, losses:25, pct:0.638, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:4,  name:'Cavaliers', wins:41, losses:27, pct:0.603, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:5,  name:'Magic',     wins:38, losses:29, pct:0.567, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:6,  name:'Raptors',   wins:38, losses:29, pct:0.567, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:7,  name:'Heat',      wins:38, losses:30, pct:0.559, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:8,  name:'Hawks',     wins:37, losses:31, pct:0.544, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:9,  name:'76ers',     wins:37, losses:31, pct:0.544, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:10, name:'Hornets',   wins:34, losses:34, pct:0.500, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:11, name:'Bucks',     wins:28, losses:39, pct:0.418, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:12, name:'Bulls',     wins:28, losses:40, pct:0.412, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:13, name:'Nets',      wins:17, losses:51, pct:0.250, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:14, name:'Wizards',   wins:16, losses:51, pct:0.239, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:15, name:'Pacers',    wins:15, losses:53, pct:0.221, last10:['W','W','W','W','W','W','W','W','W','W'] },
-            ],
-            west: [
-                { rank:1,  name:'Thunder',   wins:53, losses:15, pct:0.779, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:2,  name:'Spurs',     wins:50, losses:18, pct:0.735, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:3,  name:'Lakers',    wins:43, losses:25, pct:0.632, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:4,  name:'Rockets',   wins:41, losses:26, pct:0.612, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:5,  name:'Wolves',    wins:41, losses:27, pct:0.603, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:6,  name:'Nuggets',   wins:41, losses:27, pct:0.603, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:7,  name:'Suns',      wins:39, losses:29, pct:0.574, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:8,  name:'Clippers',  wins:34, losses:34, pct:0.500, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:9,  name:'Warriors',  wins:33, losses:35, pct:0.485, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:10, name:'Blazers',   wins:33, losses:36, pct:0.478, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:11, name:'Grizzlies', wins:23, losses:44, pct:0.343, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:12, name:'Pelicans',  wins:23, losses:46, pct:0.333, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:13, name:'Mavericks', wins:23, losses:46, pct:0.333, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:14, name:'Jazz',      wins:20, losses:48, pct:0.294, last10:['W','W','W','W','W','W','W','W','W','W'] },
-                { rank:15, name:'Kings',     wins:18, losses:51, pct:0.261, last10:['W','W','W','W','W','W','W','W','W','W'] },
-            ]
-        };
+        // NBA standings come only from the scraper (vegas-scrapers/nba_standings_scraper.py):
+        // regular-season W-L and each team's real last 10. 0-0 until loaded.
+        const nbaStandings = { east: [], west: [] };
                 let currentConference = 'east';
 
         let mlbStandings = { al: [], nl: [] };
@@ -10330,18 +10191,49 @@
                 if (s) {
                     team.wins = s.wins;
                     team.losses = s.losses;
-                    team.seed = s.rank;
+                    // A seed only means something once games are played (preseason ranks are alphabetical)
+                    team.seed = (s.wins + s.losses) > 0 ? s.rank : 0;
                     team.last10Results = [...s.last10];
                 }
             });
         }
-        syncTeamsFromStandings();
-        // Store 3/16 baseline so reapplyStandingsFromBetLog can reset to it
-        [...nbaStandings.east, ...nbaStandings.west].forEach(t => {
-            t._baseWins = t.wins;
-            t._baseLosses = t.losses;
-            t._baseLast10 = [...t.last10];
-        });
+
+        // ESPN abbreviations that differ from the app's team prefixes
+        const ESPN_NBA_ABBR = { NY: 'NYK', GS: 'GSW', NO: 'NOP', SA: 'SAS', UTAH: 'UTA' };
+
+        // Build the standings from the scraped data (all 0-0 until it loads)
+        function applyNBAStandings(data) {
+            ['east', 'west'].forEach(conf => {
+                const scraped = (data && Array.isArray(data[conf])) ? data[conf] : null;
+                if (scraped) {
+                    nbaStandings[conf] = scraped.map(s => {
+                        const team = nbaTeams.find(t => t.prefix === (ESPN_NBA_ABBR[s.abbr] || s.abbr));
+                        if (!team) { console.warn('NBA standings: unknown team', s.abbr); return null; }
+                        const games = (s.wins || 0) + (s.losses || 0);
+                        return { rank: s.rank, name: team.name, wins: s.wins || 0, losses: s.losses || 0,
+                                 pct: games ? s.wins / games : null, last10: Array.isArray(s.last10) ? s.last10 : [] };
+                    }).filter(Boolean);
+                } else {
+                    // Nothing scraped yet: every team 0-0, alphabetical
+                    nbaStandings[conf] = nbaTeams.filter(t => t.conference.toLowerCase() === conf)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((t, i) => ({ rank: i + 1, name: t.name, wins: 0, losses: 0, pct: null, last10: [] }));
+                }
+            });
+            syncTeamsFromStandings();
+        }
+        applyNBAStandings(null);
+
+        function loadNBAStandings() {
+            fetch(BACKEND_URL + '/api/nba/standings')
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(data => {
+                    applyNBAStandings(data);
+                    const content = document.getElementById('standingsContent');
+                    if (currentSport !== 'mlb' && content && content.style.display !== 'none') renderStandings(currentConference);
+                })
+                .catch(err => console.warn('NBA standings failed to load', err));
+        }
         function showConference(conf) {
             const eastTab = document.getElementById('eastTab');
             const westTab = document.getElementById('westTab');
@@ -10384,9 +10276,12 @@
                 const l10w = last10.filter(r=>r==='W').length;
                 const l10str = last10.length > 0 ? `${l10w}-${last10.length - l10w}` : '—';
                 const l10color = last10.length > 0 ? (l10w>=7?'#22c55e':l10w>=5?'#fff':'#ef4444') : '#555';
+                // No dots until a team has played; then W/L dots padded to 10
                 const filledDots = last10.map(r=>`<span style="color:${r==='W'?'#22c55e':'#ef4444'};font-size:8px;">●</span>`).join('');
-                const emptyDots = Array(10 - last10.length).fill('<span style="color:#333;font-size:8px;">●</span>').join('');
+                const emptyDots = last10.length ? Array(Math.max(0, 10 - last10.length)).fill('<span style="color:#333;font-size:8px;">●</span>').join('') : '';
                 const dots = filledDots + emptyDots;
+                const games = (t.wins || 0) + (t.losses || 0);
+                const pctStr = games ? (t.pct != null ? t.pct : t.wins / games).toFixed(3) : '—';
                 return `<div style="display:grid;grid-template-columns:24px 1fr 52px 38px 44px;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e;">
                     <div style="font-size:11px;font-weight:700;color:${bc};">${t.rank}</div>
                     <div>
@@ -10395,7 +10290,7 @@
                     </div>
                     <div style="font-size:12px;font-weight:600;color:#aaa;text-align:center;">${t.wins}-${t.losses}</div>
                     <div style="font-size:12px;font-weight:700;color:${l10color};text-align:center;">${l10str}</div>
-                    <div style="font-size:11px;font-weight:600;color:#555;text-align:center;">${(t.pct || 0).toFixed(3)}</div>
+                    <div style="font-size:11px;font-weight:600;color:#555;text-align:center;">${pctStr}</div>
                 </div>`;
             }).join('');
         }
@@ -11756,6 +11651,7 @@
         function loadAppState(callback) {
             loadUserData();
             loadLogbookHidden();
+            loadNBAStandings();
             // Load current sport data from backend (backend transforms Firebase structure)
             const sport = currentSport || 'nba';
             fetch(BACKEND_URL + '/api/state/' + sport + (viewYear ? '?year=' + viewYear : ''))
@@ -12004,41 +11900,8 @@
             return { wins, losses };
         }
 
+        // Standings come only from the scraped official results; bets never change them
         function reapplyStandingsFromBetLog() {
-            // Reset to 3/16 baseline (day 76), then apply day 77+ for W-L
-            // Full bet log used for last10
-            [...nbaStandings.east, ...nbaStandings.west].forEach(t => {
-                t.wins = t._baseWins;
-                t.losses = t._baseLosses;
-                t.last10 = [...t._baseLast10];
-                t._allResults = [];
-            });
-            currentSeasonDays().forEach(day => {
-                day.games.forEach(g => {
-                    if (g.res !== 'W' && g.res !== 'L') return;
-                    const pickWon = g.res === 'W';
-                    const opponent = g.pick === g.t1 ? g.t2 : g.t1;
-                    const allTeams = [...nbaStandings.east, ...nbaStandings.west];
-                    const pickTeam = allTeams.find(t => t.name.toLowerCase() === g.pick.toLowerCase());
-                    const oppTeam = allTeams.find(t => t.name.toLowerCase() === opponent.toLowerCase());
-                    if (pickTeam) {
-                        if (day.day >= 77) { if (pickWon) pickTeam.wins++; else pickTeam.losses++; }
-                        pickTeam._allResults.push(pickWon ? 'W' : 'L');
-                    }
-                    if (oppTeam) {
-                        if (day.day >= 77) { if (pickWon) oppTeam.losses++; else oppTeam.wins++; }
-                        oppTeam._allResults.push(pickWon ? 'L' : 'W');
-                    }
-                });
-            });
-            [...nbaStandings.east, ...nbaStandings.west].forEach(t => {
-                if (t._allResults.length > 0) t.last10 = t._allResults.slice(-10);
-                t.pct = t.wins / (t.wins + t.losses);
-            });
-            ['east','west'].forEach(conf => {
-                nbaStandings[conf].sort((a,b) => b.wins - a.wins || a.losses - b.losses);
-                nbaStandings[conf].forEach((t,i) => t.rank = i+1);
-            });
             syncTeamsFromStandings();
         }
 
@@ -12119,47 +11982,6 @@
 
         const appendTaps = {};
 
-        function saveStandings() {
-            localStorage.setItem('nbaStandingsData', JSON.stringify({
-                east: nbaStandings.east,
-                west: nbaStandings.west
-            }));
-        }
-
-        function loadStandings() {
-            try {
-                const raw = localStorage.getItem('nbaStandingsData');
-                if (raw) {
-                    const data = JSON.parse(raw);
-                    if (data.east && data.east.length > 0) nbaStandings.east = data.east;
-                    if (data.west && data.west.length > 0) nbaStandings.west = data.west;
-                }
-            } catch(e) {}
-        }
-
-        function updateStandings(teamName, result) {
-            // result = 'W' or 'L' for that team
-            const allTeams = [...nbaStandings.east, ...nbaStandings.west];
-            const team = allTeams.find(t => t.name.toLowerCase() === teamName.toLowerCase());
-            if (!team) return;
-            if (result === 'W') { team.wins++; } else { team.losses++; }
-            team.pct = team.wins / (team.wins + team.losses);
-            team.last10.push(result);
-            if (team.last10.length > 10) team.last10.shift();
-            // re-sort conference by wins
-            ['east','west'].forEach(conf => {
-                nbaStandings[conf].sort((a,b) => b.wins - a.wins || a.losses - b.losses);
-                nbaStandings[conf].forEach((t,i) => t.rank = i+1);
-            });
-            // save to localStorage so it persists
-            saveStandings();
-            // re-render standings if open
-            if (document.getElementById('standingsContent').style.display !== 'none') {
-                renderStandings(currentConference);
-            }
-            syncTeamsFromStandings();
-        }
-
         function setBetResult(dayNum, betId, result) {
             const day = betLog.find(d => d.day === dayNum);
             if (!day) return;
@@ -12172,10 +11994,7 @@
 
             const pickWon = result === 'W';
             const opponent = game.pick === game.t1 ? game.t2 : game.t1;
-            if (game.pick) {
-                updateStandings(game.pick, pickWon ? 'W' : 'L');
-                updateStandings(opponent, pickWon ? 'L' : 'W');
-            }
+
 
             // Only save to Firebase if game has valid Firebase ID (starts with -)
             if (game._id && typeof game._id === 'string' && game._id.startsWith('-')) {

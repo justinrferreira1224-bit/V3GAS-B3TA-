@@ -766,6 +766,19 @@ app.post('/api/nba/gameStats', async (req, res) => {
     }
 });
 
+// Scraped by vegas-scrapers/nba_standings_scraper.py: regular-season W-L and
+// last 10 per team, plus the season and its phase
+app.get('/api/nba/standings', async (req, res) => {
+    try {
+        const r = await fetch(`${FB_BASE}/nba/scrapers/standings.json`);
+        if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        res.json((await r.json()) || {});
+    } catch(e) {
+        console.error('NBA standings GET failed:', e);
+        res.status(500).json({ error: 'Failed to load NBA standings' });
+    }
+});
+
 app.get('/api/nba/injuries/teams', async (req, res) => {
     try {
         const r = await fetch(`${FB_BASE}/nba/scrapers/injuries/teams.json`);
@@ -811,26 +824,6 @@ app.post('/api/nba/playoffSeries/:seriesKey', async (req, res) => {
         res.json(data);
     } catch(e) {
         res.status(500).json({ error: 'Failed to save playoff series state' });
-    }
-});
-
-// ── SCRAPER ENDPOINTS ────────────────────────────────────────
-
-app.post('/api/scrapers/nba/standings', async (req, res) => {
-    try {
-        const { exec } = require('child_process');
-        const scraperPath = '/Users/justinferreira/Desktop/vegas-scrapers/nba_standings_scraper.py';
-
-        exec(`python3 ${scraperPath}`, (error, stdout, stderr) => {
-            if (error) {
-                console.error('❌ Scraper failed:', error);
-                return res.status(500).json({ error: 'Scraper failed', details: stderr });
-            }
-            console.log('✅ NBA standings scraper completed');
-            res.json({ success: true, output: stdout });
-        });
-    } catch(e) {
-        res.status(500).json({ error: 'Failed to run scraper' });
     }
 });
 
