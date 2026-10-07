@@ -9184,13 +9184,13 @@
                             s1:   awayStand?.rank || 0,
                             i1:   aInj,
                             wl1:  `${aWins}-${aLoss}`,
-                            l1:   `${aL10w}-${10-aL10w}`,
+                            l1:   `${aL10w}-${aL10.length-aL10w}`,
                             t2:   selectedBBHomeTeam.name,
                             o2:   homeOdds,
                             s2:   homeStand?.rank || 0,
                             i2:   hInj,
                             wl2:  `${hWins}-${hLoss}`,
-                            l2:   `${hL10w}-${10-hL10w}`,
+                            l2:   `${hL10w}-${hL10.length-hL10w}`,
                             pick: pickTeam,
                             res:  null,
                             edge: edge,
@@ -9232,7 +9232,7 @@
                                 seed: awayStand?.rank || 0,
                                 injuries: aInj,
                                 record: `${aWins}-${aLoss}`,
-                                last10: `${aL10w}-${10-aL10w}`,
+                                last10: `${aL10w}-${aL10.length-aL10w}`,
                                 pitching: {
                                     name: awayPitcherName,
                                     starterERA: awayStarterERA,
@@ -9251,7 +9251,7 @@
                                 seed: homeStand?.rank || 0,
                                 injuries: hInj,
                                 record: `${hWins}-${hLoss}`,
-                                last10: `${hL10w}-${10-hL10w}`,
+                                last10: `${hL10w}-${hL10.length-hL10w}`,
                                 pitching: {
                                     name: homePitcherName,
                                     starterERA: homeStarterERA,
@@ -9469,13 +9469,16 @@
                         s1: parseFloat(awayTeamSeedInput?.value) || 0,
                         i1: awayInjuries || 0,
                         wl1: `${aWins}-${aLoss}`,
-                        l1: `${aL10w}-${10-aL10w}`,
+                        l1: `${aL10w}-${aL10.length-aL10w}`,
                         t2: homeName,
                         o2: homeOddsStr,
                         s2: parseFloat(homeTeamSeedInput?.value) || 0,
                         i2: homeInjuries || 0,
                         wl2: `${hWins}-${hLoss}`,
-                        l2: `${hL10w}-${10-hL10w}`,
+                        l2: `${hL10w}-${hL10.length-hL10w}`,
+                        // The pick, so the bet log shows it in bold right away
+                        pick: finalEdgeValueEl?.dataset?.winner || '',
+                        edge: finalEdgeValueEl?.textContent || '',
                         res: null,
                         _id: betId,
                         conf: confScore,
@@ -9491,7 +9494,7 @@
                             seed: parseFloat(awayTeamSeedInput?.value) || 0,
                             injuries: awayInjuries || 0,
                             record: `${aWins}-${aLoss}`,
-                            last10: `${aL10w}-${10-aL10w}`
+                            last10: `${aL10w}-${aL10.length-aL10w}`
                         },
                         home: {
                             team: homeName,
@@ -9499,7 +9502,7 @@
                             seed: parseFloat(homeTeamSeedInput?.value) || 0,
                             injuries: homeInjuries || 0,
                             record: `${hWins}-${hLoss}`,
-                            last10: `${hL10w}-${10-hL10w}`
+                            last10: `${hL10w}-${hL10.length-hL10w}`
                         },
                         pick: finalEdgeValueEl?.dataset?.winner || '',
                         res: null,
