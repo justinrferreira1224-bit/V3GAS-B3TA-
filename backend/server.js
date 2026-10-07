@@ -3,8 +3,8 @@ const cors = require('cors');
 const nodeFetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fs = require('fs').promises;
 const path = require('path');
-const { getSeasonYear, resolveSeasonYear, SEASON_START_MONTH } = require('./lib/seasonYear');
-const { toStorageKey, fromStorageKey, todayPacific, isTodayPacific } = require('./lib/dateKey');
+const { SEASON_WINDOWS, seasonForDate, yearsOfSeason, isSeasonName } = require('./lib/seasons');
+const { toStorageKey, parseStorageKey, todayPacific } = require('./lib/dateKey');
 const { getFirebaseAuthParam, authMode } = require('./lib/firebaseAuth');
 
 const app = express();
@@ -45,164 +45,163 @@ app.param('sport', (req, res, next, sport) => {
 
 // ── SPORT-SPECIFIC ROUTES (DYNAMIC) ──────────────────────────
 
-// Helper: Transform new Firebase structure to old frontend format
-function transformBetLog(betLogObj, sport) {
-    if (!betLogObj) return [];
-
-    const betLogArray = [];
-
-    // Convert date-keyed object to array with day numbers
-    Object.entries(betLogObj).forEach(([dateKey, dayData]) => {
-        // Parse date (MM-DD format) to calculate day of year. UTC so DST
-        // doesn't shift days after March by one on non-UTC machines.
-        const [month, day] = dateKey.split('-').map(Number);
-        const date = Date.UTC(2026, month - 1, day);
-        const jan1 = Date.UTC(2026, 0, 1);
-        const dayOfYear = Math.floor((date - jan1) / (1000 * 60 * 60 * 24)) + 1;
-
-        // Transform games from new format to old format
-        // Convert games object to array (Firebase stores arrays as objects)
-        const gamesObj = dayData.games || {};
-
-        let transformedGames = [];
-        if (Array.isArray(gamesObj)) {
-            // Already an array
-            transformedGames = gamesObj.map(game => ({
-                t1: game.away?.team || '',
-                t2: game.home?.team || '',
-                o1: game.away?.odds || '',
-                o2: game.home?.odds || '',
-                s1: parseInt(game.away?.seed) || 0,
-                s2: parseInt(game.home?.seed) || 0,
-                i1: parseInt(game.away?.injuries) || 0,
-                i2: parseInt(game.home?.injuries) || 0,
-                wl1: game.away?.record || '',
-                wl2: game.home?.record || '',
-                l1: game.away?.last10 || '',
-                l2: game.home?.last10 || '',
-                pick: game.pick || '',
-                res: game.res || null,
-                edge: game.edge || '',
-                _id: game._id || Date.now() + Math.random()
-            }));
-        } else {
-            // Object - convert to array and preserve Firebase keys as _id
-            // Filter out placeholder entries (where key is "_" or game is not an object with real data)
-            transformedGames = Object.entries(gamesObj)
-                .filter(([firebaseKey, game]) => {
-                    // Skip placeholder "_" entries
-                    if (firebaseKey === '_') return false;
-                    // Skip if game is not an object or doesn't have away/home structure
-                    if (typeof game !== 'object' || game === null) return false;
-                    // Skip if no team names (empty game)
-                    if (!game.away?.team && !game.home?.team && !game.t1 && !game.t2) return false;
-                    return true;
-                })
-                .map(([firebaseKey, game]) => ({
-                    t1: game.away?.team || game.t1 || '',
-                    t2: game.home?.team || game.t2 || '',
-                    o1: game.away?.odds || game.o1 || '',
-                    o2: game.home?.odds || game.o2 || '',
-                    s1: parseInt(game.away?.seed || game.s1) || 0,
-                    s2: parseInt(game.home?.seed || game.s2) || 0,
-                    i1: parseInt(game.away?.injuries || game.i1) || 0,
-                    i2: parseInt(game.home?.injuries || game.i2) || 0,
-                    wl1: game.away?.record || game.wl1 || '',
-                    wl2: game.home?.record || game.wl2 || '',
-                    l1: game.away?.last10 || game.l1 || '',
-                    l2: game.home?.last10 || game.l2 || '',
-                    pick: game.pick || '',
-                    res: game.res || null,
-                    edge: game.edge || '',
-                    sport: sport,
-                    _id: firebaseKey
-                }));
-        }
-
-        // Add all days (even empty ones) for calendar navigation
-        betLogArray.push({
-            day: dayOfYear,
-            date: fromStorageKey(dateKey),
-            type: dayData.type || 'REAL',
-            overall: dayData.overall || '',
-            unlocked: dayData.unlocked || false,
-            games: transformedGames
-        });
-    });
-
-    // Sort by day number
-    betLogArray.sort((a, b) => a.day - b.day);
-
-    return betLogArray;
-}
-
-// Helper: Fill in empty days so the calendar has no gaps. Covers the season's
-// start through today or the last saved day (whichever is later), capped at
-// the season's end. Response-only — nothing is written to Firebase.
-function fillSeasonDays(sport, seasonYear, seasonObj) {
-    const startMonth = SEASON_START_MONTH[sport];
-    if (!startMonth || !/^\d{4}-\d{2}$/.test(seasonYear)) return seasonObj;
-
-    const DAY_MS = 1000 * 60 * 60 * 24;
-    const startYear = parseInt(seasonYear.split('-')[0], 10);
-    const seasonStart = Date.UTC(startYear, startMonth - 1, 1);
-    const seasonEnd = Date.UTC(startYear + 1, startMonth - 1, 0); // day before next season starts
-
-    const today = todayPacific();
-    let end = Date.UTC(today.year, today.month - 1, today.day);
-    Object.keys(seasonObj).forEach(key => {
-        const [month, day, yy] = key.split('-').map(Number);
-        const saved = Date.UTC(2000 + yy, month - 1, day);
-        if (saved > end) end = saved;
-    });
-    end = Math.min(end, seasonEnd);
-
-    const filled = { ...seasonObj };
-    const pad = n => String(n).padStart(2, '0');
-    for (let t = seasonStart; t <= end; t += DAY_MS) {
-        const d = new Date(t);
-        const key = `${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}-${pad(d.getUTCFullYear() % 100)}`;
-        if (!filled[key]) filled[key] = {};
+// Helper: convert a day's games from the Firebase format to the app's format
+function transformGames(gamesObj, sport) {
+    gamesObj = gamesObj || {};
+    if (Array.isArray(gamesObj)) {
+        return gamesObj.filter(game => game && typeof game === 'object').map(game => ({
+            t1: game.away?.team || '',
+            t2: game.home?.team || '',
+            o1: game.away?.odds || '',
+            o2: game.home?.odds || '',
+            s1: parseInt(game.away?.seed) || 0,
+            s2: parseInt(game.home?.seed) || 0,
+            i1: parseInt(game.away?.injuries) || 0,
+            i2: parseInt(game.home?.injuries) || 0,
+            wl1: game.away?.record || '',
+            wl2: game.home?.record || '',
+            l1: game.away?.last10 || '',
+            l2: game.home?.last10 || '',
+            pick: game.pick || '',
+            res: game.res || null,
+            edge: game.edge || '',
+            _id: game._id || Date.now() + Math.random()
+        }));
     }
-    return filled;
+    // Object - preserve Firebase keys as _id; skip "_" placeholders and empty games
+    return Object.entries(gamesObj)
+        .filter(([firebaseKey, game]) => {
+            if (firebaseKey === '_') return false;
+            if (typeof game !== 'object' || game === null) return false;
+            if (!game.away?.team && !game.home?.team && !game.t1 && !game.t2) return false;
+            return true;
+        })
+        .map(([firebaseKey, game]) => ({
+            t1: game.away?.team || game.t1 || '',
+            t2: game.home?.team || game.t2 || '',
+            o1: game.away?.odds || game.o1 || '',
+            o2: game.home?.odds || game.o2 || '',
+            s1: parseInt(game.away?.seed || game.s1) || 0,
+            s2: parseInt(game.home?.seed || game.s2) || 0,
+            i1: parseInt(game.away?.injuries || game.i1) || 0,
+            i2: parseInt(game.home?.injuries || game.i2) || 0,
+            wl1: game.away?.record || game.wl1 || '',
+            wl2: game.home?.record || game.wl2 || '',
+            l1: game.away?.last10 || game.l1 || '',
+            l2: game.home?.last10 || game.l2 || '',
+            pick: game.pick || '',
+            res: game.res || null,
+            edge: game.edge || '',
+            sport: sport,
+            _id: firebaseKey
+        }));
 }
 
-// GET state for ANY sport
+const DAY_MS = 1000 * 60 * 60 * 24;
+const pad2 = n => String(n).padStart(2, '0');
+
+// One calendar day in the app's format. `day` is the day of that year
+// (Jan 1 = 1, leap years included); `season` is null in the offseason.
+function buildDay(sport, d, season, dayData) {
+    dayData = dayData || {};
+    return {
+        day: Math.round((Date.UTC(d.year, d.month - 1, d.day) - Date.UTC(d.year, 0, 1)) / DAY_MS) + 1,
+        date: `${pad2(d.month)}-${pad2(d.day)}`,
+        year: d.year,
+        iso: `${d.year}-${pad2(d.month)}-${pad2(d.day)}`,
+        season,
+        type: dayData.type || 'REAL',
+        overall: dayData.overall || '',
+        unlocked: dayData.unlocked || false,
+        games: transformGames(dayData.games, sport)
+    };
+}
+
+// GET state for ANY sport: a normal Jan 1 – Dec 31 calendar for ?year=YYYY
+// (default: this year, Pacific). Each date is pulled from the season it
+// belongs to, so one year can span two seasons; offseason dates are empty.
+// seasonDays holds the stored days of those seasons that fall outside the
+// year, so the app can total records and graphs by season.
 app.get('/api/state/:sport', async (req, res) => {
     try {
         const sport = req.params.sport;
         const r = await fetch(`${FB_BASE}/${sport}.json`);
-        const data = await r.json();
+        if (!r.ok) throw new Error(`Firebase responded ${r.status}`);
+        const data = (await r.json()) || {};
 
-        // Transform betLog if it exists
-        if (data && data.betLog) {
-            const seasons = Object.keys(data.betLog).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
-            const hasData = s => data.betLog[s] && Object.keys(data.betLog[s]).length > 0;
+        if (SEASON_WINDOWS[sport]) {
+            const today = todayPacific();
+            const year = /^\d{4}$/.test(String(req.query.year || '')) ? Number(req.query.year) : today.year;
+            const stored = data.betLog || {};
+            const seasons = Object.keys(stored).filter(isSeasonName).sort();
 
-            // Explicit ?season=YYYY-YY wins; otherwise use the current season,
-            // falling back to the most recent season with data (e.g. right after
-            // a rollover, before the new season's folder exists)
-            let seasonYear = req.query.season;
-            if (!seasonYear) {
-                seasonYear = getSeasonYear(sport, new Date());
-                if (!hasData(seasonYear)) {
-                    const latest = seasons.filter(hasData).pop();
-                    if (latest) seasonYear = latest;
-                }
+            const calendar = [];
+            for (let t = Date.UTC(year, 0, 1); t < Date.UTC(year + 1, 0, 1); t += DAY_MS) {
+                const dt = new Date(t);
+                const d = { year, month: dt.getUTCMonth() + 1, day: dt.getUTCDate() };
+                const season = seasonForDate(sport, d.year, d.month);
+                const dayData = season ? (stored[season] || {})[toStorageKey(d.year, d.month, d.day)] : null;
+                calendar.push(buildDay(sport, d, season, dayData));
             }
 
-            const seasonDays = fillSeasonDays(sport, seasonYear, data.betLog[seasonYear] || {});
-            data.betLog = transformBetLog(seasonDays, sport);
+            const seasonDays = [];
+            new Set(calendar.map(d => d.season).filter(Boolean)).forEach(season => {
+                Object.entries(stored[season] || {}).forEach(([key, dayData]) => {
+                    const d = parseStorageKey(key);
+                    if (d && d.year !== year && seasonForDate(sport, d.year, d.month) === season) {
+                        seasonDays.push(buildDay(sport, d, season, dayData));
+                    }
+                });
+            });
+            seasonDays.sort((a, b) => a.iso.localeCompare(b.iso));
+
+            // Years with stored seasons, up to this year (no empty future years)
+            const years = new Set([today.year]);
+            seasons.forEach(se => yearsOfSeason(se).forEach(y => { if (y <= today.year) years.add(y); }));
+
+            data.betLog = calendar;
+            data.seasonDays = seasonDays;
+            data.year = year;
+            data.years = [...years].sort();
             data.seasons = seasons;
-            data.season = seasonYear;
+            data.currentSeason = seasonForDate(sport, today.year, today.month);
+            data.season = data.currentSeason;
+            data.seasonWindow = SEASON_WINDOWS[sport];
         }
 
-        res.json(data || {});
+        res.json(data);
     } catch(e) {
         console.error(`${req.params.sport.toUpperCase()} GET failed:`, e);
         res.status(500).json({ error: `Failed to load ${req.params.sport} data` });
     }
 });
+
+// "MM-DD" plus the year the app sends -> { year, month, day }. Older app
+// versions don't send a year; then the year whose date is closest to today
+// is used. Returns null for an invalid date.
+function resolveDate(mmdd, year) {
+    const [month, day] = String(mmdd || '').split('-').map(Number);
+    let y = Number(year);
+    if (!(Number.isInteger(y) && y >= 2000 && y < 3000)) {
+        const t = todayPacific();
+        const today = Date.UTC(t.year, t.month - 1, t.day);
+        y = [t.year - 1, t.year, t.year + 1]
+            .sort((a, b) => Math.abs(Date.UTC(a, month - 1, day) - today) - Math.abs(Date.UTC(b, month - 1, day) - today))[0];
+    }
+    const check = new Date(Date.UTC(y, month - 1, day));
+    if (!month || !day || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null;
+    return { year: y, month, day };
+}
+
+// Firebase location of a sport's day — the season comes from the date itself.
+// null in that sport's offseason (offseason dates are never stored).
+function dayPath(sport, d) {
+    const season = seasonForDate(sport, d.year, d.month);
+    return season ? `${FB_BASE}/${sport}/betLog/${season}/${toStorageKey(d.year, d.month, d.day)}` : null;
+}
+
+const offseasonError = (sport, d) =>
+    `${d.year}-${pad2(d.month)}-${pad2(d.day)} is in the ${sport.toUpperCase()} offseason — nothing is stored on offseason days`;
 
 // Helper: Reverse transform - convert array back to date-keyed object
 function reverseBetLog(betLogArray) {
@@ -300,19 +299,17 @@ app.delete('/api/state/:sport/:dayIndex/:gameIndex', async (req, res) => {
 app.delete('/api/:sport/deleteGame', async (req, res) => {
     try {
         const sport = req.params.sport;
-        const { date, gameId } = req.body;
+        const { date, year, gameId } = req.body;
 
         if (!date || !gameId) {
             return res.status(400).json({ error: 'Missing required fields: date, gameId' });
         }
+        const d = resolveDate(date, year);
+        if (!d) return res.status(400).json({ error: `Invalid date: ${date}` });
+        const path = dayPath(sport, d);
+        if (!path) return res.status(400).json({ error: offseasonError(sport, d) });
 
-        const seasonYear = resolveSeasonYear(sport, date);
-        const storageKey = toStorageKey(sport, date, seasonYear);
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${seasonYear}/${storageKey}/games/${gameId}.json`, {
-            method: 'DELETE'
-        });
-
-        const data = await r.json();
+        await fetch(`${path}/games/${gameId}.json`, { method: 'DELETE' });
         console.log(`✅ Deleted game ${gameId} from ${sport} ${date}`);
         res.json({ success: true });
     } catch(e) {
@@ -326,24 +323,21 @@ app.post('/api/:sport/gameResult', async (req, res) => {
     try {
         const sport = req.params.sport;
         // Body field "res" is the bet result; renamed so it doesn't shadow the response
-        const { date, gameId, pick, res: result } = req.body;
+        const { date, year, gameId, pick, res: result } = req.body;
 
         if (!date || !gameId || !pick || !result) {
             return res.status(400).json({ error: 'Missing required fields: date, gameId, pick, res' });
         }
+        const d = resolveDate(date, year);
+        if (!d) return res.status(400).json({ error: `Invalid date: ${date}` });
+        const path = dayPath(sport, d);
+        if (!path) return res.status(400).json({ error: offseasonError(sport, d) });
 
         // Save pick and res to the specific game using Firebase key
-        const updates = {
-            pick: pick,
-            res: result
-        };
-
-        const seasonYear = resolveSeasonYear(sport, date);
-        const storageKey = toStorageKey(sport, date, seasonYear);
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${seasonYear}/${storageKey}/games/${gameId}.json`, {
+        const r = await fetch(`${path}/games/${gameId}.json`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updates)
+            body: JSON.stringify({ pick: pick, res: result })
         });
 
         const data = await r.json();
@@ -359,7 +353,7 @@ app.post('/api/:sport/gameResult', async (req, res) => {
 app.post('/api/:sport/addGame', async (req, res) => {
     try {
         const sport = req.params.sport;
-        const { date, game } = req.body;
+        const { date, year, game } = req.body;
 
         if (!date || !game) {
             return res.status(400).json({ error: 'Missing required fields: date, game' });
@@ -367,16 +361,16 @@ app.post('/api/:sport/addGame', async (req, res) => {
 
         // Bets can only be added on the present day (Pacific time). Results,
         // edits, and deletes on past days go through their own routes.
-        if (!isTodayPacific(date)) {
-            const t = todayPacific();
-            const todayStr = `${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
-            return res.status(400).json({ error: `Games can only be added on today's date (${todayStr} Pacific), not ${date}` });
+        const t = todayPacific();
+        const d = resolveDate(date, year);
+        if (!d || d.year !== t.year || d.month !== t.month || d.day !== t.day) {
+            const asked = d ? `${d.year}-${pad2(d.month)}-${pad2(d.day)}` : date;
+            return res.status(400).json({ error: `Games can only be added on today's date (${t.year}-${pad2(t.month)}-${pad2(t.day)} Pacific), not ${asked}` });
         }
+        const path = dayPath(sport, d);
+        if (!path) return res.status(400).json({ error: offseasonError(sport, d) });
 
-        // Add game to the games array for this date
-        const seasonYear = resolveSeasonYear(sport, date);
-        const storageKey = toStorageKey(sport, date, seasonYear);
-        const r = await fetch(`${FB_BASE}/${sport}/betLog/${seasonYear}/${storageKey}/games.json`, {
+        const r = await fetch(`${path}/games.json`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(game)
@@ -391,34 +385,28 @@ app.post('/api/:sport/addGame', async (req, res) => {
     }
 });
 
-// ── SAVE day unlocked state (SYNCS ACROSS ALL SPORTS) ──────────────────────────────────
+// ── SAVE day unlocked state (SYNCS ACROSS ALL SPORTS IN SEASON) ──────────────────
 app.post('/api/:sport/unlockDay', async (req, res) => {
     try {
-        const sport = req.params.sport;
-        const { date, unlocked } = req.body;
+        const { date, year, unlocked } = req.body;
 
         if (!date || unlocked === undefined) {
             return res.status(400).json({ error: 'Missing required fields: date, unlocked' });
         }
+        const d = resolveDate(date, year);
+        if (!d) return res.status(400).json({ error: `Invalid date: ${date}` });
 
-        // List of all sports to sync lock/unlock state across
-        const allSports = ['mlb', 'nba', 'nfl', 'nhl', 'ncaab', 'ncaaf', 'enba', 'soccer'];
+        // Sync to every sport whose season includes this date; sports in their
+        // offseason are skipped (offseason dates are never stored)
+        const synced = Object.keys(SEASON_WINDOWS).filter(s => dayPath(s, d));
+        await Promise.all(synced.map(s => fetch(`${dayPath(s, d)}/unlocked.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(unlocked)
+        })));
 
-        // Update unlocked state for this date across ALL sports
-        const promises = allSports.map(s => {
-            const seasonYear = resolveSeasonYear(s, date);
-            const storageKey = toStorageKey(s, date, seasonYear);
-            return fetch(`${FB_BASE}/${s}/betLog/${seasonYear}/${storageKey}/unlocked.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(unlocked)
-            });
-        });
-
-        await Promise.all(promises);
-
-        console.log(`✅ Set ${date} unlocked: ${unlocked} (synced across all sports)`);
-        res.json({ success: true, syncedSports: allSports });
+        console.log(`✅ Set ${date} unlocked: ${unlocked} (synced: ${synced.join(', ')})`);
+        res.json({ success: true, syncedSports: synced });
     } catch(e) {
         console.error('Unlock day failed:', e);
         res.status(500).json({ error: 'Failed to save unlock state' });

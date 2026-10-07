@@ -1,3 +1,4 @@
+// Superseded by lib/seasons.js. Only the old one-time migration scripts still use this file.
 const SEASON_START_MONTH = {
     nba: 10,   // October
     nhl: 10,   // October

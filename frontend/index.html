@@ -2346,6 +2346,7 @@
                     <div id="betLogDayNav" style="display:flex; overflow-x:auto; padding:10px 14px; gap:8px; border-bottom:1px solid #2a2a2a; background:#000; scrollbar-width:none; position:sticky; top:0; z-index:10; flex-shrink:0;"></div>
                     <div id="betLogSubtitle" style="padding:4px 14px 6px; background:#000; border-bottom:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center; position:sticky; top:52px; z-index:9; flex-shrink:0;">
                         <span id="betLogSubDate" style="font-size:11px;font-weight:800;color:#fff;"></span>
+                        <span id="betLogYearNav" style="font-size:14px;font-weight:800;user-select:none;"></span>
                         <span id="betLogSubOverall" style="font-size:10px;font-weight:600;color:#555;"></span>
                     </div>
                     <div id="betLogCards" style="padding:12px 14px; overflow-y:auto; overflow-x:visible;"></div>
@@ -2561,6 +2562,15 @@
         // device's defaults ($25) can never overwrite the real values.
         const USER_DATA_FIELDS = ['bankroll', 'bankrollGoal', 'previousBankroll', 'gwBankroll'];
         let userDataLoaded = false;
+
+        // Calendar year shown in the bet log (null = this year, chosen by the
+        // backend), plus season info that comes with it. Each bet log day has
+        // year, iso ("YYYY-MM-DD") and season (null on offseason days).
+        let viewYear = null;
+        let seasonContextDays = [];   // stored days of the visible seasons that fall outside viewYear
+        let availableYears = [];
+        let currentSeasonName = null; // season today belongs to (null in the offseason)
+        let seasonWindow = null;      // { start, end } months for the current sport
 
         // Game log cards hidden by swipe-delete, keyed "<sport>_<gameId>" and
         // synced with Firebase so they stay hidden on every device
@@ -9259,7 +9269,7 @@
                         fetch('https://v3gas-b3ta-backend.onrender.com/api/mlb/addGame', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ date: currentDate, game: firebaseGame })
+                            body: JSON.stringify({ date: currentDate, year: targetDay.year, game: firebaseGame })
                         })
                         .then(r => r.json())
                         .then(data => {
@@ -9492,6 +9502,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             date: targetDay.date,
+                            year: targetDay.year,
                             game: firebaseGame
                         })
                     })
@@ -11201,7 +11212,10 @@
 
                 // Step 2: If we found a probable pitcher, get their season stats
                 if (probablePitcherID) {
-                    const pitcherRes = await fetch('https://site.web.api.espn.com/apis/site/v2/sports/baseball/mlb/athletes/' + probablePitcherID + '/stats?season=2026');
+                    // MLB stats season = calendar year of the season (before March, last season's)
+                    const mlbToday = todayPacificParts();
+                    const mlbStatsYear = mlbToday.month < 3 ? mlbToday.year - 1 : mlbToday.year;
+                    const pitcherRes = await fetch('https://site.web.api.espn.com/apis/site/v2/sports/baseball/mlb/athletes/' + probablePitcherID + '/stats?season=' + mlbStatsYear);
                     const pitcherData = await pitcherRes.json();
                     const splits = pitcherData?.splits?.categories || [];
                     const pitching = splits.find(c => c.name === 'pitching');
@@ -11439,8 +11453,8 @@
             let team1Wins = 0;
             let team2Wins = 0;
 
-            // Scan betLog for all playoff days up to current day
-            for (const day of betLog) {
+            // Scan the current season for all playoff days up to current day
+            for (const day of currentSeasonDays()) {
                 if (day.day >= 104 && day.day < currentDay) {
                     for (const game of (day.games || [])) {
                         const isMatch = (game.t1 === team1 && game.t2 === team2) ||
@@ -11744,13 +11758,19 @@
             loadLogbookHidden();
             // Load current sport data from backend (backend transforms Firebase structure)
             const sport = currentSport || 'nba';
-            fetch(BACKEND_URL + '/api/state/' + sport)
+            fetch(BACKEND_URL + '/api/state/' + sport + (viewYear ? '?year=' + viewYear : ''))
                 .then(r => r.json())
                 .then(data => {
                     if (data && data.betLog && Array.isArray(data.betLog)) {
                         // Replace betLog entirely with backend data
                         betLog.length = 0;
                         data.betLog.forEach(day => betLog.push(day));
+                        seasonContextDays = Array.isArray(data.seasonDays) ? data.seasonDays : [];
+                        if (data.year) viewYear = data.year;
+                        availableYears = Array.isArray(data.years) ? data.years : [];
+                        currentSeasonName = data.currentSeason || null;
+                        seasonWindow = data.seasonWindow || null;
+                        renderYearNav();
                         // Render immediately after loading
                         if (typeof renderBetLog === 'function') {
                             renderBetLog();
@@ -11851,7 +11871,7 @@
             allMLB.forEach(t => { t._allResults = t._allResults || []; t._allResults = []; });
 
             // Only update last10 from bet log — W-L and rankings stay as Firebase has them
-            betLog.forEach(day => {
+            currentSeasonDays().forEach(day => {
                 day.games.forEach(g => {
                     if (g.sport !== 'mlb') return;
                     if (g.res !== 'W' && g.res !== 'L') return;
@@ -11880,9 +11900,9 @@
             const awayName = selectedBBAwayTeam.name;
             const homeName = selectedBBHomeTeam.name;
 
-            // Get all MLB games only, sorted by day
+            // Get all MLB games only (current season), sorted by day
             const mlbGames = [];
-            betLog.forEach(day => {
+            currentSeasonDays().forEach(day => {
                 day.games.forEach(g => {
                     if (g.sport !== 'mlb') return;
                     if (g.res !== 'W' && g.res !== 'L') return;
@@ -11937,9 +11957,9 @@
         }
 
         function calcMLBLast5Series(teamAbbr) {
-            // Group MLB bet log games into series (same two teams, consecutive days)
+            // Group MLB bet log games into series (same two teams, consecutive days), current season
             const mlbGames = [];
-            betLog.forEach(day => {
+            currentSeasonDays().forEach(day => {
                 day.games.forEach(g => {
                     if (g.sport !== 'mlb') return;
                     if (g.res !== 'W' && g.res !== 'L') return;
@@ -11993,7 +12013,7 @@
                 t.last10 = [...t._baseLast10];
                 t._allResults = [];
             });
-            betLog.forEach(day => {
+            currentSeasonDays().forEach(day => {
                 day.games.forEach(g => {
                     if (g.res !== 'W' && g.res !== 'L') return;
                     const pickWon = g.res === 'W';
@@ -12030,12 +12050,8 @@
             let dW = 0, dL = 0;
             day.games.filter(sportFilter).forEach(g => { if(g.res==='W') dW++; else if(g.res==='L') dL++; });
             // overall up to and including this day
-            let tw = 0, tl = 0;
-            betLog.forEach(d => {
-                if (d.day <= activeBetDay) {
-                    d.games.filter(sportFilter).forEach(g => { if(g.res==='W') tw++; else if(g.res==='L') tl++; });
-                }
-            });
+            // Season record up to and including this day
+            const { w: tw, l: tl } = seasonRecord(day.season, day.iso);
             const tp = tw+tl > 0 ? Math.round((tw/(tw+tl))*100) : 0;
             const overallColor = tp>=80?'#22c55e':tp>=70?'#f59e0b':'#ef4444';
             const dailyColor = dW>dL?'#22c55e':dL>dW?'#ef4444':'#aaa';
@@ -12170,6 +12186,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         date: day.date,
+                        year: day.year,
                         gameId: game._id,
                         pick: game.pick,
                         res: result
@@ -12293,6 +12310,7 @@
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         date: day.date,
+                                        year: day.year,
                                         gameId: game._id
                                     })
                                 });
@@ -12331,41 +12349,108 @@
             return canon(g.sport || 'nba') === canon(currentSport);
         }
 
-        // Today's date as "MM-DD" in Pacific time (matches the backend, which
-        // only accepts new games for today's Pacific date)
-        function todayPacificMMDD() {
+        // Today's date in Pacific time as { year, month, day } (matches the
+        // backend, which only accepts new games for today's Pacific date)
+        function todayPacificParts() {
             const parts = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'America/Los_Angeles', month: '2-digit', day: '2-digit'
+                timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit'
             }).formatToParts(new Date());
-            const get = type => parts.find(p => p.type === type).value;
-            return `${get('month')}-${get('day')}`;
+            const get = type => Number(parts.find(p => p.type === type).value);
+            return { year: get('year'), month: get('month'), day: get('day') };
         }
 
-        function isTodayPacific(mmdd) {
-            const [m, d] = String(mmdd || '').split('-').map(Number);
-            const [tm, td] = todayPacificMMDD().split('-').map(Number);
-            return m === tm && d === td;
+        function todayPacificMMDD() {
+            const t = todayPacificParts();
+            return `${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
         }
 
-        // Today's betLog day (Pacific). Day number uses the same day-of-year
-        // math as the backend's transformBetLog, so a created day lines up.
+        // True if a bet log day is today (Pacific), year included
+        function isTodayPacific(day) {
+            if (!day) return false;
+            const t = todayPacificParts();
+            const [m, d] = String(day.date || '').split('-').map(Number);
+            return m === t.month && d === t.day && (day.year === undefined || day.year === t.year);
+        }
+
+        // Today's bet log day, or undefined when another year is being viewed.
+        // Day number = day of the year (Jan 1 = 1), same as the backend.
         function getTodayBetDay(createIfMissing) {
-            let today = betLog.find(d => isTodayPacific(d.date));
+            const t = todayPacificParts();
+            if (viewYear && viewYear !== t.year) return undefined;
+            let today = betLog.find(d => isTodayPacific(d));
             if (!today && createIfMissing) {
-                const date = todayPacificMMDD();
-                const [m, d] = date.split('-').map(Number);
-                const dayOfYear = Math.floor((Date.UTC(2026, m - 1, d) - Date.UTC(2026, 0, 1)) / (1000 * 60 * 60 * 24)) + 1;
-                today = { day: dayOfYear, date, type: 'REAL', overall: '', unlocked: true, games: [] };
+                const dayOfYear = Math.round((Date.UTC(t.year, t.month - 1, t.day) - Date.UTC(t.year, 0, 1)) / 86400000) + 1;
+                const pad = n => String(n).padStart(2, '0');
+                today = { day: dayOfYear, date: todayPacificMMDD(), year: t.year, iso: `${t.year}-${pad(t.month)}-${pad(t.day)}`,
+                          season: currentSeasonName, type: 'REAL', overall: '', unlocked: true, games: [] };
                 betLog.push(today);
                 betLog.sort((a, b) => a.day - b.day);
             }
             return today;
         }
 
+        // Every known day of the visible seasons (this year's calendar plus the
+        // parts of those seasons in the year before/after), oldest first
+        function allSeasonDays() {
+            return [...seasonContextDays, ...betLog].filter(d => d.season).sort((a, b) => (a.iso || '').localeCompare(b.iso || ''));
+        }
+
+        // Days of the season that today belongs to — or, in the offseason, the
+        // most recent season shown. Standings and series use this.
+        function currentSeasonDays() {
+            const days = allSeasonDays();
+            let season = currentSeasonName;
+            if (!season || !days.some(d => d.season === season)) {
+                const withGames = days.filter(d => d.games && d.games.length);
+                season = withGames.length ? withGames[withGames.length - 1].season : season;
+            }
+            return days.filter(d => d.season === season);
+        }
+
+        // W-L over a season's decided games for the current sport, optionally
+        // only up to and including one day
+        function seasonRecord(season, uptoIso) {
+            let w = 0, l = 0;
+            if (!season) return { w, l };
+            allSeasonDays().forEach(d => {
+                if (d.season !== season || (uptoIso && d.iso > uptoIso)) return;
+                d.games.filter(gameMatchesCurrentSport).forEach(g => { if (g.res === 'W') w++; else if (g.res === 'L') l++; });
+            });
+            return { w, l };
+        }
+
+        // Year switcher in the bet log header
+        function renderYearNav() {
+            const el = document.getElementById('betLogYearNav');
+            if (!el || !viewYear) return;
+            const years = availableYears.length ? availableYears : [viewYear];
+            const canPrev = viewYear > Math.min(...years);
+            const canNext = viewYear < Math.max(...years);
+            el.innerHTML = `<span onclick="changeViewYear(-1)" style="padding:0 8px;cursor:${canPrev ? 'pointer' : 'default'};color:${canPrev ? '#fff' : '#333'};">‹</span>`
+                + `<span style="font-size:11px;font-weight:800;color:#fff;letter-spacing:1px;">${viewYear}</span>`
+                + `<span onclick="changeViewYear(1)" style="padding:0 8px;cursor:${canNext ? 'pointer' : 'default'};color:${canNext ? '#fff' : '#333'};">›</span>`;
+        }
+
+        function changeViewYear(delta) {
+            const years = availableYears.length ? availableYears : [viewYear];
+            const next = viewYear + delta;
+            if (next < Math.min(...years) || next > Math.max(...years)) return;
+            viewYear = next;
+            loadAppState(() => {
+                // Land on today in the current year; otherwise the last day with bets
+                const today = getTodayBetDay(false);
+                const withGames = betLog.filter(d => d.games.some(gameMatchesCurrentSport));
+                activeBetDay = today ? today.day : (withGames.length ? withGames[withGames.length - 1].day : 1);
+                renderBetLog();
+                renderBetDayCards();
+                updateBetLogSubtitle();
+            });
+        }
+
         function tapAppend(dayNum) {
             // Games can only be added on today's date
             const tappedDay = betLog.find(d => d.day === dayNum);
-            if (!tappedDay || !isTodayPacific(tappedDay.date)) return;
+            if (!tappedDay || !isTodayPacific(tappedDay) || !tappedDay.season) return;
 
             // block if any currently unlocked day has pending W/L
             const currentUnlocked = betLog.find(d => d.unlocked && d.games.some(g => g.res === null));
@@ -12420,6 +12505,7 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 date: day.date,
+                                year: day.year,
                                 unlocked: true
                             })
                         })
@@ -12453,18 +12539,16 @@
             console.log('filteredGames:', filteredGames.length, filteredGames);
 
             // APPEND (unlock to add games) only shows on today's date
-            const isBlank = filteredGames.length === 0 && !day.unlocked && isTodayPacific(day.date);
+            const isBlank = filteredGames.length === 0 && !day.unlocked && isTodayPacific(day) && !!day.season;
+            const isOffseason = !day.season && filteredGames.length === 0;
 
             // daily record for this day (filtered)
             let dW = 0, dL = 0;
             filteredGames.forEach(g => { if(g.res==='W') dW++; else if(g.res==='L') dL++; });
 
             // compute live overall accuracy from all decided games (filtered by sport)
-            let totalW = 0, totalL = 0;
-            betLog.forEach(d => d.games.filter(gameMatchesCurrentSport).forEach(g => {
-                if (g.res === 'W') totalW++;
-                else if (g.res === 'L') totalL++;
-            }));
+            // Season record: every decided game in this day's season
+            const { w: totalW, l: totalL } = seasonRecord(day.season);
             const totalGames = totalW + totalL;
             const pct = totalGames > 0 ? Math.round((totalW / totalGames) * 100) : 0;
             const overallStr = totalGames > 0 ? `${totalW}-${totalL} (${pct}%)` : '';
@@ -12496,6 +12580,11 @@
                     <span style="font-size:28px;">⛓️🔒⛓️</span>
                     <span style="font-size:15px;font-weight:900;color:#888;letter-spacing:3px;">APPEND</span>
                     <span style="font-size:10px;color:#444;">tap 5x to unlock</span>
+                </div>` : ''}
+                ${isOffseason ? `
+                <div style="text-align:center;padding:22px 16px;margin-bottom:14px;border:1px dashed #222;border-radius:14px;color:#555;">
+                    <div style="font-size:22px;">🏖️</div>
+                    <div style="font-size:12px;font-weight:800;letter-spacing:2px;margin-top:4px;">OFFSEASON</div>
                 </div>` : ''}
                 ${filteredGames.length > 0 ? `
                 <div style="margin-bottom:10px;padding:8px 12px;background:#0a0a0a;border-radius:10px;border:1px solid #1a1a1a;">
@@ -12759,6 +12848,23 @@
 
         let monthStartOverrides = { nba: { robego: {}, justin: {}, kelly: {} }, mlb: { robego: {}, justin: {}, kelly: {} } };
 
+        // Days of one calendar month (default: the year being viewed), oldest first.
+        // Includes the visible seasons' days from the year before, for chaining.
+        function monthDays(month, year) {
+            const y = year || viewYear || todayPacificParts().year;
+            const m = monthNames.indexOf(month) + 1;
+            return [...seasonContextDays, ...betLog]
+                .filter(d => d.year === y && Number(String(d.date).split('-')[0]) === m)
+                .sort((a, b) => a.day - b.day);
+        }
+
+        // True if a calendar month (1-12) is inside the current sport's season window
+        function monthInSeason(m) {
+            if (!seasonWindow) return true;
+            const { start, end } = seasonWindow;
+            return start <= end ? (m >= start && m <= end) : (m >= start || m <= end);
+        }
+
         function loadMonthStarts() {
             try {
                 const saved = localStorage.getItem('monthStartOverrides3');
@@ -12792,11 +12898,9 @@
             } catch(e) {}
         }
 
-        function calcMonthEndBankroll(month, sub) {
-            const range = MONTH_RANGES[month];
-            let bankroll = getMonthStart(month, sub);
-            betLog.forEach(day => {
-                if (day.day < range.startDay || day.day > range.endDay) return;
+        function calcMonthEndBankroll(month, sub, year) {
+            let bankroll = getMonthStart(month, sub, year);
+            monthDays(month, year).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0 || bankroll <= 0) return;
                 const n = decided.length;
@@ -12813,15 +12917,19 @@
             return bankroll;
         }
 
-        function getMonthStart(month, sub) {
+        // Start of a month's bankroll: an override if set, $100 on the season's
+        // first month (or in the offseason), otherwise the previous month's end —
+        // following the season, so January continues from December
+        function getMonthStart(month, sub, year) {
             sub = sub || currentMoneySubTab;
+            year = year || viewYear || todayPacificParts().year;
             const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
             const overrides = (monthStartOverrides[sport] && monthStartOverrides[sport][sub]) || {};
             if (overrides[month] !== undefined) return overrides[month];
-            const order = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-            const idx = order.indexOf(month);
-            if (idx === 0) return 100;
-            return calcMonthEndBankroll(order[idx - 1], sub);
+            const m = monthNames.indexOf(month) + 1;
+            const prevM = m === 1 ? 12 : m - 1;
+            if (!monthInSeason(m) || !monthInSeason(prevM) || (seasonWindow && m === seasonWindow.start)) return 100;
+            return calcMonthEndBankroll(monthNames[prevM - 1], sub, m === 1 ? year - 1 : year);
         }
 
         function fmtMoney(val) {
@@ -12830,11 +12938,12 @@
             return '$' + val.toFixed(2);
         }
 
-        // Deposits per sport per person: { sport: { person: { dayNumber: amount } } }
+        // Deposits per sport per person: { sport: { person: { 'YYYY-MM-DD': amount } } }
+        // (were keyed by day number 69/75, which the app applied on 2026-03-10 and 2026-03-16)
         const BANKROLL_DEPOSITS = {
             nba: {
-                robego: { 69: 100, 75: 100 }, // 4/16: +$100, 4/22: +$100
-                justin: { 69: 100 }            // 4/16: +$100
+                robego: { '2026-03-10': 100, '2026-03-16': 100 }, // comment originally said 4/16 and 4/22
+                justin: { '2026-03-10': 100 }                      // comment originally said 4/16
             },
             mlb: {
                 robego: {},
@@ -12851,14 +12960,13 @@
             const startAmount = getMonthStart(month);
             let bankroll = startAmount;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
-            betLog.forEach(day => {
-                if (day.day < range.startDay || day.day > range.endDay) return;
+            monthDays(month).forEach(day => {
                 // Apply any deposit for this day
-                const dep = getDeposits('robego')[day.day];
+                const dep = getDeposits('robego')[day.iso];
                 if (dep) { bankroll += dep; bankroll = Math.round(bankroll * 100) / 100; }
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) {
-                    const dep2 = getDeposits('robego')[day.day];
+                    const dep2 = getDeposits('robego')[day.iso];
                     if (dep2) data.push({ date: day.date + ' (+$' + dep2 + ')', bankroll });
                     return;
                 }
@@ -12894,12 +13002,11 @@
             const startAmount = getMonthStart(month, 'justin');
             let bankroll = startAmount;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
-            betLog.forEach(day => {
-                if (day.day < range.startDay || day.day > range.endDay) return;
-                const jdep = getDeposits('justin')[day.day];
+            monthDays(month).forEach(day => {
+                const jdep = getDeposits('justin')[day.iso];
                 if (jdep) bankroll = Math.round((bankroll + jdep) * 100) / 100;
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
-                const jdep2 = getDeposits('justin')[day.day];
+                const jdep2 = getDeposits('justin')[day.iso];
                 if (decided.length === 0) { if (jdep2) data.push({ date: day.date + ' (+$' + jdep2 + ')', bankroll }); return; }
                 // If busted, reload to $100 for this day
                 if (bankroll <= 0) {
@@ -13055,8 +13162,7 @@
             let bankroll = 100;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
 
-            betLog.forEach(day => {
-                if (day.day < range.startDay || day.day > range.endDay) return;
+            monthDays(month).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
                 // If busted, reload to $100 for this day
@@ -13127,8 +13233,7 @@
             let bankroll = 100;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
 
-            betLog.forEach(day => {
-                if (day.day < range.startDay || day.day > range.endDay) return;
+            monthDays(month).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
                 // If busted, reload to $100 for this day
