@@ -159,6 +159,13 @@ app.get('/api/state/:sport', async (req, res) => {
             const years = new Set([today.year]);
             seasons.forEach(se => yearsOfSeason(se).forEach(y => { if (y <= today.year) years.add(y); }));
 
+            // Season phase per date (Preseason, Regular Season, First Round, ...), scraped
+            // from ESPN by vegas-scrapers/season_phases_scraper.py. Offseason days have no season.
+            const phaseByDate = {};
+            Object.values((data.scrapers && data.scrapers.phases) || {}).forEach(y => Object.assign(phaseByDate, (y && y.days) || {}));
+            [...calendar, ...seasonDays].forEach(d => { d.phase = d.season ? (phaseByDate[d.iso] || null) : 'Offseason'; });
+            if (data.scrapers) delete data.scrapers.phases;
+
             data.betLog = calendar;
             data.seasonDays = seasonDays;
             data.year = year;

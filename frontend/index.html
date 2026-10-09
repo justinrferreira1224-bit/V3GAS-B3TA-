@@ -3221,11 +3221,10 @@
             let awayFinalPercent = (awayImpliedFinal / totalImpliedFinal) * 100;
             let homeFinalPercent = (homeImpliedFinal / totalImpliedFinal) * 100;
 
-            // Apply playoff model if in playoff range (April 14 - June 16)
-            const now = new Date();
-            const jan1 = new Date(now.getFullYear(), 0, 1);
-            const currentDayNumber = Math.floor((now - jan1) / (1000 * 60 * 60 * 24)) + 1;
-            const isPlayoffs = currentDayNumber >= 104 && currentDayNumber <= 167;
+            // Apply the playoff model on NBA playoff days (phase from ESPN's schedule)
+            const todayBetDay = getTodayBetDay(false);
+            const currentDayNumber = todayBetDay ? todayBetDay.day : 0;
+            const isPlayoffs = isNBAPlayoffDay(todayBetDay);
 
             if (isPlayoffs && selectedAwayTeam && selectedHomeTeam) {
                 const playoffResult = applyPlayoffModel(
@@ -10307,709 +10306,8 @@
         }
 
         // ===== BET LOG =====
-        const betLog = [
-          { day:1, date:'2/1', type:'PAPER', overall:'10-0 (100%) 🔥', games:[
-            {t1:'Bucks',o1:'+450',s1:12,i1:4,wl1:'19-30',l1:'2-8',t2:'Celtics',o2:'-650',s2:2,i2:2,wl2:'30-18',l2:'7-3',pick:'Celtics',res:'W'},
-            {t1:'Magic',o1:'+450',s1:7,i1:2,wl1:'25-22',l1:'5-5',t2:'Spurs',o2:'-210',s2:2,i2:1,wl2:'32-16',l2:'5-5',pick:'Spurs',res:'W'},
-            {t1:'Nets',o1:'+475',s1:13,i1:3,wl1:'10-38',l1:'2-8',t2:'Pistons',o2:'-700',s2:1,i2:3,wl2:'35-12',l2:'7-3',pick:'Pistons',res:'W'},
-            {t1:'Kings',o1:'-135',s1:15,i1:4,wl1:'9-42',l1:'2-8',t2:'Wizards',o2:'+115',s2:15,i2:5,wl2:'11-37',l2:'2-8',pick:'Wizards',res:'W'},
-            {t1:'Jazz',o1:'+360',s1:13,i1:6,wl1:'13-36',l1:'1-9',t2:'Raptors',o2:'-500',s2:5,i2:2,wl2:'29-21',l2:'5-5',pick:'Raptors',res:'W'},
-            {t1:'Bulls',o1:'+190',s1:11,i1:8,wl1:'19-30',l1:'6-4',t2:'Heat',o2:'-230',s2:8,i2:4,wl2:'26-24',l2:'5-5',pick:'Heat',res:'W'},
-            {t1:'Lakers',o1:'+165',s1:6,i1:3,wl1:'29-18',l1:'6-4',t2:'Knicks',o2:'-195',s2:3,i2:2,wl2:'30-18',l2:'6-4',pick:'Knicks',res:'W'},
-            {t1:'Clippers',o1:'-125',s1:9,i1:3,wl1:'22-27',l1:'8-2',t2:'Suns',o2:'+105',s2:7,i2:2,wl2:'28-22',l2:'6-4',pick:'Clippers',res:'W'},
-            {t1:'Cavaliers',o1:'-160',s1:4,i1:6,wl1:'29-21',l1:'7-3',t2:'Blazers',o2:'+135',s2:10,i2:9,wl2:'23-26',l2:'4-6',pick:'Cavaliers',res:'W'},
-            {t1:'Thunder',o1:'-270',s1:1,i1:5,wl1:'38-11',l1:'6-4',t2:'Nuggets',o2:'+220',s2:3,i2:6,wl2:'33-16',l2:'7-3',pick:'Thunder',res:'W'},
-          ]},
-          { day:2, date:'2/2', type:'PAPER', overall:'13-1 (93%)', games:[
-            {t1:'Pelicans',o1:'+210',s1:14,i1:2,wl1:'12-37',l1:'4-6',t2:'Hornets',o2:'-250',s2:9,i2:2,wl2:'22-30',l2:'8-2',pick:'Hornets',res:'W'},
-            {t1:'Rockets',o1:'-270',s1:4,i1:3,wl1:'29-19',l1:'7-3',t2:'Pacers',o2:'+220',s2:14,i2:2,wl2:'10-40',l2:'5-5',pick:'Rockets',res:'W'},
-            {t1:'Wolves',o1:'-235',s1:5,i1:3,wl1:'30-22',l1:'5-5',t2:'Grizzlies',o2:'+195',s2:11,i2:7,wl2:'17-31',l2:'2-8',pick:'Wolves',res:'L'},
-            {t1:'76ers',o1:'-120',s1:6,i1:1,wl1:'26-25',l1:'5-5',t2:'Clippers',o2:'+100',s2:9,i2:4,wl2:'22-27',l2:'8-2',pick:'76ers',res:'W'},
-          ]},
-          { day:3, date:'2/3', type:'PAPER', overall:'21-3 (88%)', games:[
-            {t1:'Nuggets',o1:'+155',s1:3,i1:4,wl1:'33-17',l1:'6-4',t2:'Pistons',o2:'-180',s2:1,i2:2,wl2:'36-12',l2:'8-2',pick:'Pistons',res:'W'},
-            {t1:'Knicks',o1:'-750',s1:3,i1:3,wl1:'31-18',l1:'6-4',t2:'Wizards',o2:'+500',s2:15,i2:5,wl2:'12-37',l2:'3-7',pick:'Knicks',res:'W'},
-            {t1:'Jazz',o1:'+135',s1:13,i1:5,wl1:'13-37',l1:'1-9',t2:'Pacers',o2:'-160',s2:14,i2:2,wl2:'10-41',l2:'4-6',pick:'Pacers',res:'L'},
-            {t1:'Hawks',o1:'+145',s1:10,i1:4,wl1:'23-30',l1:'3-7',t2:'Heat',o2:'-170',s2:8,i2:4,wl2:'27-24',l2:'6-4',pick:'Heat',res:'L'},
-            {t1:'Lakers',o1:'-350',s1:6,i1:3,wl1:'29-19',l1:'5-5',t2:'Nets',o2:'+275',s2:13,i2:3,wl2:'10-39',l2:'2-8',pick:'Lakers',res:'W'},
-            {t1:'Celtics',o1:'-260',s1:2,i1:1,wl1:'31-18',l1:'8-2',t2:'Mavericks',o2:'+215',s2:12,i2:6,wl2:'14-34',l2:'5-5',pick:'Celtics',res:'W'},
-            {t1:'Bulls',o1:'-150',s1:11,i1:8,wl1:'19-31',l1:'5-5',t2:'Bucks',o2:'+130',s2:12,i2:4,wl2:'19-31',l2:'2-8',pick:'Bucks',res:'W'},
-            {t1:'Magic',o1:'+210',s1:7,i1:2,wl1:'25-23',l1:'4-6',t2:'Thunder',o2:'-250',s2:1,i2:9,wl2:'39-11',l2:'6-4',pick:'Thunder',res:'W'},
-            {t1:'76ers',o1:'+125',s1:6,i1:0,wl1:'27-25',l1:'6-4',t2:'Warriors',o2:'-145',s2:8,i2:6,wl2:'26-25',l2:'6-4',pick:'76ers',res:'W'},
-            {t1:'Suns',o1:'-165',s1:7,i1:2,wl1:'28-23',l1:'6-4',t2:'Blazers',o2:'+140',s2:10,i2:6,wl2:'23-27',l2:'4-6',pick:'Suns',res:'W'},
-          ]},
-          { day:4, date:'2/4', type:'PAPER', overall:'26-5 (84%)', games:[
-            {t1:'Nuggets',o1:'+170',s1:3,i1:4,wl1:'33-18',l1:'5-5',t2:'Knicks',o2:'-200',s2:3,i2:4,wl2:'32-18',l2:'7-3',pick:'Knicks',res:'L'},
-            {t1:'Wolves',o1:'-125',s1:5,i1:3,wl1:'30-23',l1:'4-6',t2:'Raptors',o2:'+105',s2:5,i2:2,wl2:'30-21',l2:'6-4',pick:'Wolves',res:'W'},
-            {t1:'Celtics',o1:'+220',s1:2,i1:5,wl1:'32-18',l1:'8-2',t2:'Rockets',o2:'-270',s2:4,i2:4,wl2:'30-19',l2:'8-2',pick:'Rockets',res:'L'},
-            {t1:'Pelicans',o1:'-195',s1:14,i1:2,wl1:'12-38',l1:'4-6',t2:'Bucks',o2:'+165',s2:12,i2:6,wl2:'20-31',l2:'2-8',pick:'Bucks',res:'W'},
-            {t1:'Thunder',o1:'+315',s1:1,i1:10,wl1:'40-11',l1:'6-4',t2:'Spurs',o2:'-420',s2:2,i2:5,wl2:'33-16',l2:'6-4',pick:'Spurs',res:'W'},
-            {t1:'Grizzlies',o1:'-110',s1:11,i1:9,wl1:'18-31',l1:'3-7',t2:'Kings',o2:'-110',s2:15,i2:2,wl2:'9-43',l2:'1-9',pick:'Grizzlies',res:'W'},
-            {t1:'Cavaliers',o1:'-145',s1:4,i1:3,wl1:'30-21',l1:'8-2',t2:'Clippers',o2:'+125',s2:9,i2:4,wl2:'23-28',l2:'7-3',pick:'Cavaliers',res:'W'},
-          ]},
-          { day:5, date:'2/5', type:'PAPER', overall:'31-8 (79%)', games:[
-            {t1:'Nets',o1:'+300',s1:13,i1:4,wl1:'10-40',l1:'1-9',t2:'Magic',o2:'-400',s2:7,i2:2,wl2:'25-24',l2:'4-6',pick:'Magic',res:'W'},
-            {t1:'Wizards',o1:'+700',s1:15,i1:7,wl1:'12-38',l1:'3-7',t2:'Pistons',o2:'-1200',s2:1,i2:3,wl2:'37-12',l2:'8-2',pick:'Pistons',res:'L'},
-            {t1:'Bulls',o1:'+250',s1:11,i1:8,wl1:'19-32',l1:'5-5',t2:'Raptors',o2:'-300',s2:5,i2:4,wl2:'30-22',l2:'5-5',pick:'Raptors',res:'W'},
-            {t1:'Jazz',o1:'+255',s1:13,i1:7,wl1:'14-37',l1:'2-8',t2:'Hawks',o2:'-310',s2:10,i2:4,wl2:'24-30',l2:'4-6',pick:'Hawks',res:'W'},
-            {t1:'Hornets',o1:'+155',s1:9,i1:4,wl1:'23-30',l1:'8-2',t2:'Rockets',o2:'-180',s2:4,i2:4,wl2:'30-20',l2:'7-3',pick:'Rockets',res:'L'},
-            {t1:'Spurs',o1:'-310',s1:2,i1:6,wl1:'34-16',l1:'7-3',t2:'Mavericks',o2:'+255',s2:12,i2:9,wl2:'14-35',l2:'4-6',pick:'Spurs',res:'W'},
-            {t1:'Warriors',o1:'+180',s1:8,i1:6,wl1:'26-26',l1:'5-5',t2:'Suns',o2:'-220',s2:7,i2:4,wl2:'29-23',l2:'7-3',pick:'Suns',res:'L'},
-            {t1:'76ers',o1:'+145',s1:6,i1:2,wl1:'28-25',l1:'7-3',t2:'Lakers',o2:'-170',s2:6,i2:2,wl2:'30-19',l2:'6-4',pick:'Lakers',res:'W'},
-          ]},
-          { day:6, date:'2/6', type:'PAPER', overall:'35-10 (78%)', games:[
-            {t1:'Heat',o1:'+200',s1:8,i1:2,wl1:'27-25',l1:'5-5',t2:'Celtics',o2:'-240',s2:2,i2:1,wl2:'33-18',l2:'8-2',pick:'Celtics',res:'W'},
-            {t1:'Knicks',o1:'+150',s1:3,i1:5,wl1:'33-18',l1:'8-2',t2:'Pistons',o2:'-175',s2:1,i2:5,wl2:'37-13',l2:'7-3',pick:'Pistons',res:'W'},
-            {t1:'Pacers',o1:'-120',s1:14,i1:5,wl1:'10-42',l1:'4-6',t2:'Bucks',o2:'+100',s2:12,i2:6,wl2:'21-31',l2:'3-7',pick:'Bucks',res:'W'},
-            {t1:'Pelicans',o1:'+275',s1:14,i1:3,wl1:'12-39',l1:'3-7',t2:'Wolves',o2:'-350',s2:5,i2:4,wl2:'31-23',l2:'5-5',pick:'Wolves',res:'L'},
-            {t1:'Clippers',o1:'-195',s1:9,i1:4,wl1:'23-29',l1:'6-4',t2:'Kings',o2:'+165',s2:15,i2:2,wl2:'9-44',l2:'0-10',pick:'Clippers',res:'W'},
-            {t1:'Grizzlies',o1:'+240',s1:11,i1:6,wl1:'19-31',l1:'3-7',t2:'Blazers',o2:'-290',s2:10,i2:5,wl2:'23-28',l2:'4-6',pick:'Blazers',res:'W'},
-          ]},
-          { day:7, date:'2/7', type:'PAPER', overall:'42-13 (76%)', games:[
-            {t1:'Wizards',o1:'+185',s1:15,i1:10,wl1:'13-38',l1:'4-6',t2:'Nets',o2:'-225',s2:13,i2:0,wl2:'10-41',l2:'1-9',pick:'Nets',res:'W'},
-            {t1:'Rockets',o1:'+160',s1:4,i1:4,wl1:'30-21',l1:'6-4',t2:'Thunder',o2:'-185',s2:1,i2:5,wl2:'40-12',l2:'5-5',pick:'Thunder',res:'L'},
-            {t1:'Mavericks',o1:'+305',s1:12,i1:7,wl1:'14-36',l1:'4-6',t2:'Spurs',o2:'-410',s2:2,i2:5,wl2:'35-16',l2:'7-3',pick:'Spurs',res:'W'},
-            {t1:'Jazz',o1:'+240',s1:13,i1:4,wl1:'14-38',l1:'2-8',t2:'Magic',o2:'-290',s2:7,i2:2,wl2:'26-24',l2:'4-6',pick:'Magic',res:'W'},
-            {t1:'Hornets',o1:'-130',s1:9,i1:3,wl1:'24-30',l1:'9-1',t2:'Hawks',o2:'+110',s2:10,i2:3,wl2:'25-30',l2:'5-5',pick:'Hawks',res:'W'},
-            {t1:'Nuggets',o1:'-235',s1:3,i1:7,wl1:'33-19',l1:'4-6',t2:'Bulls',o2:'+195',s2:11,i2:5,wl2:'19-33',l2:'4-6',pick:'Nuggets',res:'W'},
-            {t1:'Warriors',o1:'+110',s1:8,i1:6,wl1:'27-26',l1:'5-5',t2:'Lakers',o2:'-130',s2:6,i2:3,wl2:'31-19',l2:'7-3',pick:'Lakers',res:'W'},
-            {t1:'76ers',o1:'+105',s1:6,i1:1,wl1:'28-26',l1:'6-4',t2:'Suns',o2:'-125',s2:7,i2:4,wl2:'29-24',l2:'6-4',pick:'76ers',res:'W'},
-            {t1:'Grizzlies',o1:'+265',s1:11,i1:8,wl1:'19-32',l1:'3-7',t2:'Blazers',o2:'-330',s2:10,i2:8,wl2:'24-28',l2:'4-6',pick:'Blazers',res:'W'},
-            {t1:'Cavaliers',o1:'-600',s1:4,i1:4,wl1:'31-21',l1:'8-2',t2:'Kings',o2:'+425',s2:15,i2:3,wl2:'9-45',l2:'0-10',pick:'Cavaliers',res:'W'},
-          ]},
-          { day:8, date:'2/8', type:'PAPER', overall:'53-12 (82%) 🔥', games:[
-            {t1:'Mavericks',o1:'+550',s1:12,i1:6,wl1:'14-37',l1:'3-7',t2:'Knicks',o2:'-850',s2:3,i2:4,wl2:'33-19',l2:'8-2',pick:'Knicks',res:'W'},
-            {t1:'Cavaliers',o1:'+135',s1:4,i1:3,wl1:'32-21',l1:'8-2',t2:'Heat',o2:'-160',s2:8,i2:3,wl2:'27-26',l2:'5-5',pick:'Heat',res:'W'},
-            {t1:'Spurs',o1:'-145',s1:2,i1:5,wl1:'36-16',l1:'7-3',t2:'Raptors',o2:'+125',s2:5,i2:3,wl2:'31-22',l2:'6-4',pick:'Raptors',res:'W'},
-            {t1:'Lakers',o1:'+145',s1:6,i1:4,wl1:'32-19',l1:'7-3',t2:'Wolves',o2:'-170',s2:5,i2:3,wl2:'31-24',l2:'5-5',pick:'Wolves',res:'W'},
-          ]},
-          { day:9, date:'2/9', type:'PAPER', overall:'60-15 (80%)', games:[
-            {t1:'Hornets',o1:'+250',s1:9,i1:2,wl1:'25-30',l1:'9-1',t2:'Pistons',o2:'-310',s2:1,i2:3,wl2:'38-13',l2:'7-3',pick:'Pistons',res:'W'},
-            {t1:'Wizards',o1:'+410',s1:15,i1:5,wl1:'13-39',l1:'4-6',t2:'Nets',o2:'-600',s2:13,i2:2,wl2:'11-41',l2:'2-8',pick:'Nets',res:'W'},
-            {t1:'Bulls',o1:'+225',s1:11,i1:8,wl1:'19-34',l1:'3-7',t2:'Magic',o2:'-275',s2:7,i2:3,wl2:'27-24',l2:'4-6',pick:'Magic',res:'W'},
-            {t1:'Bucks',o1:'+195',s1:12,i1:6,wl1:'22-31',l1:'4-6',t2:'Jazz',o2:'-235',s2:13,i2:4,wl2:'14-39',l2:'2-8',pick:'Jazz',res:'W'},
-            {t1:'Pacers',o1:'+375',s1:14,i1:4,wl1:'10-44',l1:'3-7',t2:'Wolves',o2:'-550',s2:5,i2:2,wl2:'31-25',l2:'5-5',pick:'Wolves',res:'W'},
-            {t1:'Suns',o1:'+155',s1:7,i1:3,wl1:'29-25',l1:'5-5',t2:'Pelicans',o2:'-180',s2:14,i2:2,wl2:'13-39',l2:'4-6',pick:'Pelicans',res:'W'},
-            {t1:'Thunder',o1:'-150',s1:1,i1:4,wl1:'40-13',l1:'5-5',t2:'Cavaliers',o2:'+130',s2:4,i2:6,wl2:'32-21',l2:'8-2',pick:'Cavaliers',res:'W'},
-            {t1:'Hawks',o1:'+260',s1:10,i1:2,wl1:'25-31',l1:'5-5',t2:'Warriors',o2:'-320',s2:8,i2:5,wl2:'27-27',l2:'4-6',pick:'Warriors',res:'W'},
-            {t1:'Nuggets',o1:'+105',s1:3,i1:4,wl1:'34-19',l1:'5-5',t2:'Thunder',o2:'-125',s2:1,i2:4,wl2:'40-13',l2:'5-5',pick:'Thunder',res:'W'},
-            {t1:'Grizzlies',o1:'+195',s1:11,i1:6,wl1:'19-33',l1:'2-8',t2:'Blazers',o2:'-235',s2:10,i2:7,wl2:'25-28',l2:'4-6',pick:'Blazers',res:'W'},
-          ]},
-          { day:10, date:'2/10', type:'PAPER', overall:'63-16 (80%)', games:[
-            {t1:'Jazz',o1:'-125',s1:13,i1:4,wl1:'14-39',l1:'2-8',t2:'Pacers',o2:'+105',s2:14,i2:6,wl2:'10-44',l2:'3-7',pick:'Pacers',res:'W'},
-            {t1:'Mavericks',o1:'+265',s1:12,i1:7,wl1:'14-37',l1:'3-7',t2:'Rockets',o2:'-330',s2:4,i2:4,wl2:'31-21',l2:'6-4',pick:'Rockets',res:'W'},
-            {t1:'Bulls',o1:'+310',s1:11,i1:8,wl1:'19-35',l1:'2-8',t2:'Suns',o2:'-420',s2:7,i2:5,wl2:'29-25',l2:'5-5',pick:'Suns',res:'W'},
-            {t1:'Nuggets',o1:'-105',s1:3,i1:4,wl1:'34-20',l1:'5-5',t2:'Spurs',o2:'-115',s2:2,i2:5,wl2:'36-16',l2:'7-3',pick:'Spurs',res:'W'},
-          ]},
-          { day:11, date:'2/11', type:'PAPER', overall:'76-21 (78%)', games:[
-            {t1:'Wizards',o1:'+340',s1:15,i1:7,wl1:'13-40',l1:'4-6',t2:'Hornets',o2:'-470',s2:9,i2:3,wl2:'25-31',l2:'9-1',pick:'Hornets',res:'W'},
-            {t1:'Nets',o1:'+625',s1:13,i1:3,wl1:'12-41',l1:'3-7',t2:'Cavaliers',o2:'-1000',s2:4,i2:4,wl2:'33-21',l2:'9-1',pick:'Cavaliers',res:'W'},
-            {t1:'Hawks',o1:'+245',s1:10,i1:3,wl1:'25-32',l1:'5-5',t2:'Bucks',o2:'-300',s2:12,i2:5,wl2:'22-32',l2:'4-6',pick:'Bucks',res:'W'},
-            {t1:'76ers',o1:'+185',s1:6,i1:2,wl1:'29-27',l1:'6-4',t2:'Celtics',o2:'-225',s2:2,i2:1,wl2:'34-19',l2:'8-2',pick:'Celtics',res:'W'},
-            {t1:'Mavericks',o1:'+255',s1:12,i1:7,wl1:'14-38',l1:'2-8',t2:'Pacers',o2:'-310',s2:14,i2:4,wl2:'10-45',l2:'3-7',pick:'Pacers',res:'W'},
-            {t1:'Thunder',o1:'-145',s1:1,i1:5,wl1:'41-13',l1:'5-5',t2:'Knicks',o2:'+125',s2:3,i2:3,wl2:'34-19',l2:'9-1',pick:'Knicks',res:'W'},
-            {t1:'Magic',o1:'+175',s1:7,i1:2,wl1:'28-24',l1:'5-5',t2:'Pistons',o2:'-210',s2:1,i2:4,wl2:'39-13',l2:'7-3',pick:'Pistons',res:'W'},
-            {t1:'Kings',o1:'+370',s1:15,i1:5,wl1:'9-47',l1:'0-10',t2:'Clippers',o2:'-520',s2:9,i2:3,wl2:'25-30',l2:'6-4',pick:'Clippers',res:'W'},
-            {t1:'Grizzlies',o1:'+285',s1:11,i1:6,wl1:'19-34',l1:'2-8',t2:'Wolves',o2:'-380',s2:5,i2:3,wl2:'32-25',l2:'6-4',pick:'Wolves',res:'W'},
-            {t1:'Raptors',o1:'+130',s1:5,i1:3,wl1:'32-22',l1:'7-3',t2:'Heat',o2:'-155',s2:8,i2:2,wl2:'28-27',l2:'5-5',pick:'Heat',res:'W'},
-            {t1:'Blazers',o1:'+650',s1:10,i1:7,wl1:'26-28',l1:'4-6',t2:'Thunder',o2:'-1100',s2:1,i2:4,wl2:'41-13',l2:'5-5',pick:'Thunder',res:'W'},
-            {t1:'Pelicans',o1:'-125',s1:14,i1:2,wl1:'14-39',l1:'5-5',t2:'Jazz',o2:'+105',s2:13,i2:5,wl2:'15-39',l2:'2-8',pick:'Jazz',res:'W'},
-            {t1:'Lakers',o1:'-115',s1:6,i1:3,wl1:'32-21',l1:'6-4',t2:'Nuggets',o2:'-105',s2:3,i2:4,wl2:'34-20',l2:'5-5',pick:'Nuggets',res:'W'},
-            {t1:'Warriors',o1:'+295',s1:8,i1:6,wl1:'28-27',l1:'4-6',t2:'Spurs',o2:'-390',s2:2,i2:5,wl2:'37-16',l2:'7-3',pick:'Spurs',res:'W'},
-          ]},
-          { day:12, date:'2/19', type:'REAL 💰', overall:'82-25 (77%)', games:[
-            {t1:'Hawks',o1:'+100',s1:10,i1:3,wl1:'25-33',l1:'4-6',t2:'76ers',o2:'-120',s2:6,i2:3,wl2:'29-28',l2:'6-4',pick:'76ers',res:'L'},
-            {t1:'Nets',o1:'+650',s1:13,i1:3,wl1:'12-42',l1:'3-7',t2:'Cavaliers',o2:'-1100',s2:4,i2:3,wl2:'34-21',l2:'9-1',pick:'Cavaliers',res:'W'},
-            {t1:'Rockets',o1:'-170',s1:4,i1:3,wl1:'32-22',l1:'6-4',t2:'Hornets',o2:'+145',s2:9,i2:3,wl2:'26-31',l2:'9-1',pick:'Rockets',res:'W'},
-            {t1:'Pacers',o1:'-150',s1:14,i1:9,wl1:'11-45',l1:'4-6',t2:'Wizards',o2:'+130',s2:15,i2:6,wl2:'13-41',l2:'4-6',pick:'Pacers',res:'L'},
-            {t1:'Pistons',o1:'+150',s1:1,i1:3,wl1:'40-13',l1:'8-2',t2:'Knicks',o2:'-175',s2:3,i2:3,wl2:'36-19',l2:'9-1',pick:'Pistons',res:'W'},
-            {t1:'Raptors',o1:'-210',s1:5,i1:3,wl1:'32-23',l1:'6-4',t2:'Bulls',o2:'+175',s2:11,i2:3,wl2:'19-36',l2:'1-9',pick:'Raptors',res:'W'},
-            {t1:'Suns',o1:'+250',s1:7,i1:3,wl1:'30-26',l1:'5-5',t2:'Spurs',o2:'-300',s2:2,i2:3,wl2:'38-16',l2:'8-2',pick:'Spurs',res:'W'},
-            {t1:'Celtics',o1:'-210',s1:2,i1:3,wl1:'35-19',l1:'8-2',t2:'Warriors',o2:'+175',s2:8,i2:3,wl2:'28-28',l2:'4-6',pick:'Celtics',res:'W'},
-            {t1:'Magic',o1:'-410',s1:7,i1:3,wl1:'28-25',l1:'5-5',t2:'Kings',o2:'+305',s2:15,i2:3,wl2:'9-48',l2:'0-10',pick:'Magic',res:'W'},
-            {t1:'Nuggets',o1:'+100',s1:3,i1:3,wl1:'35-20',l1:'5-5',t2:'Clippers',o2:'-120',s2:9,i2:3,wl2:'26-30',l2:'6-4',pick:'Clippers',res:'L'},
-          ]},
-          { day:13, date:'2/20', type:'REAL 💰', overall:'91-25 (78%) 🔥', games:[
-            {t1:'Cavaliers',o1:'-210',s1:4,i1:3,wl1:'34-21',l1:'9-1',t2:'Hornets',o2:'+175',s2:9,i2:3,wl2:'26-31',l2:'9-1',pick:'Cavaliers',res:'W'},
-            {t1:'Pacers',o1:'+100',s1:14,i1:9,wl1:'11-45',l1:'4-6',t2:'Wizards',o2:'-120',s2:15,i2:6,wl2:'14-41',l2:'5-5',pick:'Wizards',res:'W'},
-            {t1:'Jazz',o1:'+110',s1:13,i1:6,wl1:'16-40',l1:'3-7',t2:'Grizzlies',o2:'-130',s2:11,i2:9,wl2:'19-35',l2:'2-8',pick:'Grizzlies',res:'W'},
-            {t1:'Mavericks',o1:'+525',s1:12,i1:6,wl1:'14-39',l1:'1-9',t2:'Wolves',o2:'-800',s2:5,i2:0,wl2:'33-25',l2:'7-3',pick:'Wolves',res:'W'},
-            {t1:'Heat',o1:'-150',s1:8,i1:1,wl1:'29-27',l1:'5-5',t2:'Hawks',o2:'+130',s2:10,i2:1,wl2:'25-33',l2:'4-6',pick:'Heat',res:'W'},
-            {t1:'Nets',o1:'+725',s1:13,i1:1,wl1:'12-42',l1:'3-7',t2:'Thunder',o2:'-1300',s2:1,i2:4,wl2:'42-14',l2:'5-5',pick:'Thunder',res:'W'},
-            {t1:'Bucks',o1:'+150',s1:12,i1:3,wl1:'24-32',l1:'5-5',t2:'Pelicans',o2:'-175',s2:14,i2:4,wl2:'14-40',l2:'5-5',pick:'Bucks',res:'W'},
-            {t1:'Nuggets',o1:'+100',s1:3,i1:3,wl1:'35-20',l1:'5-5',t2:'Blazers',o2:'-120',s2:10,i2:4,wl2:'27-29',l2:'4-6',pick:'Nuggets',res:'W'},
-            {t1:'Clippers',o1:'+215',s1:9,i1:2,wl1:'26-30',l1:'6-4',t2:'Lakers',o2:'-260',s2:6,i2:1,wl2:'33-21',l2:'6-4',pick:'Lakers',res:'W'},
-          ]},
-
-          { day:15, date:'2/21', type:'REAL 💰', overall:'98-14 (88%)', games:[
-            {t1:'Magic',o1:'+210',s1:7,i1:3,wl1:'29-25',l1:'6-4',t2:'Suns',o2:'-250',s2:7,i2:3,wl2:'32-24',l2:'5-5',pick:'Suns',res:'W'},
-            {t1:'76ers',o1:'-150',s1:6,i1:3,wl1:'30-25',l1:'6-4',t2:'Pelicans',o2:'+130',s2:14,i2:4,wl2:'15-41',l2:'5-5',pick:'76ers',res:'L'},
-            {t1:'Pistons',o1:'-195',s1:1,i1:3,wl1:'41-13',l1:'8-2',t2:'Bulls',o2:'+165',s2:11,i2:3,wl2:'24-32',l2:'1-9',pick:'Pistons',res:'W'},
-            {t1:'Grizzlies',o1:'+130',s1:11,i1:9,wl1:'20-33',l1:'2-8',t2:'Heat',o2:'-155',s2:8,i2:1,wl2:'29-27',l2:'5-5',pick:'Heat',res:'W'},
-            {t1:'Kings',o1:'+275',s1:15,i1:5,wl1:'12-45',l1:'0-10',t2:'Spurs',o2:'-235',s2:2,i2:3,wl2:'39-16',l2:'8-2',pick:'Spurs',res:'W'},
-            {t1:'Rockets',o1:'-195',s1:4,i1:3,wl1:'34-20',l1:'6-4',t2:'Knicks',o2:'+165',s2:3,i2:3,wl2:'35-21',l2:'8-2',pick:'Knicks',res:'W'},
-          ]},
-          { day:16, date:'2/22', type:'REAL 💰', overall:'106-17 (86%)', games:[
-            {t1:'Cavaliers',o1:'-195',s1:4,i1:3,wl1:'36-21',l1:'9-1',t2:'Thunder',o2:'+165',s2:1,i2:4,wl2:'43-14',l2:'6-4',pick:'Thunder',res:'W'},
-            {t1:'Nets',o1:'+350',s1:13,i1:1,wl1:'15-40',l1:'3-7',t2:'Hawks',o2:'-430',s2:10,i2:1,wl2:'27-31',l2:'3-7',pick:'Hawks',res:'W'},
-            {t1:'Nuggets',o1:'-125',s1:3,i1:3,wl1:'36-21',l1:'5-5',t2:'Warriors',o2:'+105',s2:8,i2:3,wl2:'29-27',l2:'4-6',pick:'Warriors',res:'W'},
-            {t1:'Raptors',o1:'-150',s1:5,i1:3,wl1:'33-23',l1:'6-4',t2:'Bucks',o2:'+130',s2:12,i2:3,wl2:'24-30',l2:'6-4',pick:'Raptors',res:'W'},
-            {t1:'Mavericks',o1:'-125',s1:12,i1:6,wl1:'19-36',l1:'0-10',t2:'Pacers',o2:'+105',s2:14,i2:2,wl2:'15-42',l2:'3-7',pick:'Mavericks',res:'W'},
-            {t1:'Hornets',o1:'-130',s1:9,i1:3,wl1:'26-31',l1:'7-3',t2:'Wizards',o2:'+110',s2:15,i2:6,wl2:'16-39',l2:'5-5',pick:'Hornets',res:'W'},
-            {t1:'Celtics',o1:'-350',s1:2,i1:1,wl1:'36-19',l1:'9-1',t2:'Lakers',o2:'+275',s2:6,i2:3,wl2:'34-21',l2:'6-4',pick:'Celtics',res:'W'},
-            {t1:'76ers',o1:'+130',s1:6,i1:3,wl1:'30-25',l1:'6-4',t2:'Wolves',o2:'-155',s2:5,i2:0,wl2:'35-22',l2:'7-3',pick:'Wolves',res:'L'},
-            {t1:'Knicks',o1:'-195',s1:3,i1:3,wl1:'35-21',l1:'8-2',t2:'Bulls',o2:'+165',s2:11,i2:8,wl2:'24-32',l2:'1-9',pick:'Knicks',res:'W'},
-            {t1:'Blazers',o1:'-125',s1:10,i1:6,wl1:'27-30',l1:'4-6',t2:'Suns',o2:'+105',s2:7,i2:3,wl2:'32-24',l2:'5-5',pick:'Suns',res:'L'},
-            {t1:'Magic',o1:'+165',s1:7,i1:3,wl1:'29-25',l1:'6-4',t2:'Clippers',o2:'-195',s2:9,i2:2,wl2:'27-29',l2:'5-5',pick:'Clippers',res:'L'},
-          ]},
-          { day:17, date:'2/23', type:'REAL 💰', overall:'107-19 (85%)', games:[
-            {t1:'Spurs',o1:'+100',s1:2,i1:2,wl1:'40-16',l1:'9-1',t2:'Pistons',o2:'-120',s2:1,i2:1,wl2:'42-13',l2:'8-2',pick:'Pistons',res:'L'},
-            {t1:'Kings',o1:'+125',s1:15,i1:5,wl1:'12-46',l1:'0-10',t2:'Grizzlies',o2:'-145',s2:11,i2:8,wl2:'21-34',l2:'3-7',pick:'Grizzlies',res:'L'},
-            {t1:'Jazz',o1:'+525',s1:13,i1:5,wl1:'18-39',l1:'3-7',t2:'Rockets',o2:'-800',s2:4,i2:3,wl2:'34-21',l2:'6-4',pick:'Rockets',res:'W'},
-          ]},
-          { day:18, date:'2/24', type:'REAL 💰', overall:'113-24 (82%)', games:[
-            {t1:'76ers',o1:'+500',s1:6,i1:3,wl1:'31-26',l1:'5-5',t2:'Pacers',o2:'+360',s2:15,i2:6,wl2:'15-43',l2:'2-8',pick:'76ers',res:'W'},
-            {t1:'Wizards',o1:'+460',s1:13,i1:5,wl1:'16-40',l1:'4-6',t2:'Hawks',o2:'-675',s2:9,i2:0,wl2:'28-31',l2:'5-5',pick:'Hawks',res:'W'},
-            {t1:'Mavericks',o1:'-120',s1:12,i1:5,wl1:'20-36',l1:'2-8',t2:'Nets',o2:'+100',s2:14,i2:0,wl2:'15-41',l2:'2-8',pick:'Nets',res:'L'},
-            {t1:'Thunder',o1:'+120',s1:1,i1:6,wl1:'44-14',l1:'7-3',t2:'Raptors',o2:'-140',s2:5,i2:2,wl2:'34-23',l2:'5-5',pick:'Raptors',res:'L'},
-            {t1:'Knicks',o1:'+150',s1:3,i1:1,wl1:'37-21',l1:'6-4',t2:'Cavaliers',o2:'-175',s2:4,i2:1,wl2:'36-22',l2:'8-2',pick:'Cavaliers',res:'W'},
-            {t1:'Hornets',o1:'-310',s1:10,i1:1,wl1:'27-31',l1:'7-3',t2:'Bulls',o2:'+255',s2:12,i2:5,wl2:'24-34',l2:'1-9',pick:'Hornets',res:'W'},
-            {t1:'Heat',o1:'-230',s1:7,i1:3,wl1:'31-27',l1:'5-5',t2:'Bucks',o2:'+190',s2:11,i2:2,wl2:'24-31',l2:'7-3',pick:'Heat',res:'L'},
-            {t1:'Warriors',o1:'-120',s1:8,i1:7,wl1:'30-27',l1:'4-6',t2:'Pelicans',o2:'+100',s2:14,i2:3,wl2:'16-42',l2:'5-5',pick:'Warriors',res:'L'},
-            {t1:'Celtics',o1:'-225',s1:2,i1:2,wl1:'37-19',l1:'8-2',t2:'Suns',o2:'+185',s2:7,i2:6,wl2:'33-25',l2:'3-7',pick:'Celtics',res:'W'},
-            {t1:'Wolves',o1:'-245',s1:4,i1:0,wl1:'35-23',l1:'6-4',t2:'Blazers',o2:'+205',s2:9,i2:4,wl2:'28-30',l2:'5-5',pick:'Wolves',res:'W'},
-            {t1:'Magic',o1:'+180',s1:8,i1:2,wl1:'30-26',l1:'6-4',t2:'Lakers',o2:'-220',s2:6,i2:1,wl2:'34-22',l2:'5-5',pick:'Lakers',res:'L'},
-          ]},
-          { day:19, date:'2/25', type:'REAL 💰', overall:'117-26 (82%)', games:[
-            {t1:'Warriors',o1:'-170',s1:8,i1:7,wl1:'30-28',l1:'4-6',t2:'Grizzlies',o2:'+145',s2:11,i2:7,wl2:'21-35',l2:'3-7',pick:'Warriors',res:'W'},
-            {t1:'Thunder',o1:'+335',s1:1,i1:7,wl1:'45-14',l1:'7-3',t2:'Pistons',o2:'-450',s2:1,i2:0,wl2:'42-14',l2:'8-2',pick:'Pistons',res:'W'},
-            {t1:'Spurs',o1:'-225',s1:2,i1:2,wl1:'41-16',l1:'9-1',t2:'Raptors',o2:'+185',s2:5,i2:1,wl2:'34-24',l2:'5-5',pick:'Spurs',res:'W'},
-            {t1:'Cavaliers',o1:'-140',s1:4,i1:4,wl1:'37-22',l1:'8-2',t2:'Bucks',o2:'+120',s2:11,i2:2,wl2:'25-31',l2:'7-3',pick:'Cavaliers',res:'L'},
-            {t1:'Kings',o1:'+575',s1:15,i1:5,wl1:'13-46',l1:'2-8',t2:'Rockets',o2:'-900',s2:5,i2:4,wl2:'35-21',l2:'6-4',pick:'Rockets',res:'W'},
-            {t1:'Celtics',o1:'+130',s1:2,i1:1,wl1:'38-19',l1:'9-1',t2:'Nuggets',o2:'-150',s2:3,i2:6,wl2:'36-22',l2:'4-6',pick:'Celtics',res:'L'},
-          ]},
-          { day:20, date:'2/26', type:'PAPER', overall:'125-26 (83%) 🔥', games:[
-            {t1:'Cavaliers',o1:'+115',s1:4,i1:4,wl1:'36-22',l1:'7-3',t2:'Hornets',o2:'-135',s2:10,i2:1,wl2:'28-31',l2:'6-4',pick:'Hornets',res:'W'},
-            {t1:'Heat',o1:'+185',s1:8,i1:3,wl1:'30-28',l1:'4-6',t2:'76ers',o2:'-220',s2:6,i2:2,wl2:'32-25',l2:'6-4',pick:'76ers',res:'W'},
-            {t1:'Celtics',o1:'-400',s1:2,i1:1,wl1:'37-19',l1:'7-3',t2:'Rockets',o2:'+310',s2:3,i2:3,wl2:'36-20',l2:'6-4',pick:'Rockets',res:'W'},
-            {t1:'Nets',o1:'+400',s1:14,i1:0,wl1:'15-42',l1:'2-8',t2:'Spurs',o2:'-575',s2:2,i2:2,wl2:'42-16',l2:'9-1',pick:'Spurs',res:'W'},
-            {t1:'Wizards',o1:'+355',s1:13,i1:6,wl1:'16-41',l1:'3-7',t2:'Hawks',o2:'-490',s2:9,i2:2,wl2:'29-31',l2:'5-5',pick:'Hawks',res:'W'},
-            {t1:'Blazers',o1:'-180',s1:9,i1:4,wl1:'28-31',l1:'5-5',t2:'Bulls',o2:'+155',s2:12,i2:6,wl2:'24-35',l2:'1-9',pick:'Blazers',res:'W'},
-            {t1:'Kings',o1:'+250',s1:15,i1:7,wl1:'13-47',l1:'2-8',t2:'Mavericks',o2:'-300',s2:12,i2:5,wl2:'21-36',l2:'2-8',pick:'Mavericks',res:'L'},
-            {t1:'Lakers',o1:'-210',s1:6,i1:1,wl1:'34-23',l1:'5-5',t2:'Suns',o2:'+175',s2:7,i2:5,wl2:'33-26',l2:'3-7',pick:'Lakers',res:'L'},
-            {t1:'Pelicans',o1:'-240',s1:14,i1:2,wl1:'17-42',l1:'5-5',t2:'Jazz',o2:'+200',s2:13,i2:6,wl2:'18-40',l2:'3-7',pick:'Pelicans',res:'W'},
-            {t1:'Wolves',o1:'-310',s1:5,i1:0,wl1:'36-23',l1:'6-4',t2:'Clippers',o2:'+255',s2:10,i2:4,wl2:'27-30',l2:'5-5',pick:'Wolves',res:'W'},
-          ]},
-          { day:21, date:'2/27', type:'REAL 💰', overall:'129-27 (83%)', games:[
-            {t1:'Cavaliers',o1:'+180',s1:4,i1:5,wl1:'37-23',l1:'8-2',t2:'Pistons',o2:'-240',s2:1,i2:0,wl2:'43-14',l2:'8-2',pick:'Pistons',res:'W'},
-            {t1:'Nets',o1:'+750',s1:14,i1:0,wl1:'15-43',l1:'2-8',t2:'Celtics',o2:'-1400',s2:2,i2:1,wl2:'38-20',l2:'8-2',pick:'Celtics',res:'W'},
-            {t1:'Knicks',o1:'-300',s1:3,i1:1,wl1:'37-22',l1:'6-4',t2:'Bucks',o2:'+250',s2:11,i2:2,wl2:'26-31',l2:'8-2',pick:'Knicks',res:'W'},
-            {t1:'Grizzlies',o1:'+165',s1:12,i1:8,wl1:'21-36',l1:'3-7',t2:'Mavericks',o2:'-195',s2:11,i2:7,wl2:'22-36',l2:'3-7',pick:'Mavericks',res:'L'},
-            {t1:'Nuggets',o1:'+265',s1:4,i1:3,wl1:'37-22',l1:'4-6',t2:'Thunder',o2:'-330',s2:1,i2:4,wl2:'45-15',l2:'6-4',pick:'Thunder',res:'W'},
-          ]},
-          { day:22, date:'2/28', type:'REAL 💰', overall:'133-28 (83%)', games:[
-            {t1:'Blazers',o1:'+250',s1:9,i1:5,wl1:'29-31',l1:'6-4',t2:'Hornets',o2:'-300',s2:10,i2:0,wl2:'29-31',l2:'7-3',pick:'Hornets',res:'W'},
-            {t1:'Rockets',o1:'-135',s1:3,i1:4,wl1:'37-21',l1:'6-4',t2:'Heat',o2:'+115',s2:8,i2:3,wl2:'31-29',l2:'5-5',pick:'Rockets',res:'L'},
-            {t1:'Raptors',o1:'-850',s1:5,i1:2,wl1:'34-25',l1:'5-5',t2:'Wizards',o2:'+550',s2:12,i2:8,wl2:'16-42',l2:'3-7',pick:'Raptors',res:'W'},
-            {t1:'Lakers',o1:'-175',s1:6,i1:1,wl1:'34-24',l1:'5-5',t2:'Warriors',o2:'+150',s2:8,i2:6,wl2:'31-28',l2:'2-8',pick:'Lakers',res:'W'},
-            {t1:'Pelicans',o1:'-250',s1:14,i1:3,wl1:'18-42',l1:'5-5',t2:'Jazz',o2:'+210',s2:13,i2:6,wl2:'18-41',l2:'3-7',pick:'Pelicans',res:'W'},
-          ]},
-          { day:23, date:'3/1', type:'REAL 💰', overall:'151-32 (83%)', games:[
-            {t1:'Spurs',o1:'-115',s1:2,i1:3,wl1:'43-16',l1:'9-1',t2:'Knicks',o2:'-105',s2:3,i2:1,wl2:'38-22',l2:'6-4',pick:'Spurs',res:'L'},
-            {t1:'Cavaliers',o1:'-625',s1:4,i1:5,wl1:'37-24',l1:'7-3',t2:'Nets',o2:'+430',s2:14,i2:2,wl2:'15-44',l2:'2-8',pick:'Cavaliers',res:'W'},
-            {t1:'Bucks',o1:'-140',s1:11,i1:3,wl1:'26-32',l1:'7-3',t2:'Bulls',o2:'+120',s2:12,i2:6,wl2:'24-36',l2:'0-10',pick:'Bucks',res:'L'},
-            {t1:'Wolves',o1:'+130',s1:5,i1:1,wl1:'37-23',l1:'6-4',t2:'Nuggets',o2:'-150',s2:4,i2:5,wl2:'37-23',l2:'6-4',pick:'Wolves',res:'W'},
-            {t1:'Grizzlies',o1:'-105',s1:11,i1:8,wl1:'21-37',l1:'2-8',t2:'Pacers',o2:'-115',s2:15,i2:7,wl2:'15-45',l2:'2-8',pick:'Grizzlies',res:'W'},
-            {t1:'Blazers',o1:'+175',s1:9,i1:6,wl1:'29-32',l1:'5-5',t2:'Hawks',o2:'-210',s2:10,i2:2,wl2:'30-31',l2:'6-4',pick:'Hawks',res:'W'},
-            {t1:'Pistons',o1:'-210',s1:1,i1:0,wl1:'44-14',l1:'8-2',t2:'Magic',o2:'+175',s2:7,i2:2,wl2:'31-27',l2:'6-4',pick:'Pistons',res:'W'},
-            {t1:'76ers',o1:'+290',s1:6,i1:2,wl1:'33-26',l1:'5-5',t2:'Celtics',o2:'-380',s2:2,i2:2,wl2:'39-20',l2:'8-2',pick:'Celtics',res:'W'},
-            {t1:'Thunder',o1:'-1000',s1:1,i1:4,wl1:'46-15',l1:'7-3',t2:'Mavericks',o2:'+625',s2:12,i2:7,wl2:'23-36',l2:'3-7',pick:'Thunder',res:'W'},
-            {t1:'Pelicans',o1:'+285',s1:13,i1:3,wl1:'19-42',l1:'6-4',t2:'Clippers',o2:'-730',s2:10,i2:3,wl2:'27-31',l2:'2-8',pick:'Clippers',res:'W'},
-            {t1:'Kings',o1:'+500',s1:15,i1:6,wl1:'14-47',l1:'2-8',t2:'Lakers',o2:'-750',s2:6,i2:1,wl2:'35-24',l2:'5-5',pick:'Lakers',res:'W'},
-          ]},
-          { day:24, date:'3/2', type:'REAL 💰', overall:'155-32 (83%) 🔥', games:[
-            {t1:'Rockets',o1:'-950',s1:3,i1:4,wl1:'37-22',l1:'6-4',t2:'Wizards',o2:'+600',s2:13,i2:8,wl2:'16-43',l2:'3-7',pick:'Rockets',res:'W'},
-            {t1:'Celtics',o1:'-135',s1:2,i1:3,wl1:'40-20',l1:'8-2',t2:'Bucks',o2:'+115',s2:11,i2:1,wl2:'26-33',l2:'6-4',pick:'Celtics',res:'W'},
-            {t1:'Nuggets',o1:'-600',s1:4,i1:5,wl1:'37-24',l1:'4-6',t2:'Jazz',o2:'+425',s2:13,i2:6,wl2:'18-42',l2:'3-7',pick:'Nuggets',res:'W'},
-            {t1:'Clippers',o1:'-120',s1:10,i1:3,wl1:'28-31',l1:'5-5',t2:'Warriors',o2:'+100',s2:8,i2:7,wl2:'31-29',l2:'4-6',pick:'Clippers',res:'W'},
-          ]},
-          { day:25, date:'3/3', type:'REAL 💰', overall:'164-33 (83%)', games:[
-            {t1:'Mavericks',o1:'+525',s1:11,i1:8,wl1:'23-37',l1:'3-7',t2:'Hornets',o2:'-800',s2:10,i2:1,wl2:'30-31',l2:'7-3',pick:'Hornets',res:'W'},
-            {t1:'Pistons',o1:'-140',s1:1,i1:0,wl1:'45-14',l1:'8-2',t2:'Cavaliers',o2:'+120',s2:4,i2:3,wl2:'38-24',l2:'7-3',pick:'Pistons',res:'L'},
-            {t1:'Wizards',o1:'+725',s1:13,i1:9,wl1:'16-44',l1:'2-8',t2:'Magic',o2:'-1300',s2:7,i2:2,wl2:'31-28',l2:'6-4',pick:'Magic',res:'W'},
-            {t1:'Nets',o1:'+475',s1:14,i1:0,wl1:'15-45',l1:'2-8',t2:'Heat',o2:'-700',s2:8,i2:5,wl2:'32-29',l2:'5-5',pick:'Heat',res:'W'},
-            {t1:'Knicks',o1:'-140',s1:3,i1:1,wl1:'39-22',l1:'7-3',t2:'Raptors',o2:'+120',s2:5,i2:5,wl2:'35-25',l2:'6-4',pick:'Knicks',res:'W'},
-            {t1:'Grizzlies',o1:'+550',s1:12,i1:8,wl1:'23-36',l1:'3-7',t2:'Wolves',o2:'-850',s2:5,i2:0,wl2:'38-23',l2:'7-3',pick:'Wolves',res:'W'},
-            {t1:'Thunder',o1:'-420',s1:1,i1:6,wl1:'47-15',l1:'7-3',t2:'Bulls',o2:'+315',s2:12,i2:6,wl2:'25-36',l2:'1-9',pick:'Thunder',res:'W'},
-            {t1:'Spurs',o1:'-330',s1:2,i1:3,wl1:'43-17',l1:'9-1',t2:'76ers',o2:'+265',s2:6,i2:3,wl2:'33-27',l2:'4-6',pick:'Spurs',res:'W'},
-            {t1:'Pelicans',o1:'+285',s1:14,i1:1,wl1:'19-43',l1:'6-4',t2:'Lakers',o2:'-370',s2:6,i2:0,wl2:'36-24',l2:'5-5',pick:'Lakers',res:'W'},
-            {t1:'Suns',o1:'-380',s1:7,i1:1,wl1:'34-26',l1:'4-6',t2:'Kings',o2:'+290',s2:15,i2:6,wl2:'14-48',l2:'2-8',pick:'Suns',res:'W'},
-          ]},
-          { day:26, date:'3/4', type:'REAL 💰', overall:'169-34 (83%)', games:[
-            {t1:'Thunder',o1:'-170',s1:1,i1:4,wl1:'48-15',l1:'8-2',t2:'Knicks',o2:'+145',s2:3,i2:2,wl2:'40-22',l2:'7-3',pick:'Thunder',res:'W'},
-            {t1:'Hornets',o1:'+205',s1:10,i1:2,wl1:'31-31',l1:'7-3',t2:'Celtics',o2:'-245',s2:2,i2:1,wl2:'41-20',l2:'8-2',pick:'Celtics',res:'L'},
-            {t1:'Jazz',o1:'+175',s1:14,i1:5,wl1:'18-43',l1:'2-8',t2:'76ers',o2:'-350',s2:6,i2:4,wl2:'33-28',l2:'4-6',pick:'76ers',res:'W'},
-            {t1:'Blazers',o1:'-450',s1:9,i1:4,wl1:'29-33',l1:'5-5',t2:'Grizzlies',o2:'+335',s2:11,i2:9,wl2:'23-37',l2:'3-7',pick:'Blazers',res:'W'},
-            {t1:'Hawks',o1:'-105',s1:9,i1:0,wl1:'31-31',l1:'6-4',t2:'Bucks',o2:'-115',s2:11,i2:2,wl2:'26-34',l2:'5-5',pick:'Hawks',res:'W'},
-            {t1:'Pacers',o1:'+500',s1:15,i1:7,wl1:'15-46',l1:'2-8',t2:'Clippers',o2:'-750',s2:9,i2:3,wl2:'29-31',l2:'6-4',pick:'Clippers',res:'W'},
-          ]},
-          { day:27, date:'3/5', type:'REAL 💰', overall:'175-37 (83%)', games:[
-            {t1:'Mavericks',o1:'+270',s1:12,i1:7,wl1:'23-38',l1:'2-8',t2:'Magic',o2:'-340',s2:7,i2:4,wl2:'32-28',l2:'6-4',pick:'Magic',res:'W'},
-            {t1:'Jazz',o1:'+150',s1:14,i1:6,wl1:'18-44',l1:'2-8',t2:'Wizards',o2:'-175',s2:13,i2:8,wl2:'16-45',l2:'2-8',pick:'Wizards',res:'L'},
-            {t1:'Nets',o1:'+525',s1:14,i1:1,wl1:'15-46',l1:'1-9',t2:'Heat',o2:'-800',s2:8,i2:4,wl2:'33-29',l2:'6-4',pick:'Heat',res:'W'},
-            {t1:'Warriors',o1:'+280',s1:8,i1:8,wl1:'31-30',l1:'4-6',t2:'Rockets',o2:'-360',s2:3,i2:6,wl2:'38-22',l2:'7-3',pick:'Rockets',res:'L'},
-            {t1:'Pistons',o1:'+135',s1:1,i1:0,wl1:'45-15',l1:'8-2',t2:'Spurs',o2:'-160',s2:2,i2:4,wl2:'44-17',l2:'9-1',pick:'Spurs',res:'W'},
-            {t1:'Raptors',o1:'+175',s1:5,i1:3,wl1:'35-26',l1:'5-5',t2:'Wolves',o2:'-210',s2:4,i2:3,wl2:'39-23',l2:'7-3',pick:'Wolves',res:'W'},
-            {t1:'Bulls',o1:'+375',s1:12,i1:8,wl1:'25-37',l1:'1-9',t2:'Suns',o2:'-525',s2:7,i2:3,wl2:'35-26',l2:'4-6',pick:'Suns',res:'L'},
-            {t1:'Lakers',o1:'+155',s1:6,i1:1,wl1:'37-24',l1:'5-5',t2:'Nuggets',o2:'-180',s2:5,i2:4,wl2:'38-24',l2:'5-5',pick:'Nuggets',res:'W'},
-            {t1:'Pelicans',o1:'-220',s1:13,i1:3,wl1:'19-44',l1:'6-4',t2:'Kings',o2:'+180',s2:15,i2:5,wl2:'14-49',l2:'2-8',pick:'Pelicans',res:'W'},
-          ]},
-          { day:28, date:'3/6', type:'REAL 💰', overall:'181-38 (83%) 🔥', games:[
-            {t1:'Mavericks',o1:'+700',s1:12,i1:4,wl1:'21-41',l1:'2-8',t2:'Celtics',o2:'-1200',s2:2,i2:1,wl2:'41-21',l2:'7-3',pick:'Celtics',res:'W'},
-            {t1:'Heat',o1:'+230',s1:8,i1:5,wl1:'34-29',l1:'7-3',t2:'Hornets',o2:'-280',s2:9,i2:1,wl2:'32-31',l2:'7-3',pick:'Hornets',res:'L'},
-            {t1:'Blazers',o1:'+215',s1:10,i1:4,wl1:'30-33',l1:'5-5',t2:'Rockets',o2:'-260',s2:4,i2:4,wl2:'38-23',l2:'6-4',pick:'Rockets',res:'W'},
-            {t1:'Pelicans',o1:'+155',s1:13,i1:0,wl1:'20-44',l1:'6-4',t2:'Suns',o2:'-180',s2:7,i2:4,wl2:'35-27',l2:'4-6',pick:'Suns',res:'W'},
-            {t1:'Knicks',o1:'-110',s1:3,i1:2,wl1:'40-23',l1:'6-4',t2:'Nuggets',o2:'-110',s2:5,i2:4,wl2:'39-24',l2:'5-5',pick:'Knicks',res:'W'},
-            {t1:'Clippers',o1:'+225',s1:9,i1:6,wl1:'30-31',l1:'6-4',t2:'Spurs',o2:'-275',s2:2,i2:5,wl2:'45-17',l2:'9-1',pick:'Spurs',res:'W'},
-            {t1:'Pacers',o1:'+305',s1:15,i1:6,wl1:'15-47',l1:'2-8',t2:'Lakers',o2:'-410',s2:6,i2:3,wl2:'37-25',l2:'5-5',pick:'Lakers',res:'W'},
-          ]},
-          { day:29, date:'3/7', type:'REAL 💰', overall:'185-39 (83%)', unlocked:true, games:[
-            {_id:1773010475575,t1:'Nets',o1:'+650',s1:14,i1:1,wl1:'15-47',l1:'0-10',t2:'Pistons',o2:'-1100',s2:1,i2:3,wl2:'45-16',l2:'7-3',pick:'Pistons',res:'L'},
-            {_id:1773010708771,t1:'76ers',o1:'+210',s1:6,i1:3,wl1:'34-28',l1:'4-6',t2:'Hawks',o2:'-250',s2:10,i2:1,wl2:'32-31',l2:'6-4',pick:'Hawks',res:'W'},
-            {_id:1773010789645,t1:'Clippers',o1:'-250',s1:9,i1:5,wl1:'30-32',l1:'5-5',t2:'Grizzlies',o2:'+210',s2:11,i2:6,wl2:'23-38',l2:'3-7',pick:'Clippers',res:'W'},
-            {_id:1773010815265,t1:'Jazz',o1:'+335',s1:14,i1:6,wl1:'19-44',l1:'3-7',t2:'Bucks',o2:'-450',s2:11,i2:2,wl2:'26-35',l2:'5-5',pick:'Bucks',res:'W'},
-            {_id:1773010859421,t1:'Warriors',o1:'+575',s1:8,i1:8,wl1:'32-30',l1:'4-6',t2:'Thunder',o2:'-900',s2:1,i2:6,wl2:'49-15',l2:'8-2',pick:'Thunder',res:'W'},
-            {_id:1773010900001,t1:'Magic',o1:'+220',s1:7,i1:4,wl1:'33-28',l1:'6-4',t2:'Wolves',o2:'-270',s2:4,i2:1,wl2:'44-18',l2:'7-3',pick:'Wolves',res:'L'},
-          ]},
-          { day:30, date:'3/8', type:'REAL 💰', overall:'192-42 (82%)', unlocked:true, games:[
-            {_id:1773013608683,t1:'Celtics',o1:'+100',s1:2,i1:1,wl1:'42-21',l1:'8-2',t2:'Cavaliers',o2:'-120',s2:4,i2:3,wl2:'39-24',l2:'7-3',pick:'Celtics',res:'W'},
-            {_id:1773013678104,t1:'Knicks',o1:'-195',s1:3,i1:2,wl1:'41-23',l1:'7-3',t2:'Lakers',o2:'+165',s2:6,i2:1,wl2:'38-25',l2:'6-4',pick:'Knicks',res:'L'},
-            {_id:1773013722582,t1:'Pistons',o1:'-195',s1:1,i1:3,wl1:'45-16',l1:'7-3',t2:'Heat',o2:'+165',s2:8,i2:5,wl2:'35-29',l2:'7-3',pick:'Pistons',res:'L'},
-            {_id:1773013782334,t1:'Mavericks',o1:'+320',s1:12,i1:5,wl1:'21-42',l1:'3-7',t2:'Raptors',o2:'-430',s2:5,i2:4,wl2:'35-27',l2:'5-5',pick:'Raptors',res:'W'},
-            {_id:1773013817079,t1:'Wizards',o1:'+410',s1:13,i1:6,wl1:'16-46',l1:'2-8',t2:'Pelicans',o2:'-585',s2:13,i2:0,wl2:'20-45',l2:'6-4',pick:'Pelicans',res:'W'},
-            {_id:1773014391544,t1:'Magic',o1:'-200',s1:7,i1:4,wl1:'33-28',l1:'6-4',t2:'Bucks',o2:'+170',s2:11,i2:5,wl2:'26-35',l2:'5-5',pick:'Magic',res:'W'},
-            {_id:1773014426688,t1:'Rockets',o1:'+185',s1:4,i1:3,wl1:'39-23',l1:'6-4',t2:'Spurs',o2:'-225',s2:2,i2:3,wl2:'46-17',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1773014489926,t1:'Pacers',o1:'+310',s1:15,i1:6,wl1:'15-48',l1:'2-8',t2:'Blazers',o2:'-415',s2:10,i2:4,wl2:'30-34',l2:'4-6',pick:'Blazers',res:'W'},
-            {_id:1773014524043,t1:'Bulls',o1:'-170',s1:12,i1:9,wl1:'26-37',l1:'2-8',t2:'Kings',o2:'+145',s2:15,i2:5,wl2:'14-50',l2:'2-8',pick:'Bulls',res:'W'},
-            {_id:1773021252629,t1:'Hornets',o1:'-195',s1:9,i1:1,wl1:'32-32',l1:'7-3',t2:'Suns',o2:'+165',s2:7,i2:3,wl2:'36-27',l2:'5-5',pick:'Hornets',res:'L'},
-          ]},
-          { day:31, date:'3/9', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773096084509,t1:'76ers',o1:'+575',s1:6,i1:4,wl1:'34-28',l1:'4-6',t2:'Cavaliers',o2:'-900',s2:4,i2:4,wl2:'39-24',l2:'7-3',pick:'Cavaliers',res:null},
-            {_id:1773096139310,t1:'Nuggets',o1:'+165',s1:6,i1:2,wl1:'39-25',l1:'5-5',t2:'Thunder',o2:'-165',s2:1,i2:6,wl2:'49-15',l2:'8-2',pick:'Thunder',res:null},
-            {_id:1773096198177,t1:'Grizzlies',o1:'-105',s1:11,i1:10,wl1:'23-38',l1:'3-7',t2:'Nets',o2:'-115',s2:14,i2:2,wl2:'15-47',l2:'0-10',pick:'Grizzlies',res:null},
-            {_id:1773096259971,t1:'Warriors',o1:'-290',s1:8,i1:6,wl1:'32-30',l1:'4-6',t2:'Jazz',o2:'+240',s2:14,i2:7,wl2:'19-44',l2:'3-7',pick:'Warriors',res:null},
-            {_id:1773096308038,t1:'Knicks',o1:'-130',s1:3,i1:2,wl1:'41-23',l1:'7-3',t2:'Clippers',o2:'+110',s2:9,i2:3,wl2:'30-32',l2:'5-5',pick:'Knicks',res:null},
-          ]},
-          { day:32, date:'3/10', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773172329874,t1:'Grizzlies',o1:'+130',s1:11,i1:4,wl1:'23-40',l1:'3-7',t2:'76ers',o2:'-150',s2:8,i2:4,wl2:'34-30',l2:'4-6',pick:'76ers',res:'W'},
-            {_id:1773172366568,t1:'Mavericks',o1:'+340',s1:12,i1:2,wl1:'21-43',l1:'2-8',t2:'Hawks',o2:'-460',s2:9,i2:1,wl2:'33-31',l2:'7-3',pick:'Hawks',res:'W'},
-            {_id:1773172396529,t1:'Pistons',o1:'-1200',s1:1,i1:2,wl1:'45-18',l1:'5-5',t2:'Nets',o2:'+700',s2:13,i2:3,wl2:'17-47',l2:'2-8',pick:'Pistons',res:'W'},
-            {_id:1773172422452,t1:'Celtics',o1:'+130',s1:2,i1:2,wl1:'43-21',l1:'8-2',t2:'Spurs',o2:'-150',s2:2,i2:3,wl2:'47-17',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1773172471039,t1:'Suns',o1:'-120',s1:7,i1:3,wl1:'37-27',l1:'5-5',t2:'Bucks',o2:'+100',s2:11,i2:5,wl2:'27-36',l2:'4-6',pick:'Suns',res:'W'},
-            {_id:1773172555166,t1:'Raptors',o1:'+160',s1:5,i1:5,wl1:'36-27',l1:'5-5',t2:'Rockets',o2:'-185',s2:4,i2:3,wl2:'39-24',l2:'6-4',pick:'Rockets',res:'W'},
-            {_id:1773172642973,t1:'Wizards',o1:'+700',s1:14,i1:6,wl1:'16-47',l1:'2-8',t2:'Heat',o2:'-1200',s2:6,i2:6,wl2:'36-29',l2:'8-2',pick:'Heat',res:'W'},
-            {_id:1773172688569,t1:'Hornets',o1:'-160',s1:10,i1:3,wl1:'32-33',l1:'6-4',t2:'Blazers',o2:'+135',s2:10,i2:2,wl2:'31-34',l2:'5-5',pick:'Hornets',res:'W'},
-            {_id:1773172739882,t1:'Bulls',o1:'+205',s1:12,i1:9,wl1:'26-38',l1:'2-8',t2:'Warriors',o2:'-245',s2:9,i2:6,wl2:'32-32',l2:'3-7',pick:'Warriors',res:'L'},
-            {_id:1773172791065,t1:'Pacers',o1:'+130',s1:15,i1:7,wl1:'15-49',l1:'1-9',t2:'Kings',o2:'-150',s2:15,i2:5,wl2:'15-50',l2:'3-7',pick:'Kings',res:'W'},
-            {_id:1773172877210,t1:'Wolves',o1:'-145',s1:3,i1:1,wl1:'40-24',l1:'8-2',t2:'Lakers',o2:'+125',s2:5,i2:1,wl2:'39-25',l2:'6-4',pick:'Wolves',res:'L'},
-          ]},
-          { day:33, date:'3/11', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773253520141,t1:'Cavaliers',o1:'-165',s1:4,i1:3,wl1:'40-25',l1:'6-4',t2:'Magic',o2:'+140',s2:8,i2:2,wl2:'35-28',l2:'7-3',pick:'Cavaliers',res:'L'},
-            {_id:1773266648872,t1:'Raptors',o1:'-140',s1:9,i1:4,wl1:'36-34',l1:'1-9',t2:'Pelicans',o2:'+120',s2:12,i2:1,wl2:'21-45',l2:'6-4',pick:'Pelicans',res:'W'},
-            {_id:1773266704660,t1:'Knicks',o1:'-1000',s1:5,i1:4,wl1:'41-25',l1:'6-4',t2:'Jazz',o2:'+625',s2:15,i2:1,wl2:'20-45',l2:'2-8',pick:'Knicks',res:'W'},
-            {_id:1773266836738,t1:'Hornets',o1:'-850',s1:6,i1:3,wl1:'44-33',l1:'10-0',t2:'Kings',o2:'+550',s2:11,i2:8,wl2:'27-50',l2:'10-0',pick:'Hornets',res:'W'},
-            {_id:1773267032608,t1:'Rockets',o1:'+225',s1:2,i1:4,wl1:'58-24',l1:'10-0',t2:'Nuggets',o2:'-275',s2:7,i2:3,wl2:'39-26',l2:'4-6',pick:'Rockets',res:'L'},
-            {_id:1773267100393,t1:'Wolves',o1:'+100',s1:6,i1:1,wl1:'40-46',l1:'0-10',t2:'Clippers',o2:'-210',s2:9,i2:3,wl2:'32-32',l2:'6-4',pick:'Clippers',res:'W'},
-          ]},
-          { day:34, date:'3/12', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773348443146,t1:'76ers',o1:'+650',s1:8,i1:6,wl1:'35-30',l1:'4-6',t2:'Pistons',o2:'-1000',s2:1,i2:3,wl2:'46-18',l2:'6-4',pick:'Pistons',res:'W'},
-            {_id:1773356178684,t1:'Suns',o1:'-430',s1:7,i1:3,wl1:'38-27',l1:'6-4',t2:'Pacers',o2:'+320',s2:15,i2:6,wl2:'15-50',l2:'0-10',pick:'Suns',res:'W'},
-            {_id:1773356280964,t1:'Wizards',o1:'+625',s1:14,i1:4,wl1:'16-48',l1:'1-9',t2:'Magic',o2:'-1000',s2:5,i2:3,wl2:'36-28',l2:'7-3',pick:'Magic',res:'W'},
-            {_id:1773356317550,t1:'Nets',o1:'+750',s1:13,i1:5,wl1:'17-48',l1:'2-8',t2:'Hawks',o2:'-1400',s2:9,i2:1,wl2:'34-31',l2:'8-2',pick:'Hawks',res:'W'},
-            {_id:1773356371290,t1:'Mavericks',o1:'-225',s1:13,i1:3,wl1:'21-44',l1:'2-8',t2:'Grizzlies',o2:'+185',s2:11,i2:11,wl2:'23-41',l2:'2-8',pick:'Mavericks',res:'W'},
-            {_id:1773356420118,t1:'Nuggets',o1:'+155',s1:5,i1:3,wl1:'40-26',l1:'5-5',t2:'Spurs',o2:'-180',s2:2,i2:4,wl2:'48-17',l2:'9-1',pick:'Spurs',res:'L'},
-            {_id:1773356464009,t1:'Celtics',o1:'+230',s1:2,i1:3,wl1:'43-22',l1:'7-3',t2:'Thunder',o2:'-280',s2:1,i2:4,wl2:'51-15',l2:'8-2',pick:'Thunder',res:'W'},
-            {_id:1773356510170,t1:'Bulls',o1:'+410',s1:12,i1:11,wl1:'27-38',l1:'3-7',t2:'Lakers',o2:'-585',s2:4,i2:4,wl2:'40-25',l2:'6-4',pick:'Lakers',res:'W'},
-            {_id:1773364509858,t1:'Bucks',o1:'+500',s1:11,i1:0,wl1:'27-37',l1:'3-7',t2:'Heat',o2:'-500',s2:6,i2:0,wl2:'37-29',l2:'8-2',pick:'Heat',res:'W'},
-          ]},
-          { day:35, date:'3/13', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773444648817,t1:'Cavaliers',o1:'-750',s1:4,i1:4,wl1:'40-26',l1:'5-5',t2:'Mavericks',o2:'+500',s2:13,i2:5,wl2:'22-44',l2:'2-8',pick:'Cavaliers',res:'W'},
-            {_id:1773444700517,t1:'Grizzlies',o1:'+800',s1:11,i1:10,wl1:'23-42',l1:'2-8',t2:'Pistons',o2:'-1600',s2:1,i2:2,wl2:'47-18',l2:'5-5',pick:'Pistons',res:'W'},
-            {_id:1773444744296,t1:'Knicks',o1:'-750',s1:3,i1:4,wl1:'42-25',l1:'6-4',t2:'Pacers',o2:'+500',s2:15,i2:4,wl2:'15-51',l2:'0-10',pick:'Knicks',res:'W'},
-            {_id:1773444790955,t1:'Suns',o1:'+170',s1:7,i1:2,wl1:'39-27',l1:'6-4',t2:'Raptors',o2:'-200',s2:7,i2:2,wl2:'36-29',l2:'5-5',pick:'Raptors',res:'W'},
-            {_id:1773444828545,t1:'Pelicans',o1:'+195',s1:12,i1:1,wl1:'22-45',l1:'7-3',t2:'Rockets',o2:'-235',s2:3,i2:4,wl2:'40-25',l2:'6-4',pick:'Rockets',res:'W'},
-            {_id:1773444866706,t1:'Wolves',o1:'-220',s1:6,i1:2,wl1:'40-26',l1:'6-4',t2:'Warriors',o2:'+180',s2:9,i2:5,wl2:'32-33',l2:'3-7',pick:'Wolves',res:'W'},
-            {_id:1773444916503,t1:'Jazz',o1:'+700',s1:14,i1:6,wl1:'20-46',l1:'2-8',t2:'Blazers',o2:'-1200',s2:10,i2:4,wl2:'31-35',l2:'4-6',pick:'Blazers',res:'W'},
-            {_id:1773444957819,t1:'Bulls',o1:'+525',s1:12,i1:9,wl1:'27-39',l1:'3-7',t2:'Clippers',o2:'-800',s2:8,i2:4,wl2:'33-32',l2:'6-4',pick:'Clippers',res:'W'},
-          ]},
-          { day:36, date:'3/14', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773505950809,t1:'Nets',o1:'+295',s1:13,i1:5,wl1:'17-49',l1:'2-8',t2:'76ers',o2:'-390',s2:8,i2:6,wl2:'35-31',l2:'4-6',pick:'76ers',res:'W'},
-            {_id:1773505997066,t1:'Bucks',o1:'+305',s1:11,i1:5,wl1:'27-38',l1:'3-7',t2:'Hawks',o2:'-410',s2:9,i2:1,wl2:'35-31',l2:'8-2',pick:'Hawks',res:'W'},
-            {_id:1773506495412,t1:'Hornets',o1:'+165',s1:10,i1:4,wl1:'34-33',l1:'8-2',t2:'Spurs',o2:'-195',s2:2,i2:4,wl2:'48-18',l2:'8-2',pick:'Spurs',res:'W'},
-            {_id:1773506548862,t1:'Wizards',o1:'+1200',s1:14,i1:4,wl1:'16-49',l1:'1-9',t2:'Celtics',o2:'-4000',s2:2,i2:3,wl2:'43-23',l2:'6-4',pick:'Celtics',res:'W'},
-            {_id:1773506605217,t1:'Magic',o1:'+145',s1:5,i1:3,wl1:'37-28',l1:'7-3',t2:'Heat',o2:'+170',s2:6,i2:6,wl2:'38-29',l2:'8-2',pick:'Magic',res:'W'},
-            {_id:1773506644214,t1:'Nuggets',o1:'-145',s1:5,i1:4,wl1:'41-26',l1:'5-5',t2:'Lakers',o2:'+125',s2:4,i2:2,wl2:'41-25',l2:'6-4',pick:'Lakers',res:'W'},
-            {_id:1773506708626,t1:'Kings',o1:'+550',s1:15,i1:8,wl1:'16-51',l1:'4-6',t2:'Clippers',o2:'-850',s2:8,i2:4,wl2:'34-32',l2:'7-3',pick:'Clippers',res:'L'},
-          ]},
-          { day:37, date:'3/15', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773591772000,t1:'Wolves',o1:'+300',s1:5,i1:1,wl1:'41-26',l1:'7-3',t2:'Thunder',o2:'-400',s2:1,i2:4,wl2:'52-15',l2:'9-1',pick:'Thunder',res:'W'},
-            {_id:1773591943485,t1:'Mavericks',o1:'+700',s1:12,i1:5,wl1:'22-45',l1:'1-9',t2:'Cavaliers',o2:'-1200',s2:4,i2:6,wl2:'41-26',l2:'6-4',pick:'Cavaliers',res:'L'},
-            {_id:1773592023463,t1:'Pistons',o1:'-165',s1:1,i1:1,wl1:'48-18',l1:'6-4',t2:'Raptors',o2:'+140',s2:7,i2:2,wl2:'37-29',l2:'5-5',pick:'Pistons',res:'L'},
-            {_id:1773592114547,t1:'Pacers',o1:'+235',s1:15,i1:10,wl1:'15-52',l1:'0-10',t2:'Bucks',o2:'-285',s2:11,i2:7,wl2:'27-39',l2:'3-7',pick:'Bucks',res:'W'},
-            {_id:1773592693660,t1:'Blazers',o1:'-330',s1:10,i1:4,wl1:'32-35',l1:'5-5',t2:'76ers',o2:'+265',s2:8,i2:6,wl2:'36-31',l2:'5-5',pick:'Blazers',res:'W'},
-            {_id:1773592761681,t1:'Warriors',o1:'+600',s1:9,i1:9,wl1:'32-34',l1:'3-7',t2:'Knicks',o2:'-950',s2:3,i2:3,wl2:'43-25',l2:'7-3',pick:'Knicks',res:'W'},
-            {_id:1773592900555,t1:'Jazz',o1:'+135',s1:14,i1:8,wl1:'20-47',l1:'2-8',t2:'Kings',o2:'-160',s2:15,i2:8,wl2:'17-51',l2:'5-5',pick:'Kings',res:'W'},
-          ]},
-          { day:38, date:'3/16', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1773696657090,t1:'Warriors',o1:'-310',s1:10,i1:8,wl1:'32-35',l1:'3-7',t2:'Wizards',o2:'+255',s2:14,i2:6,wl2:'16-50',l2:'1-9',pick:'Warriors',res:'W'},
-            {_id:1773696700229,t1:'Magic',o1:'+130',s1:5,i1:3,wl1:'38-28',l1:'8-2',t2:'Hawks',o2:'-150',s2:8,i2:0,wl2:'36-31',l2:'8-2',pick:'Hawks',res:'W'},
-            {_id:1773696739679,t1:'Suns',o1:'+315',s1:7,i1:2,wl1:'39-28',l1:'5-5',t2:'Celtics',o2:'-420',s2:2,i2:1,wl2:'44-23',l2:'6-4',pick:'Celtics',res:'W'},
-            {_id:1773696785938,t1:'Blazers',o1:'+510',s1:9,i1:5,wl1:'33-35',l1:'5-5',t2:'Nets',o2:'+370',s2:13,i2:5,wl2:'17-50',l2:'2-8',pick:'Blazers',res:'W'},
-            {_id:1773696858265,t1:'Mavericks',o1:'+275',s1:12,i1:5,wl1:'23-45',l1:'2-8',t2:'Pelicans',o2:'-330',s2:13,i2:2,wl2:'22-46',l2:'5-5',pick:'Pelicans',res:'W'},
-            {_id:1773697014860,t1:'Grizzlies',o1:'+225',s1:11,i1:9,wl1:'23-43',l1:'2-8',t2:'Bulls',o2:'-275',s2:12,i2:8,wl2:'27-40',l2:'2-8',pick:'Bulls',res:'W'},
-            {_id:1773697151143,t1:'Lakers',o1:'+115',s1:3,i1:1,wl1:'42-25',l1:'6-4',t2:'Rockets',o2:'-135',s2:4,i2:4,wl2:'41-25',l2:'7-3',pick:'Rockets',res:'L'},
-            {_id:1773697215467,t1:'Spurs',o1:'-360',s1:2,i1:3,wl1:'49-18',l1:'8-2',t2:'Clippers',o2:'+280',s2:8,i2:3,wl2:'34-33',l2:'6-4',pick:'Spurs',res:'W'},
-          ]},
-          { day:39, date:'3/17', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774568987677,t1:'Pistons',o1:'-2200',s1:1,i1:0,wl1:'48-19',l1:'5-5',t2:'Wizards',o2:'+1100',s2:14,i2:0,wl2:'16-51',l2:'0-10',pick:'Pistons',res:'W'},
-            {_id:1774569061200,t1:'Thunder',o1:'-450',s1:1,i1:0,wl1:'53-15',l1:'9-1',t2:'Magic',o2:'+350',s2:6,i2:0,wl2:'38-29',l2:'8-2',pick:'Thunder',res:'W'},
-            {_id:1774569079499,t1:'Heat',o1:'+170',s1:7,i1:3,wl1:'38-30',l1:'7-3',t2:'Hornets',o2:'-205',s2:10,i2:2,wl2:'34-34',l2:'7-3',pick:'Hornets',res:'W'},
-            {_id:1774569098718,t1:'Pacers',o1:'+550',s1:15,i1:0,wl1:'15-53',l1:'1-9',t2:'Knicks',o2:'-800',s2:3,i2:0,wl2:'44-25',l2:'6-4',pick:'Knicks',res:'W'},
-            {_id:1774569122237,t1:'Suns',o1:'+140',s1:7,i1:0,wl1:'39-29',l1:'6-4',t2:'Wolves',o2:'-165',s2:5,i2:0,wl2:'41-27',l2:'6-4',pick:'Wolves',res:'W'},
-            {_id:1774569142305,t1:'Cavaliers',o1:'-600',s1:4,i1:0,wl1:'41-27',l1:'4-6',t2:'Bucks',o2:'+450',s2:12,i2:0,wl2:'28-39',l2:'2-8',pick:'Cavaliers',res:'W'},
-            {_id:1774569157456,t1:'76ers',o1:'+750',s1:9,i1:3,wl1:'36-32',l1:'4-6',t2:'Nuggets',o2:'-1200',s2:6,i2:0,wl2:'41-27',l2:'5-5',pick:'Nuggets',res:'W'},
-            {_id:1774569177757,t1:'Spurs',o1:'-850',s1:2,i1:9,wl1:'50-18',l1:'9-1',t2:'Kings',o2:'+575',s2:15,i2:7,wl2:'17-52',l2:'2-8',pick:'Spurs',res:'W'},
-          ]},
-          { day:40, date:'3/18', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774569274555,t1:'Warriors',o1:'+475',s1:10,i1:0,wl1:'33-35',l1:'2-8',t2:'Celtics',o2:'-650',s2:2,i2:0,wl2:'45-23',l2:'7-3',pick:'Celtics',res:'W'},
-            {_id:1774569290971,t1:'Blazers',o1:'-700',s1:9,i1:0,wl1:'34-35',l1:'6-4',t2:'Pacers',o2:'+500',s2:15,i2:0,wl2:'15-54',l2:'1-9',pick:'Blazers',res:'W'},
-            {_id:1774569309256,t1:'Thunder',o1:'-2200',s1:1,i1:0,wl1:'54-15',l1:'9-1',t2:'Nets',o2:'+1100',s2:13,i2:6,wl2:'17-51',l2:'2-8',pick:'Thunder',res:'W'},
-            {_id:1774569326157,t1:'Jazz',o1:'+550',s1:14,i1:0,wl1:'20-48',l1:'2-8',t2:'Wolves',o2:'-800',s2:4,i2:0,wl2:'42-27',l2:'6-4',pick:'Wolves',res:'W'},
-            {_id:1774569351143,t1:'Clippers',o1:'-130',s1:8,i1:0,wl1:'34-34',l1:'7-3',t2:'Pelicans',o2:'+110',s2:13,i2:0,wl2:'23-46',l2:'2-8',pick:'Clippers',res:'L'},
-            {_id:1774569372669,t1:'Raptors',o1:'-300',s1:5,i1:0,wl1:'38-29',l1:'4-6',t2:'Bulls',o2:'+240',s2:11,i2:0,wl2:'29-39',l2:'2-8',pick:'Raptors',res:'W'},
-            {_id:1774569389187,t1:'Hawks',o1:'-340',s1:8,i1:0,wl1:'37-31',l1:'10-0',t2:'Mavericks',o2:'+270',s2:12,i2:0,wl2:'23-46',l2:'2-8',pick:'Hawks',res:'W'},
-            {_id:1774569412007,t1:'Nuggets',o1:'-800',s1:5,i1:0,wl1:'42-27',l1:'5-5',t2:'Grizzlies',o2:'+550',s2:11,i2:0,wl2:'23-44',l2:'2-8',pick:'Nuggets',res:'L'},
-            {_id:1774569431191,t1:'Lakers',o1:'+110',s1:3,i1:0,wl1:'43-25',l1:'9-1',t2:'Rockets',o2:'-130',s2:6,i2:0,wl2:'41-26',l2:'5-5',pick:'Lakers',res:'W'},
-          ]},
-          { day:41, date:'3/19', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774569575044,t1:'Magic',o1:'+180',s1:6,i1:0,wl1:'38-30',l1:'7-3',t2:'Hornets',o2:'-220',s2:10,i2:0,wl2:'35-34',l2:'7-3',pick:'Hornets',res:'W'},
-            {_id:1774569618865,t1:'Pistons',o1:'-1100',s1:1,i1:0,wl1:'49-19',l1:'5-5',t2:'Wizards',o2:'+700',s2:14,i2:0,wl2:'16-52',l2:'0-10',pick:'Pistons',res:'W'},
-            {_id:1774569637732,t1:'Suns',o1:'+375',s1:7,i1:0,wl1:'39-30',l1:'6-4',t2:'Spurs',o2:'-500',s2:2,i2:0,wl2:'51-18',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1774569653868,t1:'Lakers',o1:'+140',s1:3,i1:0,wl1:'44-25',l1:'9-1',t2:'Heat',o2:'-165',s2:7,i2:0,wl2:'38-31',l2:'7-3',pick:'Lakers',res:'W'},
-            {_id:1774569679387,t1:'Clippers',o1:'+150',s1:9,i1:0,wl1:'34-35',l1:'6-4',t2:'Pelicans',o2:'-180',s2:12,i2:0,wl2:'24-46',l2:'6-4',pick:'Pelicans',res:'W'},
-            {_id:1774569700388,t1:'Cavaliers',o1:'-500',s1:4,i1:4,wl1:'42-27',l1:'5-5',t2:'Bulls',o2:'+375',s2:11,i2:10,wl2:'29-40',l2:'2-8',pick:'Cavaliers',res:'W'},
-            {_id:1774569718648,t1:'Bucks',o1:'-250',s1:12,i1:0,wl1:'28-40',l1:'2-8',t2:'Jazz',o2:'+205',s2:14,i2:0,wl2:'20-49',l2:'2-8',pick:'Bucks',res:'L'},
-            {_id:1774569740192,t1:'76ers',o1:'-150',s1:9,i1:0,wl1:'36-33',l1:'3-7',t2:'Kings',o2:'+125',s2:15,i2:0,wl2:'17-53',l2:'4-6',pick:'76ers',res:'W'},
-          ]},
-          { day:42, date:'3/20', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774570037176,t1:'Raptors',o1:'+220',s1:5,i1:0,wl1:'39-29',l1:'5-5',t2:'Nuggets',o2:'-270',s2:5,i2:0,wl2:'42-28',l2:'5-5',pick:'Nuggets',res:'W'},
-            {_id:1774570068810,t1:'Hawks',o1:'+125',s1:7,i1:0,wl1:'38-31',l1:'10-0',t2:'Rockets',o2:'-150',s2:6,i2:0,wl2:'41-27',l2:'4-6',pick:'Hawks',res:'L'},
-            {_id:1774570193424,t1:'Blazers',o1:'-105',s1:8,i1:0,wl1:'35-35',l1:'6-4',t2:'Wolves',o2:'-115',s2:4,i2:0,wl2:'43-27',l2:'6-4',pick:'Wolves',res:'L'},
-            {_id:1774570211608,t1:'Celtics',o1:'-1200',s1:2,i1:0,wl1:'46-23',l1:'7-3',t2:'Grizzlies',o2:'+750',s2:12,i2:0,wl2:'24-44',l2:'2-8',pick:'Celtics',res:'W'},
-            {_id:1774570236043,t1:'Warriors',o1:'+195',s1:10,i1:0,wl1:'33-36',l1:'3-7',t2:'Pistons',o2:'-240',s2:1,i2:0,wl2:'50-19',l2:'2-8',pick:'Pistons',res:'W'},
-            {_id:1774570275495,t1:'Knicks',o1:'-2200',s1:3,i1:0,wl1:'45-25',l1:'6-4',t2:'Nets',o2:'+1100',s2:13,i2:0,wl2:'17-52',l2:'2-8',pick:'Knicks',res:'W'},
-          ]},
-          { day:43, date:'3/21', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774570532089,t1:'Thunder',o1:'-3000',s1:1,i1:0,wl1:'55-15',l1:'10-0',t2:'Wizards',o2:'+1400',s2:14,i2:0,wl2:'16-53',l2:'0-10',pick:'Thunder',res:'W'},
-            {_id:1774570550806,t1:'Cavaliers',o1:'-205',s1:4,i1:0,wl1:'43-27',l1:'6-4',t2:'Pelicans',o2:'+170',s2:11,i2:0,wl2:'25-46',l2:'6-4',pick:'Cavaliers',res:'W'},
-            {_id:1774570573069,t1:'Lakers',o1:'-155',s1:3,i1:0,wl1:'45-25',l1:'9-1',t2:'Magic',o2:'+130',s2:6,i2:0,wl2:'38-31',l2:'7-3',pick:'Lakers',res:'W'},
-            {_id:1774570590172,t1:'Grizzlies',o1:'+950',s1:12,i1:0,wl1:'24-45',l1:'1-9',t2:'Hornets',o2:'-1700',s2:10,i2:0,wl2:'36-34',l2:'7-3',pick:'Hornets',res:'W'},
-            {_id:1774570610640,t1:'Pacers',o1:'+900',s1:15,i1:0,wl1:'15-55',l1:'0-10',t2:'Spurs',o2:'-1600',s2:2,i2:0,wl2:'52-18',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1774570629858,t1:'Warriors',o1:'+250',s1:10,i1:0,wl1:'33-37',l1:'2-8',t2:'Hawks',o2:'-310',s2:7,i2:0,wl2:'38-32',l2:'9-1',pick:'Hawks',res:'W'},
-            {_id:1774570652610,t1:'Heat',o1:'+120',s1:8,i1:0,wl1:'38-32',l1:'7-3',t2:'Rockets',o2:'-140',s2:6,i2:0,wl2:'42-27',l2:'7-3',pick:'Rockets',res:'W'},
-            {_id:1774570672412,t1:'Clippers',o1:'-275',s1:9,i1:0,wl1:'34-36',l1:'5-5',t2:'Mavericks',o2:'+225',s2:13,i2:0,wl2:'23-47',l2:'2-8',pick:'Clippers',res:'W'},
-            {_id:1774570688980,t1:'76ers',o1:'-225',s1:9,i1:0,wl1:'37-33',l1:'4-6',t2:'Jazz',o2:'+185',s2:14,i2:0,wl2:'21-49',l2:'3-7',pick:'76ers',res:'W'},
-            {_id:1774570707973,t1:'Bucks',o1:'+450',s1:12,i1:0,wl1:'28-41',l1:'2-8',t2:'Suns',o2:'-600',s2:7,i2:0,wl2:'39-31',l2:'5-5',pick:'Suns',res:'L'},
-          ]},
-          { day:44, date:'3/22', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774570847847,t1:'Wizards',o1:'+1500',s1:14,i1:0,wl1:'16-54',l1:'0-10',t2:'Knicks',o2:'-5000',s2:3,i2:0,wl2:'46-25',l2:'7-3',pick:'Knicks',res:'W'},
-            {_id:1774570888051,t1:'Wolves',o1:'+325',s1:5,i1:0,wl1:'43-28',l1:'5-5',t2:'Celtics',o2:'-425',s2:2,i2:0,wl2:'47-23',l2:'7-3',pick:'Celtics',res:'L'},
-            {_id:1774570904835,t1:'Raptors',o1:'-180',s1:5,i1:0,wl1:'39-30',l1:'5-5',t2:'Suns',o2:'+150',s2:7,i2:0,wl2:'39-32',l2:'4-6',pick:'Raptors',res:'L'},
-            {_id:1774570969574,t1:'Blazers',o1:'+275',s1:8,i1:0,wl1:'36-35',l1:'7-3',t2:'Nuggets',o2:'-350',s2:6,i2:0,wl2:'43-28',l2:'6-4',pick:'Nuggets',res:'W'},
-            {_id:1774570985775,t1:'Nets',o1:'+200',s1:13,i1:0,wl1:'17-53',l1:'2-8',t2:'Kings',o2:'-245',s2:15,i2:0,wl2:'17-54',l2:'3-7',pick:'Kings',res:'W'},
-          ]},
-          { day:45, date:'3/23', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774571036933,t1:'Pacers',o1:'+400',s1:15,i1:0,wl1:'15-56',l1:'0-10',t2:'Magic',o2:'-550',s2:7,i2:0,wl2:'38-32',l2:'6-4',pick:'Magic',res:'L'},
-            {_id:1774571051284,t1:'Lakers',o1:'-120',s1:3,i1:0,wl1:'46-25',l1:'9-1',t2:'Pistons',o2:'+100',s2:1,i2:0,wl2:'51-19',l2:'6-4',pick:'Lakers',res:'L'},
-            {_id:1774571108502,t1:'Thunder',o1:'-1200',s1:1,i1:0,wl1:'56-15',l1:'10-0',t2:'76ers',o2:'+750',s2:9,i2:0,wl2:'38-33',l2:'5-5',pick:'Thunder',res:'W'},
-            {_id:1774571125239,t1:'Spurs',o1:'-160',s1:2,i1:0,wl1:'53-18',l1:'9-1',t2:'Heat',o2:'+135',s2:8,i2:0,wl2:'38-33',l2:'6-4',pick:'Spurs',res:'W'},
-            {_id:1774571139172,t1:'Grizzlies',o1:'+575',s1:12,i1:0,wl1:'24-46',l1:'1-9',t2:'Hawks',o2:'-850',s2:6,i2:0,wl2:'39-32',l2:'9-1',pick:'Hawks',res:'W'},
-            {_id:1774571186170,t1:'Rockets',o1:'-390',s1:6,i1:0,wl1:'43-27',l1:'5-5',t2:'Bulls',o2:'+310',s2:11,i2:0,wl2:'29-41',l2:'5-5',pick:'Rockets',res:'L'},
-            {_id:1774571211755,t1:'Raptors',o1:'-450',s1:5,i1:0,wl1:'39-31',l1:'4-6',t2:'Jazz',o2:'+350',s2:14,i2:0,wl2:'21-50',l2:'3-7',pick:'Raptors',res:'W'},
-            {_id:1774571236570,t1:'Warriors',o1:'-140',s1:10,i1:0,wl1:'33-38',l1:'2-8',t2:'Mavericks',o2:'+120',s2:13,i2:0,wl2:'23-48',l2:'2-8',pick:'Warriors',res:'W'},
-            {_id:1774571256146,t1:'Nets',o1:'+700',s1:13,i1:0,wl1:'17-54',l1:'2-8',t2:'Blazers',o2:'-1100',s2:8,i2:0,wl2:'36-36',l2:'7-3',pick:'Blazers',res:'W'},
-            {_id:1774571270782,t1:'Bucks',o1:'+600',s1:12,i1:6,wl1:'29-41',l1:'3-7',t2:'Clippers',o2:'-900',s2:9,i2:3,wl2:'35-36',l2:'5-5',pick:'Clippers',res:'W'},
-          ]},
-          { day:46, date:'3/24', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774571394697,t1:'Kings',o1:'+1000',s1:15,i1:0,wl1:'18-54',l1:'4-6',t2:'Hornets',o2:'-2000',s2:10,i2:0,wl2:'37-34',l2:'7-3',pick:'Hornets',res:'W'},
-            {_id:1774571410631,t1:'Pelicans',o1:'+280',s1:11,i1:0,wl1:'25-47',l1:'6-4',t2:'Knicks',o2:'-360',s2:3,i2:0,wl2:'47-25',l2:'6-4',pick:'Knicks',res:'W'},
-            {_id:1774571446096,t1:'Magic',o1:'+350',s1:7,i1:0,wl1:'38-33',l1:'5-5',t2:'Cavaliers',o2:'-450',s2:4,i2:0,wl2:'44-27',l2:'6-4',pick:'Cavaliers',res:'W'},
-            {_id:1774571459914,t1:'Nuggets',o1:'-240',s1:4,i1:0,wl1:'44-28',l1:'6-4',t2:'Suns',o2:'+195',s2:7,i2:0,wl2:'40-32',l2:'5-5',pick:'Nuggets',res:'W'},
-          ]},
-          { day:47, date:'3/25', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774571514135,t1:'Bulls',o1:'+205',s1:11,i1:0,wl1:'30-41',l1:'5-5',t2:'76ers',o2:'-250',s2:9,i2:0,wl2:'38-34',l2:'4-6',pick:'76ers',res:'W'},
-            {_id:1774571535170,t1:'Hawks',o1:'+120',s1:6,i1:0,wl1:'40-32',l1:'9-1',t2:'Pistons',o2:'-140',s2:1,i2:0,wl2:'52-19',l2:'7-3',pick:'Pistons',res:'L'},
-            {_id:1774571556705,t1:'Lakers',o1:'-425',s1:3,i1:0,wl1:'46-26',l1:'9-1',t2:'Pacers',o2:'+325',s2:15,i2:0,wl2:'16-56',l2:'1-9',pick:'Lakers',res:'W'},
-            {_id:1774571577741,t1:'Thunder',o1:'-130',s1:1,i1:0,wl1:'57-15',l1:'10-0',t2:'Celtics',o2:'+110',s2:3,i2:0,wl2:'47-24',l2:'6-4',pick:'Thunder',res:'L'},
-            {_id:1774571593059,t1:'Heat',o1:'+125',s1:8,i1:0,wl1:'38-34',l1:'5-5',t2:'Cavaliers',o2:'-150',s2:4,i2:0,wl2:'45-27',l2:'7-3',pick:'Cavaliers',res:'L'},
-            {_id:1774571609727,t1:'Spurs',o1:'-2000',s1:2,i1:0,wl1:'54-18',l1:'9-1',t2:'Grizzlies',o2:'+1000',s2:12,i2:0,wl2:'24-47',l2:'1-9',pick:'Spurs',res:'W'},
-            {_id:1774571621111,t1:'Wizards',o1:'+130',s1:14,i1:0,wl1:'16-55',l1:'0-10',t2:'Jazz',o2:'-155',s2:14,i2:0,wl2:'21-51',l2:'3-7',pick:'Jazz',res:'L'},
-            {_id:1774571639446,t1:'Rockets',o1:'-130',s1:6,i1:0,wl1:'43-28',l1:'5-5',t2:'Wolves',o2:'+110',s2:5,i2:0,wl2:'44-28',l2:'5-5',pick:'Wolves',res:'W'},
-            {_id:1774571661856,t1:'Nets',o1:'+500',s1:13,i1:0,wl1:'17-55',l1:'2-8',t2:'Warriors',o2:'-700',s2:10,i2:0,wl2:'34-38',l2:'2-8',pick:'Warriors',res:'W'},
-            {_id:1774571675157,t1:'Bucks',o1:'+700',s1:12,i1:0,wl1:'29-42',l1:'3-7',t2:'Blazers',o2:'-1100',s2:8,i2:0,wl2:'37-36',l2:'7-3',pick:'Blazers',res:'W'},
-            {_id:1774571718353,t1:'Mavericks',o1:'+450',s1:13,i1:0,wl1:'23-49',l1:'2-8',t2:'Nuggets',o2:'-600',s2:4,i2:0,wl2:'45-28',l2:'6-4',pick:'Nuggets',res:'W'},
-            {_id:1774571742268,t1:'Raptors',o1:'+150',s1:5,i1:0,wl1:'40-31',l1:'5-5',t2:'Clippers',o2:'-180',s2:9,i2:0,wl2:'36-36',l2:'6-4',pick:'Clippers',res:'W'},
-          ]},
-          { day:48, date:'3/26', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1774571952803,t1:'Pelicans',o1:'+180',s1:11,i1:2,wl1:'25-48',l1:'6-4',t2:'Pistons',o2:'-220',s2:1,i2:4,wl2:'52-20',l2:'7-3',pick:'Pistons',res:'W'},
-            {_id:1774571968596,t1:'Knicks',o1:'+110',s1:3,i1:3,wl1:'48-25',l1:'8-2',t2:'Hornets',o2:'-130',s2:10,i2:2,wl2:'38-34',l2:'7-3',pick:'Knicks',res:'W'},
-            {_id:1774571997352,t1:'Kings',o1:'+800',s1:15,i1:7,wl1:'18-55',l1:'4-6',t2:'Magic',o2:'-1300',s2:9,i2:3,wl2:'38-34',l2:'5-5',pick:'Magic',res:'W'},
-          ]},
-          { day:49, date:'3/27', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776282206309,t1:'Clippers',o1:'-390',s1:9,i1:0,wl1:'37-36',l1:'6-4',t2:'Pacers',o2:'+310',s2:15,i2:0,wl2:'16-57',l2:'1-9',pick:'Clippers',res:'W'},
-            {_id:1776282302219,t1:'Hawks',o1:'+180',s1:5,i1:0,wl1:'41-32',l1:'9-1',t2:'Celtics',o2:'-220',s2:3,i2:0,wl2:'48-24',l2:'7-3',pick:'Celtics',res:'W'},
-            {_id:1776282320345,t1:'Heat',o1:'+180',s1:8,i1:0,wl1:'39-34',l1:'5-5',t2:'Cavaliers',o2:'-220',s2:4,i2:0,wl2:'45-28',l2:'6-4',pick:'Cavaliers',res:'W'},
-            {_id:1776282346731,t1:'Bulls',o1:'+1200',s1:11,i1:0,wl1:'30-42',l1:'5-5',t2:'Thunder',o2:'-2400',s2:1,i2:0,wl2:'57-16',l2:'9-1',pick:'Thunder',res:'W'},
-            {_id:1776282388610,t1:'Rockets',o1:'-950',s1:6,i1:0,wl1:'43-29',l1:'4-6',t2:'Grizzlies',o2:'+625',s2:12,i2:0,wl2:'24-48',l2:'1-9',pick:'Rockets',res:'W'},
-            {_id:1776282410569,t1:'Pelicans',o1:'+270',s1:11,i1:0,wl1:'25-49',l1:'5-5',t2:'Raptors',o2:'-340',s2:6,i2:0,wl2:'40-32',l2:'5-5',pick:'Raptors',res:'W'},
-            {_id:1776283635728,t1:'Jazz',o1:'+1100',s1:14,i1:0,wl1:'21-52',l1:'2-8',t2:'Nuggets',o2:'-2200',s2:4,i2:0,wl2:'46-28',l2:'7-3',pick:'Nuggets',res:'W'},
-            {_id:1776283651036,t1:'Wizards',o1:'+550',s1:13,i1:0,wl1:'17-55',l1:'1-9',t2:'Warriors',o2:'-800',s2:10,i2:0,wl2:'35-38',l2:'3-7',pick:'Warriors',res:'W'},
-            {_id:1776283676371,t1:'Mavericks',o1:'+375',s1:13,i1:0,wl1:'23-50',l1:'2-8',t2:'Blazers',o2:'-500',s2:8,i2:0,wl2:'38-36',l2:'8-2',pick:'Blazers',res:'L'},
-            {_id:1776283693682,t1:'Nets',o1:'+1100',s1:14,i1:0,wl1:'17-56',l1:'1-9',t2:'Lakers',o2:'-2200',s2:3,i2:0,wl2:'47-26',l2:'9-1',pick:'Lakers',res:'W'},
-          ]},
-          { day:50, date:'3/28', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776283833096,t1:'Spurs',o1:'-2000',s1:2,i1:0,wl1:'55-18',l1:'9-1',t2:'Bucks',o2:'+1000',s2:12,i2:0,wl2:'29-43',l2:'2-8',pick:'Spurs',res:'W'},
-            {_id:1776283870077,t1:'Pistons',o1:'-130',s1:1,i1:0,wl1:'53-20',l1:'8-2',t2:'Wolves',o2:'+110',s2:5,i2:0,wl2:'45-28',l2:'5-5',pick:'Pistons',res:'W'},
-            {_id:1776283888197,t1:'76ers',o1:'+205',s1:7,i1:0,wl1:'39-34',l1:'5-5',t2:'Hornets',o2:'-250',s2:10,i2:0,wl2:'38-35',l2:'6-4',pick:'Hornets',res:'L'},
-            {_id:1776283911348,t1:'Kings',o1:'+525',s1:15,i1:0,wl1:'18-56',l1:'4-6',t2:'Hawks',o2:'-750',s2:6,i2:0,wl2:'41-33',l2:'8-2',pick:'Hawks',res:'W'},
-            {_id:1776283931058,t1:'Bulls',o1:'-210',s1:11,i1:0,wl1:'30-43',l1:'4-6',t2:'Grizzlies',o2:'+175',s2:12,i2:0,wl2:'24-49',l2:'1-9',pick:'Bulls',res:'L'},
-            {_id:1776283956775,t1:'Jazz',o1:'+950',s1:14,i1:0,wl1:'21-53',l1:'2-8',t2:'Suns',o2:'-1700',s2:7,i2:0,wl2:'40-33',l2:'4-6',pick:'Suns',res:'W'},
-          ]},
-          { day:51, date:'3/29', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776284056089,t1:'Clippers',o1:'-1400',s1:8,i1:0,wl1:'38-36',l1:'6-4',t2:'Bucks',o2:'+850',s2:12,i2:0,wl2:'29-44',l2:'2-8',pick:'Clippers',res:'W'},
-            {_id:1776284080701,t1:'Heat',o1:'-360',s1:9,i1:0,wl1:'39-35',l1:'4-6',t2:'Pacers',o2:'+280',s2:15,i2:0,wl2:'16-58',l2:'1-9',pick:'Heat',res:'L'},
-            {_id:1776284102028,t1:'Kings',o1:'+105',s1:15,i1:0,wl1:'18-57',l1:'4-6',t2:'Nets',o2:'-125',s2:14,i2:0,wl2:'17-57',l2:'0-10',pick:'Kings',res:'L'},
-            {_id:1776284125413,t1:'Magic',o1:'+100',s1:8,i1:0,wl1:'39-34',l1:'4-6',t2:'Raptors',o2:'-120',s2:6,i2:0,wl2:'41-32',l2:'5-5',pick:'Raptors',res:'W'},
-            {_id:1776284156699,t1:'Wizards',o1:'+950',s1:13,i1:0,wl1:'17-56',l1:'1-9',t2:'Blazers',o2:'-1700',s2:9,i2:0,wl2:'38-37',l2:'7-3',pick:'Blazers',res:'W'},
-            {_id:1776284193619,t1:'Celtics',o1:'+115',s1:2,i1:0,wl1:'49-24',l1:'7-3',t2:'Hornets',o2:'-135',s2:10,i2:0,wl2:'38-36',l2:'6-4',pick:'Celtics',res:'W'},
-            {_id:1776284227023,t1:'Rockets',o1:'-245',s1:6,i1:0,wl1:'44-29',l1:'5-5',t2:'Pelicans',o2:'+200',s2:12,i2:0,wl2:'25-50',l2:'5-5',pick:'Rockets',res:'W'},
-            {_id:1776284252075,t1:'Knicks',o1:'+275',s1:3,i1:0,wl1:'49-25',l1:'8-2',t2:'Thunder',o2:'-350',s2:1,i2:0,wl2:'58-16',l2:'9-1',pick:'Thunder',res:'W'},
-            {_id:1776284265268,t1:'Warriors',o1:'+475',s1:10,i1:0,wl1:'36-38',l1:'4-6',t2:'Nuggets',o2:'-650',s2:4,i2:0,wl2:'47-28',l2:'8-2',pick:'Nuggets',res:'W'},
-          ]},
-          { day:52, date:'3/30', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776284368369,t1:'76ers',o1:'-130',s1:7,i1:0,wl1:'40-34',l1:'6-4',t2:'Heat',o2:'+110',s2:9,i2:0,wl2:'39-36',l2:'3-7',pick:'76ers',res:'L'},
-            {_id:1776284389487,t1:'Celtics',o1:'+125',s1:2,i1:0,wl1:'50-24',l1:'7-3',t2:'Hawks',o2:'-150',s2:6,i2:0,wl2:'42-33',l2:'8-2',pick:'Hawks',res:'W'},
-            {_id:1776284410656,t1:'Suns',o1:'-600',s1:7,i1:0,wl1:'41-33',l1:'4-6',t2:'Grizzlies',o2:'+450',s2:11,i2:0,wl2:'25-49',l2:'2-8',pick:'Suns',res:'W'},
-            {_id:1776284447138,t1:'Bulls',o1:'+900',s1:11,i1:0,wl1:'30-44',l1:'3-7',t2:'Spurs',o2:'-2000',s2:2,i2:0,wl2:'56-18',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1776284468415,t1:'Wolves',o1:'-360',s1:5,i1:0,wl1:'45-29',l1:'5-5',t2:'Mavericks',o2:'+280',s2:13,i2:0,wl2:'24-50',l2:'3-7',pick:'Wolves',res:'W'},
-            {_id:1776284486801,t1:'Cavaliers',o1:'-1600',s1:4,i1:0,wl1:'46-28',l1:'7-3',t2:'Jazz',o2:'+900',s2:14,i2:0,wl2:'21-54',l2:'1-9',pick:'Cavaliers',res:'W'},
-            {_id:1776284505977,t1:'Pistons',o1:'+450',s1:1,i1:0,wl1:'54-20',l1:'8-2',t2:'Thunder',o2:'-600',s2:1,i2:0,wl2:'59-16',l2:'9-1',pick:'Thunder',res:'W'},
-            {_id:1776284522921,t1:'Wizards',o1:'+850',s1:14,i1:0,wl1:'17-57',l1:'1-9',t2:'Lakers',o2:'-1400',s2:3,i2:0,wl2:'48-26',l2:'9-1',pick:'Lakers',res:'W'},
-          ]},
-          { day:53, date:'3/31', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776284609653,t1:'Suns',o1:'+110',s1:7,i1:0,wl1:'42-33',l1:'4-6',t2:'Magic',o2:'-130',s2:9,i2:0,wl2:'39-35',l2:'3-7',pick:'Suns',res:'L'},
-            {_id:1776284632923,t1:'Hornets',o1:'-2000',s1:10,i1:0,wl1:'38-37',l1:'6-4',t2:'Nets',o2:'+1000',s2:13,i2:0,wl2:'18-57',l2:'1-9',pick:'Hornets',res:'W'},
-            {_id:1776284657849,t1:'Raptors',o1:'+135',s1:6,i1:0,wl1:'42-32',l1:'6-4',t2:'Pistons',o2:'-180',s2:1,i2:0,wl2:'54-21',l2:'7-3',pick:'Pistons',res:'W'},
-            {_id:1776284672626,t1:'Knicks',o1:'-125',s1:3,i1:0,wl1:'49-26',l1:'8-2',t2:'Rockets',o2:'+105',s2:6,i2:0,wl2:'45-29',l2:'5-5',pick:'Knicks',res:'L'},
-            {_id:1776284696820,t1:'Mavericks',o1:'-140',s1:13,i1:0,wl1:'24-51',l1:'3-7',t2:'Bucks',o2:'+120',s2:12,i2:0,wl2:'29-45',l2:'3-7',pick:'Mavericks',res:'L'},
-            {_id:1776284720997,t1:'Cavaliers',o1:'+115',s1:4,i1:0,wl1:'47-28',l1:'7-3',t2:'Lakers',o2:'-135',s2:3,i2:0,wl2:'49-26',l2:'9-1',pick:'Lakers',res:'W'},
-            {_id:1776284746633,t1:'Blazers',o1:'+160',s1:9,i1:0,wl1:'39-37',l1:'8-2',t2:'Clippers',o2:'-190',s2:8,i2:0,wl2:'39-36',l2:'6-4',pick:'Clippers',res:'L'},
-          ]},
-          { day:54, date:'4/1', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776285476134,t1:'76ers',o1:'-1200',s1:7,i1:0,wl1:'40-35',l1:'5-5',t2:'Wizards',o2:'+750',s2:14,i2:0,wl2:'17-58',l2:'1-9',pick:'76ers',res:'W'},
-            {_id:1776285498986,t1:'Hawks',o1:'-150',s1:5,i1:0,wl1:'43-33',l1:'8-2',t2:'Magic',o2:'+125',s2:8,i2:0,wl2:'40-35',l2:'3-7',pick:'Hawks',res:'W'},
-            {_id:1776285555866,t1:'Celtics',o1:'-200',s1:2,i1:0,wl1:'50-25',l1:'7-3',t2:'Heat',o2:'+165',s2:9,i2:0,wl2:'40-36',l2:'3-7',pick:'Celtics',res:'W'},
-            {_id:1776285593194,t1:'Knicks',o1:'-900',s1:3,i1:0,wl1:'49-27',l1:'8-2',t2:'Grizzlies',o2:'+600',s2:11,i2:0,wl2:'25-50',l2:'2-8',pick:'Knicks',res:'W'},
-            {_id:1776285665727,t1:'Kings',o1:'+500',s1:15,i1:0,wl1:'18-58',l1:'3-7',t2:'Raptors',o2:'-700',s2:6,i2:0,wl2:'42-33',l2:'5-5',pick:'Raptors',res:'L'},
-            {_id:1776285756981,t1:'Bucks',o1:'+1250',s1:12,i1:0,wl1:'30-45',l1:'3-7',t2:'Rockets',o2:'-2500',s2:6,i2:0,wl2:'46-29',l2:'6-4',pick:'Rockets',res:'W'},
-            {_id:1776285794484,t1:'Pacers',o1:'+140',s1:15,i1:0,wl1:'17-58',l1:'2-8',t2:'Bulls',o2:'-165',s2:11,i2:0,wl2:'30-45',l2:'2-8',pick:'Bulls',res:'L'},
-            {_id:1776285815628,t1:'Nuggets',o1:'-2000',s1:4,i1:0,wl1:'48-28',l1:'8-2',t2:'Jazz',o2:'+1000',s2:14,i2:0,wl2:'21-55',l2:'1-9',pick:'Nuggets',res:'W'},
-            {_id:1776285860781,t1:'Spurs',o1:'-1100',s1:2,i1:0,wl1:'57-18',l1:'9-1',t2:'Warriors',o2:'+700',s2:10,i2:0,wl2:'36-39',l2:'4-6',pick:'Spurs',res:'W'},
-          ]},
-          { day:55, date:'4/2', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776286044031,t1:'Wolves',o1:'+175',s1:6,i1:0,wl1:'46-29',l1:'6-4',t2:'Pistons',o2:'-210',s2:1,i2:0,wl2:'55-21',l2:'7-3',pick:'Pistons',res:'W'},
-            {_id:1776286478019,t1:'Suns',o1:'+170',s1:7,i1:0,wl1:'42-34',l1:'3-7',t2:'Hornets',o2:'-205',s2:10,i2:0,wl2:'39-37',l2:'6-4',pick:'Hornets',res:'W'},
-            {_id:1776286577790,t1:'Lakers',o1:'+300',s1:3,i1:0,wl1:'50-26',l1:'9-1',t2:'Thunder',o2:'-380',s2:1,i2:0,wl2:'60-16',l2:'9-1',pick:'Thunder',res:'W'},
-            {_id:1776286627886,t1:'Pelicans',o1:'+200',s1:12,i1:0,wl1:'25-51',l1:'4-6',t2:'Blazers',o2:'-245',s2:8,i2:0,wl2:'40-37',l2:'8-2',pick:'Blazers',res:'W'},
-            {_id:1776286652889,t1:'Cavaliers',o1:'-500',s1:4,i1:0,wl1:'47-29',l1:'7-3',t2:'Warriors',o2:'+375',s2:10,i2:0,wl2:'36-40',l2:'4-6',pick:'Cavaliers',res:'W'},
-            {_id:1776286676341,t1:'Spurs',o1:'+120',s1:2,i1:0,wl1:'58-18',l1:'10-0',t2:'Clippers',o2:'-140',s2:9,i2:0,wl2:'39-37',l2:'5-5',pick:'Spurs',res:'W'},
-          ]},
-          { day:56, date:'4/3', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776286733668,t1:'Hawks',o1:'-1700',s1:5,i1:0,wl1:'44-33',l1:'8-2',t2:'Nets',o2:'-950',s2:13,i2:0,wl2:'18-58',l2:'1-9',pick:'Hawks',res:'W'},
-            {_id:1776286754685,t1:'Bulls',o1:'+650',s1:12,i1:0,wl1:'30-46',l1:'2-8',t2:'Knicks',o2:'-1000',s2:3,i2:0,wl2:'50-27',l2:'8-2',pick:'Knicks',res:'W'},
-            {_id:1776286827805,t1:'Wolves',o1:'+140',s1:6,i1:0,wl1:'46-30',l1:'6-4',t2:'76ers',o2:'-165',s2:7,i2:0,wl2:'41-35',l2:'6-4',pick:'76ers',res:'W'},
-            {_id:1776286891136,t1:'Pacers',o1:'+900',s1:14,i1:0,wl1:'18-58',l1:'3-7',t2:'Hornets',o2:'-1600',s2:10,i2:0,wl2:'40-37',l2:'6-4',pick:'Hornets',res:'W'},
-            {_id:1776286928719,t1:'Jazz',o1:'+1000',s1:14,i1:0,wl1:'21-56',l1:'1-9',t2:'Rockets',o2:'-2000',s2:5,i2:0,wl2:'47-29',l2:'6-4',pick:'Rockets',res:'W'},
-            {_id:1776286944704,t1:'Celtics',o1:'-2200',s1:2,i1:0,wl1:'51-25',l1:'8-2',t2:'Bucks',o2:'+1100',s2:11,i2:0,wl2:'30-46',l2:'3-7',pick:'Celtics',res:'W'},
-            {_id:1776286966272,t1:'Raptors',o1:'-1000',s1:6,i1:0,wl1:'42-34',l1:'5-5',t2:'Grizzlies',o2:'+650',s2:11,i2:0,wl2:'25-51',l2:'2-8',pick:'Raptors',res:'W'},
-            {_id:1776286985389,t1:'Magic',o1:'-260',s1:9,i1:0,wl1:'40-36',l1:'2-8',t2:'Mavericks',o2:'+210',s2:13,i2:0,wl2:'24-52',l2:'2-8',pick:'Magic',res:'W'},
-            {_id:1776287003700,t1:'Pelicans',o1:'-250',s1:12,i1:0,wl1:'25-52',l1:'3-7',t2:'Kings',o2:'+205',s2:15,i2:0,wl2:'19-58',l2:'4-6',pick:'Pelicans',res:'L'},
-          ]},
-          { day:57, date:'4/4', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776287109957,t1:'Spurs',o1:'-125',s1:2,i1:0,wl1:'59-18',l1:'10-0',t2:'Nuggets',o2:'+105',s2:4,i2:0,wl2:'49-28',l2:'8-2',pick:'Spurs',res:'L'},
-            {_id:1776287131865,t1:'Wizards',o1:'+1200',s1:15,i1:0,wl1:'17-59',l1:'1-9',t2:'Heat',o2:'-2400',s2:10,i2:0,wl2:'40-37',l2:'2-8',pick:'Heat',res:'W'},
-            {_id:1776287146493,t1:'Pistons',o1:'-170',s1:1,i1:0,wl1:'56-21',l1:'8-2',t2:'76ers',o2:'+125',s2:7,i2:0,wl2:'42-35',l2:'6-4',pick:'Pistons',res:'W'},
-          ]},
-          { day:58, date:'4/5', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776287201134,t1:'Raptors',o1:'+325',s1:6,i1:0,wl1:'43-34',l1:'5-5',t2:'Celtics',o2:'-425',s2:2,i2:0,wl2:'52-25',l2:'8-2',pick:'Celtics',res:'W'},
-            {_id:1776287224180,t1:'Grizzlies',o1:'+225',s1:11,i1:0,wl1:'25-52',l1:'2-8',t2:'Bucks',o2:'-275',s2:11,i2:0,wl2:'30-47',l2:'2-8',pick:'Bucks',res:'W'},
-            {_id:1776287269992,t1:'Suns',o1:'-600',s1:7,i1:0,wl1:'42-35',l1:'3-7',t2:'Bulls',o2:'+450',s2:12,i2:0,wl2:'30-47',l2:'3-7',pick:'Suns',res:'W'},
-            {_id:1776287301344,t1:'Wizards',o1:'+135',s1:15,i1:0,wl1:'17-60',l1:'1-9',t2:'Nets',o2:'-160',s2:13,i2:0,wl2:'18-59',l2:'1-9',pick:'Nets',res:'W'},
-            {_id:1776287321709,t1:'Pacers',o1:'+950',s1:14,i1:0,wl1:'18-59',l1:'1-9',t2:'Cavaliers',o2:'-1700',s2:4,i2:0,wl2:'48-29',l2:'7-3',pick:'Cavaliers',res:'W'},
-            {_id:1776287351956,t1:'Magic',o1:'-245',s1:8,i1:0,wl1:'41-36',l1:'3-7',t2:'Pelicans',o2:'+200',s2:12,i2:0,wl2:'25-53',l2:'3-7',pick:'Magic',res:'W'},
-            {_id:1776287390426,t1:'Jazz',o1:'+2500',s1:14,i1:0,wl1:'21-57',l1:'1-9',t2:'Thunder',o2:'-1000',s2:1,i2:0,wl2:'61-16',l2:'9-1',pick:'Thunder',res:'W'},
-            {_id:1776287413903,t1:'Hornets',o1:'-185',s1:9,i1:0,wl1:'41-37',l1:'7-3',t2:'Wolves',o2:'+155',s2:6,i2:0,wl2:'46-31',l2:'5-5',pick:'Hornets',res:'W'},
-            {_id:1776287438630,t1:'Lakers',o1:'-115',s1:3,i1:0,wl1:'50-27',l1:'8-2',t2:'Mavericks',o2:'-105',s2:13,i2:0,wl2:'24-53',l2:'2-8',pick:'Lakers',res:'L'},
-            {_id:1776287460383,t1:'Clippers',o1:'-850',s1:9,i1:0,wl1:'39-38',l1:'5-5',t2:'Kings',o2:'+575',s2:15,i2:0,wl2:'20-58',l2:'4-6',pick:'Clippers',res:'W'},
-            {_id:1776287488451,t1:'Rockets',o1:'-180',s1:5,i1:0,wl1:'48-29',l1:'7-3',t2:'Warriors',o2:'+150',s2:10,i2:0,wl2:'36-41',l2:'4-6',pick:'Rockets',res:'W'},
-          ]},
-          { day:59, date:'4/6', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776288325055,t1:'Knicks',o1:'+100',s1:3,i1:0,wl1:'51-27',l1:'8-2',t2:'Hawks',o2:'-120',s2:5,i2:7,wl2:'45-33',l2:'8-2',pick:'Knicks',res:'W'},
-            {_id:1776288421643,t1:'Pistons',o1:'-120',s1:1,i1:0,wl1:'57-21',l1:'8-2',t2:'Magic',o2:'+100',s2:8,i2:0,wl2:'42-36',l2:'4-6',pick:'Pistons',res:'L'},
-            {_id:1776288446161,t1:'76ers',o1:'+280',s1:7,i1:0,wl1:'42-36',l1:'6-4',t2:'Spurs',o2:'-360',s2:2,i2:0,wl2:'59-19',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1776288465279,t1:'Cavaliers',o1:'-950',s1:4,i1:0,wl1:'49-29',l1:'8-2',t2:'Grizzlies',o2:'+625',s2:11,i2:0,wl2:'25-53',l2:'1-9',pick:'Cavaliers',res:'W'},
-            {_id:1776288483397,t1:'Blazers',o1:'+220',s1:8,i1:0,wl1:'41-37',l1:'8-2',t2:'Nuggets',o2:'-270',s2:3,i2:0,wl2:'50-28',l2:'9-1',pick:'Nuggets',res:'W'},
-          ]},
-          { day:60, date:'4/7', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776288569242,t1:'Bulls',o1:'-230',s1:12,i1:0,wl1:'30-48',l1:'1-9',t2:'Wizards',o2:'+190',s2:15,i2:0,wl2:'17-61',l2:'1-9',pick:'Bulls',res:'W'},
-            {_id:1776288589777,t1:'Wolves',o1:'-800',s1:6,i1:0,wl1:'46-32',l1:'5-5',t2:'Pacers',o2:'+550',s2:14,i2:0,wl2:'18-60',l2:'3-7',pick:'Wolves',res:'W'},
-            {_id:1776288612463,t1:'Heat',o1:'+120',s1:10,i1:0,wl1:'41-37',l1:'3-7',t2:'Raptors',o2:'-140',s2:6,i2:0,wl2:'43-35',l2:'4-6',pick:'Raptors',res:'W'},
-            {_id:1776288627514,t1:'Bucks',o1:'-120',s1:11,i1:0,wl1:'31-47',l1:'3-7',t2:'Nets',o2:'+100',s2:13,i2:0,wl2:'19-59',l2:'2-8',pick:'Bucks',res:'L'},
-            {_id:1776288645832,t1:'Hornets',o1:'+170',s1:9,i1:0,wl1:'42-37',l1:'7-3',t2:'Celtics',o2:'-205',s2:2,i2:0,wl2:'53-25',l2:'8-2',pick:'Celtics',res:'W'},
-            {_id:1776288676625,t1:'Jazz',o1:'+200',s1:14,i1:0,wl1:'21-58',l1:'1-9',t2:'Pelicans',o2:'-235',s2:13,i2:0,wl2:'25-54',l2:'2-8',pick:'Pelicans',res:'W'},
-            {_id:1776288695511,t1:'Kings',o1:'+700',s1:15,i1:0,wl1:'20-59',l1:'3-7',t2:'Warriors',o2:'-1100',s2:10,i2:0,wl2:'36-42',l2:'3-7',pick:'Warriors',res:'W'},
-            {_id:1776288736077,t1:'Mavericks',o1:'+475',s1:11,i1:0,wl1:'25-53',l1:'2-8',t2:'Clippers',o2:'-650',s2:9,i2:0,wl2:'40-38',l2:'6-4',pick:'Clippers',res:'W'},
-            {_id:1776288751763,t1:'Thunder',o1:'-2200',s1:1,i1:0,wl1:'62-16',l1:'9-1',t2:'Lakers',o2:'+1100',s2:4,i2:0,wl2:'50-28',l2:'7-3',pick:'Thunder',res:'W'},
-            {_id:1776288769197,t1:'Rockets',o1:'-120',s1:5,i1:0,wl1:'49-29',l1:'8-2',t2:'Suns',o2:'+100',s2:7,i2:0,wl2:'43-35',l2:'4-6',pick:'Rockets',res:'W'},
-          ]},
-          { day:61, date:'4/8', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776288883747,t1:'Wolves',o1:'+375',s1:6,i1:0,wl1:'47-32',l1:'5-5',t2:'Magic',o2:'-500',s2:7,i2:0,wl2:'43-36',l2:'6-4',pick:'Magic',res:'W'},
-            {_id:1776288899550,t1:'Hawks',o1:'+145',s1:5,i1:0,wl1:'45-34',l1:'7-3',t2:'Cavaliers',o2:'-170',s2:4,i2:0,wl2:'50-29',l2:'8-2',pick:'Cavaliers',res:'W'},
-            {_id:1776288927652,t1:'Bucks',o1:'+1550',s1:11,i1:0,wl1:'31-48',l1:'3-7',t2:'Pistons',o2:'-4000',s2:1,i2:0,wl2:'57-22',l2:'8-2',pick:'Pistons',res:'W'},
-            {_id:1776288948787,t1:'Grizzlies',o1:'+1800',s1:13,i1:0,wl1:'25-54',l1:'1-9',t2:'Nuggets',o2:'-8000',s2:3,i2:0,wl2:'51-28',l2:'9-1',pick:'Nuggets',res:'W'},
-            {_id:1776288969906,t1:'Blazers',o1:'+130',s1:8,i1:0,wl1:'41-38',l1:'7-3',t2:'Spurs',o2:'-155',s2:2,i2:0,wl2:'60-19',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1776289008713,t1:'Thunder',o1:'-360',s1:1,i1:0,wl1:'63-16',l1:'9-1',t2:'Clippers',o2:'+280',s2:9,i2:0,wl2:'41-38',l2:'6-4',pick:'Thunder',res:'W'},
-            {_id:1776289032620,t1:'Mavericks',o1:'+525',s1:12,i1:0,wl1:'25-54',l1:'2-8',t2:'Suns',o2:'-750',s2:7,i2:0,wl2:'43-36',l2:'4-6',pick:'Suns',res:'W'},
-          ]},
-          { day:62, date:'4/9', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776289222949,t1:'Bulls',o1:'-300',s1:11,i1:0,wl1:'31-48',l1:'2-8',t2:'Wizards',o2:'+240',s2:15,i2:0,wl2:'17-62',l2:'1-9',pick:'Bulls',res:'W'},
-            {_id:1776289252988,t1:'Heat',o1:'+150',s1:10,i1:0,wl1:'41-38',l1:'3-7',t2:'Raptors',o2:'-180',s2:6,i2:0,wl2:'44-35',l2:'5-5',pick:'Raptors',res:'W'},
-            {_id:1776289318810,t1:'Pacers',o1:'-155',s1:14,i1:0,wl1:'18-61',l1:'3-7',t2:'Nets',o2:'+130',s2:13,i2:10,wl2:'20-59',l2:'3-7',pick:'Pacers',res:'W'},
-            {_id:1776289414286,t1:'Celtics',o1:'+140',s1:2,i1:0,wl1:'54-25',l1:'8-2',t2:'Knicks',o2:'-165',s2:3,i2:0,wl2:'52-27',l2:'8-2',pick:'Knicks',res:'W'},
-            {_id:1776289435304,t1:'76ers',o1:'+205',s1:8,i1:0,wl1:'42-37',l1:'6-4',t2:'Rockets',o2:'-250',s2:5,i2:0,wl2:'50-29',l2:'8-2',pick:'Rockets',res:'W'},
-            {_id:1776289458548,t1:'Lakers',o1:'+100',s1:5,i1:0,wl1:'50-29',l1:'6-4',t2:'Warriors',o2:'-120',s2:10,i2:0,wl2:'37-42',l2:'4-6',pick:'Lakers',res:'W'},
-          ]},
-          { day:63, date:'4/10', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776290108639,t1:'Heat',o1:'-1600',s1:10,i1:0,wl1:'41-39',l1:'3-7',t2:'Wizards',o2:'+900',s2:15,i2:0,wl2:'17-63',l2:'1-9',pick:'Heat',res:'W'},
-            {_id:1776290132253,t1:'Pistons',o1:'+175',s1:1,i1:0,wl1:'58-22',l1:'7-3',t2:'Hornets',o2:'-210',s2:9,i2:0,wl2:'42-38',l2:'6-4',pick:'Pistons',res:'W'},
-            {_id:1776290152188,t1:'Cavaliers',o1:'+280',s1:4,i1:0,wl1:'51-29',l1:'8-2',t2:'Hawks',o2:'-360',s2:5,i2:0,wl2:'45-35',l2:'7-3',pick:'Hawks',res:'W'},
-            {_id:1776290184991,t1:'Raptors',o1:'+220',s1:6,i1:0,wl1:'45-35',l1:'6-4',t2:'Knicks',o2:'-270',s2:3,i2:0,wl2:'53-27',l2:'8-2',pick:'Knicks',res:'W'},
-            {_id:1776290211860,t1:'76ers',o1:'-1200',s1:8,i1:0,wl1:'42-38',l1:'5-5',t2:'Pacers',o2:'+750',s2:14,i2:0,wl2:'19-61',l2:'1-9',pick:'76ers',res:'W'},
-            {_id:1776290229295,t1:'Pelicans',o1:'+1100',s1:11,i1:0,wl1:'26-54',l1:'2-8',t2:'Celtics',o2:'-2200',s2:2,i2:0,wl2:'54-26',l2:'9-1',pick:'Celtics',res:'W'},
-            {_id:1776290243012,t1:'Nets',o1:'+390',s1:13,i1:0,wl1:'20-60',l1:'3-7',t2:'Bucks',o2:'-525',s2:12,i2:0,wl2:'31-49',l2:'3-7',pick:'Bucks',res:'W'},
-            {_id:1776290258848,t1:'Magic',o1:'-1400',s1:7,i1:0,wl1:'44-36',l1:'6-4',t2:'Bulls',o2:'+850',s2:11,i2:0,wl2:'32-48',l2:'3-7',pick:'Magic',res:'W'},
-            {_id:1776290301010,t1:'Mavericks',o1:'+1200',s1:12,i1:0,wl1:'25-55',l1:'2-8',t2:'Spurs',o2:'-2400',s2:2,i2:0,wl2:'61-19',l2:'9-1',pick:'Spurs',res:'W'},
-            {_id:1776290315177,t1:'Thunder',o1:'+120',s1:1,i1:0,wl1:'64-16',l1:'9-1',t2:'Nuggets',o2:'-140',s2:3,i2:0,wl2:'52-28',l2:'10-0',pick:'Nuggets',res:'W'},
-            {_id:1776290338113,t1:'Wolves',o1:'+375',s1:6,i1:0,wl1:'47-33',l1:'4-6',t2:'Rockets',o2:'-500',s2:4,i2:0,wl2:'51-29',l2:'8-2',pick:'Rockets',res:'L'},
-            {_id:1776290362140,t1:'Grizzlies',o1:'+155',s1:13,i1:0,wl1:'25-55',l1:'1-9',t2:'Jazz',o2:'-185',s2:14,i2:0,wl2:'21-59',l2:'0-10',pick:'Jazz',res:'W'},
-            {_id:1776290376658,t1:'Warriors',o1:'-500',s1:10,i1:0,wl1:'37-43',l1:'4-6',t2:'Kings',o2:'+375',s2:15,i2:0,wl2:'20-60',l2:'3-7',pick:'Warriors',res:'L'},
-            {_id:1776290392826,t1:'Clippers',o1:'+105',s1:9,i1:0,wl1:'41-39',l1:'7-3',t2:'Blazers',o2:'-125',s2:8,i2:0,wl2:'41-39',l2:'6-4',pick:'Blazers',res:'W'},
-            {_id:1776290419367,t1:'Suns',o1:'-135',s1:7,i1:0,wl1:'44-36',l1:'5-5',t2:'Lakers',o2:'+115',s2:5,i2:0,wl2:'51-29',l2:'6-4',pick:'Lakers',res:'W'},
-          ]},
-          { day:64, date:'4/11', type:'', overall:'', games:[] },
-          { day:65, date:'4/12', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776290635716,t1:'Pistons',o1:'-1200',s1:1,i1:0,wl1:'59-22',l1:'7-3',t2:'Pacers',o2:'+750',s2:14,i2:0,wl2:'19-62',l2:'4-6',pick:'Pistons',res:'W'},
-            {_id:1776290692500,t1:'Hornets',o1:'-900',s1:9,i1:1,wl1:'42-39',l1:'5-5',t2:'Knicks',o2:'+600',s2:3,i2:7,wl2:'54-27',l2:'8-2',pick:'Hornets',res:'W'},
-            {_id:1776290725753,t1:'Magic',o1:'-750',s1:7,i1:0,wl1:'45-36',l1:'7-3',t2:'Celtics',o2:'+525',s2:2,i2:0,wl2:'55-26',l2:'8-2',pick:'Magic',res:'L'},
-            {_id:1776290744254,t1:'Bucks',o1:'+800',s1:12,i1:0,wl1:'32-49',l1:'3-7',t2:'76ers',o2:'-1300',s2:8,i2:0,wl2:'43-38',l2:'5-5',pick:'76ers',res:'W'},
-            {_id:1776290763737,t1:'Hawks',o1:'+350',s1:5,i1:0,wl1:'46-35',l1:'7-3',t2:'Heat',o2:'-450',s2:10,i2:0,wl2:'42-39',l2:'4-6',pick:'Heat',res:'W'},
-            {_id:1776290781160,t1:'Wizards',o1:'+390',s1:15,i1:0,wl1:'17-64',l1:'1-9',t2:'Cavaliers',o2:'-525',s2:4,i2:0,wl2:'51-30',l2:'7-3',pick:'Cavaliers',res:'W'},
-            {_id:1776290800076,t1:'Nets',o1:'+1800',s1:13,i1:0,wl1:'20-61',l1:'3-7',t2:'Raptors',o2:'-8000',s2:6,i2:0,wl2:'45-36',l2:'5-5',pick:'Raptors',res:'W'},
-            {_id:1776290817627,t1:'Nuggets',o1:'+350',s1:3,i1:0,wl1:'53-28',l1:'10-0',t2:'Spurs',o2:'-450',s2:2,i2:0,wl2:'62-19',l2:'9-1',pick:'Spurs',res:'L'},
-            {_id:1776290839812,t1:'Pelicans',o1:'+150',s1:11,i1:0,wl1:'26-55',l1:'1-9',t2:'Wolves',o2:'-180',s2:6,i2:0,wl2:'48-33',l2:'5-5',pick:'Wolves',res:'W'},
-            {_id:1776290877208,t1:'Bulls',o1:'+165',s1:11,i1:0,wl1:'32-49',l1:'2-8',t2:'Mavericks',o2:'-200',s2:13,i2:0,wl2:'25-56',l2:'2-8',pick:'Mavericks',res:'W'},
-            {_id:1776290892409,t1:'Suns',o1:'+250',s1:7,i1:0,wl1:'44-37',l1:'5-5',t2:'Thunder',o2:'-310',s2:1,i2:0,wl2:'64-17',l2:'8-2',pick:'Thunder',res:'L'},
-            {_id:1776290907978,t1:'Grizzlies',o1:'+550',s1:12,i1:0,wl1:'25-56',l1:'1-9',t2:'Rockets',o2:'-800',s2:5,i2:0,wl2:'51-30',l2:'8-2',pick:'Rockets',res:'W'},
-            {_id:1776290932579,t1:'Warriors',o1:'+140',s1:10,i1:0,wl1:'37-44',l1:'4-6',t2:'Clippers',o2:'-165',s2:9,i2:0,wl2:'41-40',l2:'6-4',pick:'Clippers',res:'W'},
-            {_id:1776290958783,t1:'Kings',o1:'+1100',s1:15,i1:0,wl1:'21-60',l1:'4-6',t2:'Blazers',o2:'-2200',s2:8,i2:0,wl2:'42-39',l2:'6-4',pick:'Blazers',res:'W'},
-            {_id:1776290981109,t1:'Jazz',o1:'+650',s1:14,i1:0,wl1:'22-59',l1:'1-9',t2:'Lakers',o2:'-1000',s2:4,i2:0,wl2:'52-29',l2:'6-4',pick:'Lakers',res:'W'},
-          ]},
-          { day:66, date:'4/13', type:'', overall:'', games:[] },
-          { day:67, date:'4/14', type:'REAL 💰', overall:'', unlocked:true, games:[
-            {_id:1776291287334,t1:'Heat',o1:'+205',s1:10,i1:3,wl1:'43-39',l1:'5-5',t2:'Hornets',o2:'-250',s2:9,i2:1,wl2:'43-39',l2:'5-5',pick:'Hornets',res:'W'},
-            {_id:1776291313943,t1:'Blazers',o1:'+135',s1:8,i1:0,wl1:'43-39',l1:'7-3',t2:'Suns',o2:'-160',s2:7,i2:1,wl2:'45-37',l2:'5-5',pick:'Suns',res:'L'},
-          ]},
-          { day:68, date:'4/15', type:'', overall:'', games:[] },
-          { day:69, date:'4/16', type:'', overall:'', games:[] },
-          { day:70, date:'4/17', type:'', overall:'', games:[] },
-          { day:71, date:'4/18', type:'', overall:'', games:[] },
-          { day:72, date:'4/19', type:'', overall:'', games:[] },
-          { day:73, date:'4/20', type:'', overall:'', games:[] },
-          { day:74, date:'4/21', type:'', overall:'', games:[] },
-          { day:75, date:'4/22', type:'', overall:'', games:[] },
-          { day:76, date:'4/23', type:'', overall:'', games:[] },
-          { day:77, date:'4/24', type:'', overall:'', games:[] },
-          { day:78, date:'4/25', type:'', overall:'', games:[] },
-          { day:79, date:'4/26', type:'', overall:'', games:[] },
-          { day:80, date:'4/27', type:'', overall:'', games:[] },
-          { day:81, date:'4/28', type:'', overall:'', games:[] },
-          { day:82, date:'4/29', type:'', overall:'', games:[] },
-          { day:83, date:'4/30', type:'', overall:'', games:[] },
-          { day:84, date:'5/1', type:'', overall:'', games:[] },
-          { day:85, date:'5/2', type:'', overall:'', games:[] },
-          { day:86, date:'5/3', type:'', overall:'', games:[] },
-          { day:87, date:'5/4', type:'', overall:'', games:[] },
-          { day:88, date:'5/5', type:'', overall:'', games:[] },
-          { day:89, date:'5/6', type:'', overall:'', games:[] },
-          { day:90, date:'5/7', type:'', overall:'', games:[] },
-          { day:91, date:'5/8', type:'', overall:'', games:[] },
-          { day:92, date:'5/9', type:'', overall:'', games:[] },
-          { day:93, date:'5/10', type:'', overall:'', games:[] },
-          { day:94, date:'5/11', type:'', overall:'', games:[] },
-          { day:95, date:'5/12', type:'', overall:'', games:[] },
-          { day:96, date:'5/13', type:'', overall:'', games:[] },
-          { day:97, date:'5/14', type:'', overall:'', games:[] },
-          { day:98, date:'5/15', type:'', overall:'', games:[] },
-          { day:99, date:'5/16', type:'', overall:'', games:[] },
-          { day:100, date:'5/17', type:'', overall:'', games:[] },
-          { day:101, date:'5/18', type:'', overall:'', games:[] },
-          { day:102, date:'5/19', type:'', overall:'', games:[] },
-          { day:103, date:'5/20', type:'', overall:'', games:[] },
-          { day:104, date:'5/21', type:'', overall:'', games:[] },
-          { day:105, date:'5/22', type:'', overall:'', games:[] },
-          { day:106, date:'5/23', type:'', overall:'', games:[] },
-          { day:107, date:'5/24', type:'', overall:'', games:[] },
-          { day:108, date:'5/25', type:'', overall:'', games:[] },
-          { day:109, date:'5/26', type:'', overall:'', games:[] },
-          { day:110, date:'5/27', type:'', overall:'', games:[] },
-          { day:111, date:'5/28', type:'', overall:'', games:[] },
-          { day:112, date:'5/29', type:'', overall:'', games:[] },
-          { day:113, date:'5/30', type:'', overall:'', games:[] },
-          { day:114, date:'5/31', type:'', overall:'', games:[] },
-          { day:115, date:'6/1', type:'', overall:'', games:[] },
-          { day:116, date:'6/2', type:'', overall:'', games:[] },
-          { day:117, date:'6/3', type:'', overall:'', games:[] },
-          { day:118, date:'6/4', type:'', overall:'', games:[] },
-          { day:119, date:'6/5', type:'', overall:'', games:[] },
-          { day:120, date:'6/6', type:'', overall:'', games:[] },
-          { day:121, date:'6/7', type:'', overall:'', games:[] },
-          { day:122, date:'6/8', type:'', overall:'', games:[] },
-          { day:123, date:'6/9', type:'', overall:'', games:[] },
-          { day:124, date:'6/10', type:'', overall:'', games:[] },
-          { day:125, date:'6/11', type:'', overall:'', games:[] },
-          { day:126, date:'6/12', type:'', overall:'', games:[] },
-          { day:127, date:'6/13', type:'', overall:'', games:[] },
-          { day:128, date:'6/14', type:'', overall:'', games:[] },
-          { day:129, date:'6/15', type:'', overall:'', games:[] },
-          { day:130, date:'6/16', type:'', overall:'', games:[] },
-          { day:131, date:'6/17', type:'', overall:'', games:[] },
-          { day:132, date:'6/18', type:'', overall:'', games:[] },
-          { day:133, date:'6/19', type:'', overall:'', games:[] },
-          { day:134, date:'6/20', type:'', overall:'', games:[] },
-          { day:135, date:'6/21', type:'', overall:'', games:[] },
-          { day:136, date:'6/22', type:'', overall:'', games:[] },
-          { day:137, date:'6/23', type:'', overall:'', games:[] },
-        ];
+        // Filled from the backend (one calendar year, every day with its season and phase)
+        const betLog = [];
 
         // Calculate current day of year (Day 1 = Jan 1)
         const today = new Date();
@@ -11359,9 +10657,11 @@
             let team1Wins = 0;
             let team2Wins = 0;
 
-            // Scan the current season for all playoff days up to current day
+            // Scan the current season for all playoff days before the current day
+            const current = betLog.find(d => d.day === currentDay);
+            const currentIso = current ? current.iso : '9999-12-31';
             for (const day of currentSeasonDays()) {
-                if (day.day >= 104 && day.day < currentDay) {
+                if (isNBAPlayoffDay(day) && day.iso < currentIso) {
                     for (const game of (day.games || [])) {
                         const isMatch = (game.t1 === team1 && game.t2 === team2) ||
                                        (game.t1 === team2 && game.t2 === team1);
@@ -11471,8 +10771,8 @@
             const targetDay = lastUnlockedDay || betLog[betLog.length - 1];
             const currentDayNumber = targetDay ? targetDay.day : activeBetDay;
 
-            // Only show series state during playoffs (days 104-167)
-            const isPlayoffs = currentDayNumber >= 104 && currentDayNumber <= 167;
+            // Only show series state on NBA playoff days
+            const isPlayoffs = isNBAPlayoffDay(targetDay);
 
             if (isPlayoffs) {
                 // Get series state
@@ -11507,8 +10807,8 @@
             const awayInjuries = game.i1 || 0;
             const homeInjuries = game.i2 || 0;
 
-            // Check if we're in NBA playoff range (days 104-167 = April 14 - June 16)
-            const isPlayoffs = dayNumber >= 104 && dayNumber <= 167;
+            // NBA playoff day? (phase from ESPN's schedule)
+            const isPlayoffs = isNBAPlayoffDay(betLog.find(d => d.day === dayNumber));
 
             // Parse odds
             const awayOddsStr = game.o1 || '+100';
@@ -12249,6 +11549,21 @@
             return { w, l };
         }
 
+        // Season phase labels come from ESPN's real schedules (season_phases_scraper.py)
+        // and arrive on each bet log day as day.phase.
+        function phaseIcon(phase) {
+            if (/preseason|spring training/i.test(phase)) return '🌱';
+            if (/regular season/i.test(phase)) return '📅';
+            if (/offseason/i.test(phase)) return '🏖️';
+            return '🏆';
+        }
+
+        // NBA playoff series rounds (the Play-In is single games, not a series)
+        const NBA_PLAYOFF_ROUNDS = ['First Round', 'Conference Semis', 'Conference Finals', 'NBA Finals'];
+        function isNBAPlayoffDay(day) {
+            return !!day && NBA_PLAYOFF_ROUNDS.includes(day.phase);
+        }
+
         // Year switcher in the bet log header
         function renderYearNav() {
             const el = document.getElementById('betLogYearNav');
@@ -12383,21 +11698,8 @@
             const pct = totalGames > 0 ? Math.round((totalW / totalGames) * 100) : 0;
             const overallStr = totalGames > 0 ? `${totalW}-${totalL} (${pct}%)` : '';
 
-            // section config
-            let sectionLabel, sectionColor, showOverall;
-            if (day.day >= 1 && day.day <= 11) {
-                sectionLabel = '📄 PAPER — 2/1–2/11';
-                sectionColor = '#555';
-                showOverall = false;
-            } else if (day.day >= 12 && day.day <= 22) {
-                sectionLabel = '📄 UPDATED PAPER — 2/19–2/28';
-                sectionColor = '#888';
-                showOverall = true;
-            } else {
-                sectionLabel = '💰 REAL MONEY — 3/1–PRESENT';
-                sectionColor = '#f59e0b';
-                showOverall = true;
-            }
+            // Season phase for this day (offseason days get the 🏖️ card instead)
+            const phaseLabel = day.season && day.phase ? `${phaseIcon(day.phase)} ${day.phase.toUpperCase()}` : '';
 
             cards.innerHTML = `
                 ${isBlank ? `
@@ -12411,6 +11713,8 @@
                     <span style="font-size:15px;font-weight:900;color:#888;letter-spacing:3px;">APPEND</span>
                     <span style="font-size:10px;color:#444;">tap 5x to unlock</span>
                 </div>` : ''}
+                ${phaseLabel ? `
+                <div style="text-align:center;font-size:11px;font-weight:800;letter-spacing:2px;color:#888;margin-bottom:12px;">${phaseLabel}</div>` : ''}
                 ${isOffseason ? `
                 <div style="text-align:center;padding:22px 16px;margin-bottom:14px;border:1px dashed #222;border-radius:14px;color:#555;">
                     <div style="font-size:22px;">🏖️</div>
@@ -12418,9 +11722,8 @@
                 </div>` : ''}
                 ${filteredGames.length > 0 ? `
                 <div style="margin-bottom:10px;padding:8px 12px;background:#0a0a0a;border-radius:10px;border:1px solid #1a1a1a;">
-                    <div style="font-size:10px;font-weight:700;color:${sectionColor};margin-bottom:5px;">${sectionLabel}</div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        ${showOverall ? `<span style="font-size:11px;font-weight:800;color:#fff;">${day.overall}</span>` : ''}
+                        <span style="font-size:11px;font-weight:800;color:#fff;">${day.overall}</span>
                         <span style="font-size:11px;font-weight:700;color:${dW>dL?'#22c55e':dL>dW?'#ef4444':'#aaa'};">daily: ${dW}-${dL}</span>
                     </div>
                 </div>
