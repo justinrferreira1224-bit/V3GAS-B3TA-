@@ -11551,12 +11551,6 @@
 
         // Season phase labels come from ESPN's real schedules (season_phases_scraper.py)
         // and arrive on each bet log day as day.phase.
-        function phaseIcon(phase) {
-            if (/preseason|spring training/i.test(phase)) return '🌱';
-            if (/regular season/i.test(phase)) return '📅';
-            if (/offseason/i.test(phase)) return '🏖️';
-            return '🏆';
-        }
 
         // NBA playoff series rounds (the Play-In is single games, not a series)
         const NBA_PLAYOFF_ROUNDS = ['First Round', 'Conference Semis', 'Conference Finals', 'NBA Finals'];
@@ -11685,7 +11679,6 @@
 
             // APPEND (unlock to add games) only shows on today's date
             const isBlank = filteredGames.length === 0 && !day.unlocked && isTodayPacific(day) && !!day.season;
-            const isOffseason = !day.season && filteredGames.length === 0;
 
             // daily record for this day (filtered)
             let dW = 0, dL = 0;
@@ -11698,8 +11691,8 @@
             const pct = totalGames > 0 ? Math.round((totalW / totalGames) * 100) : 0;
             const overallStr = totalGames > 0 ? `${totalW}-${totalL} (${pct}%)` : '';
 
-            // Season phase for this day (offseason days get the 🏖️ card instead)
-            const phaseLabel = day.season && day.phase ? `${phaseIcon(day.phase)} ${day.phase.toUpperCase()}` : '';
+            // Season phase for this day, shown on the left of the daily box
+            const phaseLabel = day.season ? (day.phase || '').toUpperCase() : 'OFFSEASON';
 
             cards.innerHTML = `
                 ${isBlank ? `
@@ -11713,20 +11706,13 @@
                     <span style="font-size:15px;font-weight:900;color:#888;letter-spacing:3px;">APPEND</span>
                     <span style="font-size:10px;color:#444;">tap 5x to unlock</span>
                 </div>` : ''}
-                ${phaseLabel ? `
-                <div style="text-align:center;font-size:11px;font-weight:800;letter-spacing:2px;color:#888;margin-bottom:12px;">${phaseLabel}</div>` : ''}
-                ${isOffseason ? `
-                <div style="text-align:center;padding:22px 16px;margin-bottom:14px;border:1px dashed #222;border-radius:14px;color:#555;">
-                    <div style="font-size:22px;">🏖️</div>
-                    <div style="font-size:12px;font-weight:800;letter-spacing:2px;margin-top:4px;">OFFSEASON</div>
-                </div>` : ''}
-                ${filteredGames.length > 0 ? `
                 <div style="margin-bottom:10px;padding:8px 12px;background:#0a0a0a;border-radius:10px;border:1px solid #1a1a1a;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-size:11px;font-weight:800;color:#fff;">${day.overall}</span>
+                        <span style="font-size:10px;font-weight:700;color:${day.season ? '#f59e0b' : '#555'};">${phaseLabel}</span>
                         <span style="font-size:11px;font-weight:700;color:${dW>dL?'#22c55e':dL>dW?'#ef4444':'#aaa'};">daily: ${dW}-${dL}</span>
                     </div>
                 </div>
+                ${filteredGames.length > 0 ? `
                 ${filteredGames.map((g, idx) => {
                     const won = g.res === 'W';
                     const pickOdds = g.pick === g.t1 ? g.o1 : g.o2;
@@ -11743,14 +11729,14 @@
                                         <span style="font-size:10px;font-weight:700;color:#555;">#${g.s1}</span>
                                         <span style="font-size:13px;font-weight:${g.pick?.trim()===g.t1?.trim()?'800':'500'};color:${g.pick?.trim()===g.t1?.trim()?'#fff':'#555'};">${g.t1}</span>
                                     </div>
-                                    <span style="font-size:12px;color:#555;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t1);return t?`${t.wins}-${t.losses}`:g.wl1;})()}  <span style="color:#444;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t1);if(!t)return g.l1;const w=t.last10.filter(x=>x==='W').length;return `${w}-${10-w}`;})()}</span></span>
+                                    <span style="font-size:12px;color:#555;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t1);return t?`${t.wins}-${t.losses}`:g.wl1;})()}  <span style="color:#444;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t1);if(!t)return g.l1;const w=t.last10.filter(x=>x==='W').length;return `${w}-${t.last10.length-w}`;})()}</span></span>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;align-items:center;">
                                     <div style="display:flex;align-items:center;gap:6px;">
                                         <span style="font-size:10px;font-weight:700;color:#555;">#${g.s2}</span>
                                         <span style="font-size:13px;font-weight:${g.pick?.trim()===g.t2?.trim()?'800':'500'};color:${g.pick?.trim()===g.t2?.trim()?'#fff':'#555'};">${g.t2}</span>
                                     </div>
-                                    <span style="font-size:12px;color:#555;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t2);return t?`${t.wins}-${t.losses}`:g.wl2;})()}  <span style="color:#444;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t2);if(!t)return g.l2;const w=t.last10.filter(x=>x==='W').length;return `${w}-${10-w}`;})()}</span></span>
+                                    <span style="font-size:12px;color:#555;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t2);return t?`${t.wins}-${t.losses}`:g.wl2;})()}  <span style="color:#444;">${(()=>{const t=[...nbaStandings.east,...nbaStandings.west].find(t=>t.name===g.t2);if(!t)return g.l2;const w=t.last10.filter(x=>x==='W').length;return `${w}-${t.last10.length-w}`;})()}</span></span>
                                 </div>
                             </div>
                             <div style="background:#0a0a0a;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
