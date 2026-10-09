@@ -2291,7 +2291,7 @@
                 <div class="log-panel-content" id="standingsContent" style="display:none; padding:0; overflow-y:auto; flex-direction:column;">
                     <div style="display:flex; align-items:center; border-bottom:1px solid #2a2a2a; background:#000;">
                         <div id="eastTab" onclick="showConference(currentSport==='mlb'?'al':'east')" style="flex:1; padding:12px; text-align:center; font-size:13px; font-weight:700; color:#fff; cursor:pointer; border-bottom:2px solid #1D428A; letter-spacing:1px;">EAST</div>
-                        <img id="standingsLeagueLogo" src="https://upload.wikimedia.org/wikipedia/en/0/03/National_Basketball_Association_logo.svg" style="height:32px;width:auto;opacity:0.9;flex-shrink:0;" />
+                        <img id="standingsLeagueLogo" src="https://a.espncdn.com/i/teamlogos/leagues/500/nba.png" style="height:32px;width:auto;opacity:0.9;flex-shrink:0;" />
                         <div id="westTab" onclick="showConference(currentSport==='mlb'?'nl':'west')" style="flex:1; padding:12px; text-align:center; font-size:13px; font-weight:700; color:#555; cursor:pointer; border-bottom:2px solid transparent; letter-spacing:1px;">WEST</div>
                     </div>
                     <div style="display:grid; grid-template-columns:24px 1fr 52px 38px 44px; padding:8px 14px 4px 14px;">
@@ -2591,36 +2591,36 @@
         // NBA teams: names, logos, prefixes and colors. Records (wins, losses,
         // seed, last10Results) are filled from the scraped standings.
         const nbaTeams = [
-            { name: 'Hawks', conference: 'East', prefix: 'ATL', logo: 'https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2021/01/atlanta_hawks_2021-pres_w.png', color1: '#E03A3E', color2: '#C1D32F' },
-            { name: 'Celtics', conference: 'East', prefix: 'BOS', logo: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/boston_celtics_1977-pres_w.png', color1: '#007A33', color2: '#BA9653' },
-            { name: 'Nets', conference: 'East', prefix: 'BKN', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Brooklyn_Nets_newlogo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/brooklyn-nets_2013-pres_w.png', color1: '#000000', color2: '#FFFFFF' },
-            { name: 'Hornets', conference: 'East', prefix: 'CHA', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c4/Charlotte_Hornets_%282014%29.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/charlotte_hornets_2014-pres_ww.png', color1: '#1D1160', color2: '#00788C' },
-            { name: 'Bulls', conference: 'East', prefix: 'CHI', logo: 'https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/chicago_bulls_1966-pres_w.png', color1: '#CE1141', color2: '#000000' },
-            { name: 'Cavaliers', conference: 'East', prefix: 'CLE', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Cleveland_Cavaliers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/cleveland_cavaliers_2017_w.png', color1: '#860038', color2: '#FDBB30' },
-            { name: 'Pistons', conference: 'East', prefix: 'DET', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_of_the_Detroit_Pistons.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/detroit_pistons_2002-pres-aa.png', color1: '#C8102E', color2: '#1D42BA' },
-            { name: 'Pacers', conference: 'East', prefix: 'IND', logo: 'https://upload.wikimedia.org/wikipedia/en/1/1b/Indiana_Pacers.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/indiana_pacers_2006-present_w.png', color1: '#002D62', color2: '#FDBB30' },
-            { name: 'Heat', conference: 'East', prefix: 'MIA', logo: 'https://upload.wikimedia.org/wikipedia/en/f/fb/Miami_Heat_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/miami_heat_2000-pres_w.png', color1: '#98002E', color2: '#F9A01B' },
-            { name: 'Bucks', conference: 'East', prefix: 'MIL', logo: 'https://upload.wikimedia.org/wikipedia/en/4/4a/Milwaukee_Bucks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/milwaukee_bucks_2016-present_w.png', color1: '#00471B', color2: '#EEE1C6' },
-            { name: 'Knicks', conference: 'East', prefix: 'NYK', logo: 'https://upload.wikimedia.org/wikipedia/en/2/25/New_York_Knicks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_york_knicks_1977-pres_w.png', color1: '#006BB6', color2: '#F58426' },
-            { name: 'Magic', conference: 'East', prefix: 'ORL', logo: 'https://upload.wikimedia.org/wikipedia/en/1/10/Orlando_Magic_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/orlando_magic_2001-pres_w.png', color1: '#0077C0', color2: '#C4CED4' },
-            { name: '76ers', conference: 'East', prefix: 'PHI', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0e/Philadelphia_76ers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/philadelphia_76ers_2016-pres_w.png', color1: '#006BB6', color2: '#ED174C' },
-            { name: 'Raptors', conference: 'East', prefix: 'TOR', logo: 'https://upload.wikimedia.org/wikipedia/en/3/36/Toronto_Raptors_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/toronto_raptors_wordmark_2016.png', color1: '#CE1141', color2: '#000000' },
-            { name: 'Wizards', conference: 'East', prefix: 'WSH', logo: 'https://upload.wikimedia.org/wikipedia/en/0/02/Washington_Wizards_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/washington_wizard_2012-pres_w.png', color1: '#002B5C', color2: '#E31837' },
-            { name: 'Mavericks', conference: 'West', prefix: 'DAL', logo: 'https://upload.wikimedia.org/wikipedia/en/9/97/Dallas_Mavericks_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/dallas_mavericks_2002-pres_w.png', color1: '#00538C', color2: '#002B5E' },
-            { name: 'Nuggets', conference: 'West', prefix: 'DEN', logo: 'https://upload.wikimedia.org/wikipedia/en/7/76/Denver_Nuggets.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/06/denver_nuggets_2019-pres_w.png', color1: '#0E2240', color2: '#FEC524' },
-            { name: 'Warriors', conference: 'West', prefix: 'GSW', logo: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/golden_state_warriors_1997-2009-ww.png', color1: '#1D428A', color2: '#FFC72C' },
-            { name: 'Rockets', conference: 'West', prefix: 'HOU', logo: 'https://upload.wikimedia.org/wikipedia/en/2/28/Houston_Rockets.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/houston_rockets_2003-pres_w.png', color1: '#CE1141', color2: '#000000' },
-            { name: 'Clippers', conference: 'West', prefix: 'LAC', logo: 'https://upload.wikimedia.org/wikipedia/en/e/ed/Los_Angeles_Clippers_%282024%29.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2025/09/los_angeles_clippers_2025-pres^w.png', color1: '#C8102E', color2: '#1D428A' },
-            { name: 'Lakers', conference: 'West', prefix: 'LAL', logo: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Los_Angeles_Lakers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/los_angeles_lakers_2002-pres_w.png', color1: '#552583', color2: '#FDB927' },
-            { name: 'Grizzlies', conference: 'West', prefix: 'MEM', logo: 'https://upload.wikimedia.org/wikipedia/en/f/f1/Memphis_Grizzlies.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2024/03/memphis_grizzlies_2018-pres_w.png', color1: '#5D76A9', color2: '#12173F' },
-            { name: 'Wolves', conference: 'West', prefix: 'MIN', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c2/Minnesota_Timberwolves_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/minnesota_timberwolves_1997_pres_w.png', color1: '#0C2340', color2: '#236192' },
-            { name: 'Pelicans', conference: 'West', prefix: 'NOP', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0d/New_Orleans_Pelicans_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_orleans_pelicans_2015-pres_ww.png', color1: '#0C2340', color2: '#C8102E' },
-            { name: 'Thunder', conference: 'West', prefix: 'OKC', logo: 'https://upload.wikimedia.org/wikipedia/en/5/5d/Oklahoma_City_Thunder.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/oklahoma_city_thunder_2009-pres.png', color1: '#007AC1', color2: '#EF3B24' },
-            { name: 'Suns', conference: 'West', prefix: 'PHX', logo: 'https://upload.wikimedia.org/wikipedia/en/d/dc/Phoenix_Suns_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/phoenix_suns_2014-pres_w.png', color1: '#1D1160', color2: '#E56020' },
-            { name: 'Blazers', conference: 'West', prefix: 'POR', logo: 'https://upload.wikimedia.org/wikipedia/en/2/21/Portland_Trail_Blazers_logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/portland_trailblazers_2003-pres-w.png', color1: '#E03A3E', color2: '#000000' },
-            { name: 'Kings', conference: 'West', prefix: 'SAC', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c7/SacramentoKings.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/sacramento_kings_2017-pres_w.png', color1: '#5A2D81', color2: '#63727A' },
-            { name: 'Spurs', conference: 'West', prefix: 'SAS', logo: 'https://upload.wikimedia.org/wikipedia/en/a/a2/San_Antonio_Spurs.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/san_antonio-spurs_1989-pres_w.png', color1: '#C4CED4', color2: '#000000' },
-            { name: 'Jazz', conference: 'West', prefix: 'UTA', logo: 'https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2022/09/utah_jazz_2023-pres-w.png', color1: '#5D2E8C', color2: '#FFFFFF' }
+            { name: 'Hawks', conference: 'East', prefix: 'ATL', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/atl.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2021/01/atlanta_hawks_2021-pres_w.png', color1: '#E03A3E', color2: '#C1D32F' },
+            { name: 'Celtics', conference: 'East', prefix: 'BOS', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/boston_celtics_1977-pres_w.png', color1: '#007A33', color2: '#BA9653' },
+            { name: 'Nets', conference: 'East', prefix: 'BKN', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/bkn.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/brooklyn-nets_2013-pres_w.png', color1: '#000000', color2: '#FFFFFF' },
+            { name: 'Hornets', conference: 'East', prefix: 'CHA', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/cha.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/charlotte_hornets_2014-pres_ww.png', color1: '#1D1160', color2: '#00788C' },
+            { name: 'Bulls', conference: 'East', prefix: 'CHI', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/chi.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/chicago_bulls_1966-pres_w.png', color1: '#CE1141', color2: '#000000' },
+            { name: 'Cavaliers', conference: 'East', prefix: 'CLE', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/cle.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/cleveland_cavaliers_2017_w.png', color1: '#860038', color2: '#FDBB30' },
+            { name: 'Pistons', conference: 'East', prefix: 'DET', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/det.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/detroit_pistons_2002-pres-aa.png', color1: '#C8102E', color2: '#1D42BA' },
+            { name: 'Pacers', conference: 'East', prefix: 'IND', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/ind.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/indiana_pacers_2006-present_w.png', color1: '#002D62', color2: '#FDBB30' },
+            { name: 'Heat', conference: 'East', prefix: 'MIA', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/mia.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/miami_heat_2000-pres_w.png', color1: '#98002E', color2: '#F9A01B' },
+            { name: 'Bucks', conference: 'East', prefix: 'MIL', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/milwaukee_bucks_2016-present_w.png', color1: '#00471B', color2: '#EEE1C6' },
+            { name: 'Knicks', conference: 'East', prefix: 'NYK', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/ny.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_york_knicks_1977-pres_w.png', color1: '#006BB6', color2: '#F58426' },
+            { name: 'Magic', conference: 'East', prefix: 'ORL', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/orl.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/orlando_magic_2001-pres_w.png', color1: '#0077C0', color2: '#C4CED4' },
+            { name: '76ers', conference: 'East', prefix: 'PHI', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/phi.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/philadelphia_76ers_2016-pres_w.png', color1: '#006BB6', color2: '#ED174C' },
+            { name: 'Raptors', conference: 'East', prefix: 'TOR', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/tor.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/toronto_raptors_wordmark_2016.png', color1: '#CE1141', color2: '#000000' },
+            { name: 'Wizards', conference: 'East', prefix: 'WSH', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/wsh.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/washington_wizard_2012-pres_w.png', color1: '#002B5C', color2: '#E31837' },
+            { name: 'Mavericks', conference: 'West', prefix: 'DAL', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/dal.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/dallas_mavericks_2002-pres_w.png', color1: '#00538C', color2: '#002B5E' },
+            { name: 'Nuggets', conference: 'West', prefix: 'DEN', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/den.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/06/denver_nuggets_2019-pres_w.png', color1: '#0E2240', color2: '#FEC524' },
+            { name: 'Warriors', conference: 'West', prefix: 'GSW', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/gs.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/golden_state_warriors_1997-2009-ww.png', color1: '#1D428A', color2: '#FFC72C' },
+            { name: 'Rockets', conference: 'West', prefix: 'HOU', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/hou.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/houston_rockets_2003-pres_w.png', color1: '#CE1141', color2: '#000000' },
+            { name: 'Clippers', conference: 'West', prefix: 'LAC', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/lac.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2025/09/los_angeles_clippers_2025-pres^w.png', color1: '#C8102E', color2: '#1D428A' },
+            { name: 'Lakers', conference: 'West', prefix: 'LAL', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/los_angeles_lakers_2002-pres_w.png', color1: '#552583', color2: '#FDB927' },
+            { name: 'Grizzlies', conference: 'West', prefix: 'MEM', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/mem.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2024/03/memphis_grizzlies_2018-pres_w.png', color1: '#5D76A9', color2: '#12173F' },
+            { name: 'Wolves', conference: 'West', prefix: 'MIN', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/min.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/minnesota_timberwolves_1997_pres_w.png', color1: '#0C2340', color2: '#236192' },
+            { name: 'Pelicans', conference: 'West', prefix: 'NOP', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/no.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/new_orleans_pelicans_2015-pres_ww.png', color1: '#0C2340', color2: '#C8102E' },
+            { name: 'Thunder', conference: 'West', prefix: 'OKC', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/okc.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/oklahoma_city_thunder_2009-pres.png', color1: '#007AC1', color2: '#EF3B24' },
+            { name: 'Suns', conference: 'West', prefix: 'PHX', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/phx.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/phoenix_suns_2014-pres_w.png', color1: '#1D1160', color2: '#E56020' },
+            { name: 'Blazers', conference: 'West', prefix: 'POR', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/por.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/portland_trailblazers_2003-pres-w.png', color1: '#E03A3E', color2: '#000000' },
+            { name: 'Kings', conference: 'West', prefix: 'SAC', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/sac.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/sacramento_kings_2017-pres_w.png', color1: '#5A2D81', color2: '#63727A' },
+            { name: 'Spurs', conference: 'West', prefix: 'SAS', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/sa.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2018/04/san_antonio-spurs_1989-pres_w.png', color1: '#C4CED4', color2: '#000000' },
+            { name: 'Jazz', conference: 'West', prefix: 'UTA', logo: 'https://a.espncdn.com/i/teamlogos/nba/500/utah.png', wordmark: 'https://sportslogohistory.com/wp-content/uploads/2022/09/utah_jazz_2023-pres-w.png', color1: '#5D2E8C', color2: '#FFFFFF' }
         ];
         nbaTeams.forEach(t => { t.wins = 0; t.losses = 0; t.seed = 0; t.last10Results = []; });
         
@@ -2823,117 +2823,117 @@
             { name: 'Wolves', wins: 35, losses: 23, conference: 'West', seed: 6, prefix: 'WOL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/380.png' },
             
             // LA LIGA
-            { name: 'Athletic Bilbao', prefix: 'ATH', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/244.png' },
+            { name: 'Athletic Bilbao', prefix: 'ATH', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/93.png' },
             { name: 'Atletico Madrid', prefix: 'ATM', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/1068.png' },
             { name: 'Barcelona', prefix: 'BAR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/83.png' },
             { name: 'Real Betis', prefix: 'BET', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/244.png' },
-            { name: 'Celta Vigo', prefix: 'CEL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/428.png' },
-            { name: 'Getafe', prefix: 'GET', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3711.png' },
-            { name: 'Girona', prefix: 'GIR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4256.png' },
-            { name: 'Las Palmas', prefix: 'LAS', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/275.png' },
-            { name: 'Leganes', prefix: 'LEG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3709.png' },
-            { name: 'Mallorca', prefix: 'MAL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/261.png' },
-            { name: 'Osasuna', prefix: 'OSA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/727.png' },
-            { name: 'Rayo Vallecano', prefix: 'RAY', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/243.png' },
+            { name: 'Celta Vigo', prefix: 'CEL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/85.png' },
+            { name: 'Getafe', prefix: 'GET', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2922.png' },
+            { name: 'Girona', prefix: 'GIR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9812.png' },
+            { name: 'Las Palmas', prefix: 'LAS', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/98.png' },
+            { name: 'Leganes', prefix: 'LEG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/17534.png' },
+            { name: 'Mallorca', prefix: 'MAL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png' },
+            { name: 'Osasuna', prefix: 'OSA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/97.png' },
+            { name: 'Rayo Vallecano', prefix: 'RAY', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/101.png' },
             { name: 'Real Madrid', prefix: 'RMA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/86.png' },
-            { name: 'Real Sociedad', prefix: 'RSO', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/243.png' },
+            { name: 'Real Sociedad', prefix: 'RSO', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/89.png' },
             { name: 'Sevilla', prefix: 'SEV', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/243.png' },
             { name: 'Valencia', prefix: 'VAL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/94.png' },
             { name: 'Valladolid', prefix: 'VLL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/95.png' },
-            { name: 'Villarreal', prefix: 'VIL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/94.png' },
+            { name: 'Villarreal', prefix: 'VIL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/102.png' },
             
             // SERIE A
-            { name: 'Atalanta', prefix: 'ATA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/104.png' },
-            { name: 'Bologna', prefix: 'BOL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/105.png' },
-            { name: 'Cagliari', prefix: 'CAG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/106.png' },
-            { name: 'Como', prefix: 'COM', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/107.png' },
-            { name: 'Empoli', prefix: 'EMP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/108.png' },
+            { name: 'Atalanta', prefix: 'ATA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/105.png' },
+            { name: 'Bologna', prefix: 'BOL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/107.png' },
+            { name: 'Cagliari', prefix: 'CAG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2925.png' },
+            { name: 'Como', prefix: 'COM', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2572.png' },
+            { name: 'Empoli', prefix: 'EMP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2574.png' },
             { name: 'Fiorentina', prefix: 'FIO', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/109.png' },
-            { name: 'Genoa', prefix: 'GEN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/111.png' },
+            { name: 'Genoa', prefix: 'GEN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3263.png' },
             { name: 'Inter Milan', prefix: 'INT', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/110.png' },
             { name: 'Juventus', prefix: 'JUV', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/111.png' },
             { name: 'Lazio', prefix: 'LAZ', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/112.png' },
-            { name: 'Lecce', prefix: 'LEC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4874.png' },
+            { name: 'Lecce', prefix: 'LEC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/113.png' },
             { name: 'AC Milan', prefix: 'MIL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/103.png' },
-            { name: 'Monza', prefix: 'MON', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/5453.png' },
+            { name: 'Monza', prefix: 'MON', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4007.png' },
             { name: 'Napoli', prefix: 'NAP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/114.png' },
             { name: 'Parma', prefix: 'PAR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/115.png' },
             { name: 'Roma', prefix: 'ROM', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/104.png' },
-            { name: 'Torino', prefix: 'TOR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/110.png' },
-            { name: 'Udinese', prefix: 'UDI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/114.png' },
-            { name: 'Venezia', prefix: 'VEN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/7511.png' },
-            { name: 'Verona', prefix: 'VER', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/113.png' },
+            { name: 'Torino', prefix: 'TOR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/239.png' },
+            { name: 'Udinese', prefix: 'UDI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/118.png' },
+            { name: 'Venezia', prefix: 'VEN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/17530.png' },
+            { name: 'Verona', prefix: 'VER', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/119.png' },
             
             // BUNDESLIGA
-            { name: 'Augsburg', prefix: 'AUG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/131.png' },
+            { name: 'Augsburg', prefix: 'AUG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3841.png' },
             { name: 'Bayern Munich', prefix: 'BAY', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/132.png' },
-            { name: 'Bochum', prefix: 'BOC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/133.png' },
+            { name: 'Bochum', prefix: 'BOC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/121.png' },
             { name: 'Borussia Dortmund', prefix: 'DOR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/124.png' },
-            { name: "Monchengladbach", prefix: 'MGB', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/127.png' },
+            { name: "Monchengladbach", prefix: 'MGB', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/268.png' },
             { name: 'Eintracht Frankfurt', prefix: 'FRA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/125.png' },
             { name: 'Freiburg', prefix: 'FRE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/126.png' },
-            { name: 'Heidenheim', prefix: 'HEI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3005.png' },
-            { name: 'Hoffenheim', prefix: 'HOF', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2035.png' },
-            { name: 'Holstein Kiel', prefix: 'KIE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3857.png' },
+            { name: 'Heidenheim', prefix: 'HEI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/6418.png' },
+            { name: 'Hoffenheim', prefix: 'HOF', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/7911.png' },
+            { name: 'Holstein Kiel', prefix: 'KIE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/7884.png' },
             { name: 'RB Leipzig', prefix: 'LEI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/11420.png' },
             { name: 'Leverkusen', prefix: 'LEV', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/131.png' },
-            { name: 'Mainz', prefix: 'MAI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/129.png' },
-            { name: 'St. Pauli', prefix: 'STP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/135.png' },
-            { name: 'Union Berlin', prefix: 'UNI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2277.png' },
+            { name: 'Mainz', prefix: 'MAI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2950.png' },
+            { name: 'St. Pauli', prefix: 'STP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/270.png' },
+            { name: 'Union Berlin', prefix: 'UNI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/598.png' },
             { name: 'VfB Stuttgart', prefix: 'STU', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/134.png' },
-            { name: 'Werder Bremen', prefix: 'BRE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/134.png' },
-            { name: 'Wolfsburg', prefix: 'WOL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/146.png' },
+            { name: 'Werder Bremen', prefix: 'BRE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/137.png' },
+            { name: 'Wolfsburg', prefix: 'WOL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/138.png' },
             
             // LIGUE 1
-            { name: 'Angers', prefix: 'ANG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/169.png' },
-            { name: 'Auxerre', prefix: 'AUX', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/171.png' },
+            { name: 'Angers', prefix: 'ANG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/7868.png' },
+            { name: 'Auxerre', prefix: 'AUX', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/172.png' },
             { name: 'Brest', prefix: 'BRE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/6997.png' },
-            { name: 'Le Havre', prefix: 'HAV', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3243.png' },
+            { name: 'Le Havre', prefix: 'HAV', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3236.png' },
             { name: 'Lens', prefix: 'LEN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/175.png' },
             { name: 'Lille', prefix: 'LIL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/166.png' },
             { name: 'Lyon', prefix: 'LYO', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/167.png' },
             { name: 'Marseille', prefix: 'MAR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/176.png' },
             { name: 'Monaco', prefix: 'MON', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/174.png' },
-            { name: 'Montpellier', prefix: 'MTP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/273.png' },
+            { name: 'Montpellier', prefix: 'MTP', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/274.png' },
             { name: 'Nantes', prefix: 'NAN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/165.png' },
-            { name: 'Nice', prefix: 'NIC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/178.png' },
+            { name: 'Nice', prefix: 'NIC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2502.png' },
             { name: 'PSG', prefix: 'PSG', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/160.png' },
             { name: 'Reims', prefix: 'REI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3243.png' },
             { name: 'Rennes', prefix: 'REN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/169.png' },
-            { name: 'Saint-Etienne', prefix: 'STE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/168.png' },
-            { name: 'Strasbourg', prefix: 'STR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3502.png' },
+            { name: 'Saint-Etienne', prefix: 'STE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/178.png' },
+            { name: 'Strasbourg', prefix: 'STR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/180.png' },
             { name: 'Toulouse', prefix: 'TOU', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/179.png' },
             
             // MLS
-            { name: 'Atlanta United', prefix: 'ATL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/10226.png' },
-            { name: 'Austin FC', prefix: 'ATX', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/14284.png' },
-            { name: 'Charlotte FC', prefix: 'CLT', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/15242.png' },
-            { name: 'Chicago Fire', prefix: 'CHI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9613.png' },
-            { name: 'FC Cincinnati', prefix: 'CIN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/12594.png' },
-            { name: 'Colorado Rapids', prefix: 'COL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9823.png' },
-            { name: 'Columbus Crew', prefix: 'CLB', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9660.png' },
-            { name: 'DC United', prefix: 'DC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9654.png' },
-            { name: 'FC Dallas', prefix: 'DAL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9789.png' },
-            { name: 'Houston Dynamo', prefix: 'HOU', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9748.png' },
-            { name: 'LA Galaxy', prefix: 'LA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9776.png' },
-            { name: 'LAFC', prefix: 'LAFC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/11694.png' },
-            { name: 'Inter Miami', prefix: 'MIA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/13796.png' },
-            { name: 'Minnesota United', prefix: 'MIN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/11267.png' },
-            { name: 'CF Montreal', prefix: 'MTL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9732.png' },
-            { name: 'Nashville SC', prefix: 'NSH', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/13698.png' },
-            { name: 'New England Revolution', prefix: 'NE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9782.png' },
-            { name: 'New York Red Bulls', prefix: 'NYRB', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9783.png' },
-            { name: 'New York City FC', prefix: 'NYC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/10397.png' },
-            { name: 'Orlando City', prefix: 'ORL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/10521.png' },
-            { name: 'Philadelphia Union', prefix: 'PHI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9809.png' },
-            { name: 'Portland Timbers', prefix: 'POR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9811.png' },
-            { name: 'Real Salt Lake', prefix: 'RSL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9791.png' },
-            { name: 'San Jose Earthquakes', prefix: 'SJ', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9622.png' },
+            { name: 'Atlanta United', prefix: 'ATL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/18418.png' },
+            { name: 'Austin FC', prefix: 'ATX', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/20906.png' },
+            { name: 'Charlotte FC', prefix: 'CLT', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/21300.png' },
+            { name: 'Chicago Fire', prefix: 'CHI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/182.png' },
+            { name: 'FC Cincinnati', prefix: 'CIN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/18267.png' },
+            { name: 'Colorado Rapids', prefix: 'COL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/184.png' },
+            { name: 'Columbus Crew', prefix: 'CLB', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/183.png' },
+            { name: 'DC United', prefix: 'DC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/193.png' },
+            { name: 'FC Dallas', prefix: 'DAL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/185.png' },
+            { name: 'Houston Dynamo', prefix: 'HOU', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/6077.png' },
+            { name: 'LA Galaxy', prefix: 'LA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/187.png' },
+            { name: 'LAFC', prefix: 'LAFC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/18966.png' },
+            { name: 'Inter Miami', prefix: 'MIA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/20232.png' },
+            { name: 'Minnesota United', prefix: 'MIN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/17362.png' },
+            { name: 'CF Montreal', prefix: 'MTL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9720.png' },
+            { name: 'Nashville SC', prefix: 'NSH', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/18986.png' },
+            { name: 'New England Revolution', prefix: 'NE', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/189.png' },
+            { name: 'New York Red Bulls', prefix: 'NYRB', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/190.png' },
+            { name: 'New York City FC', prefix: 'NYC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/17606.png' },
+            { name: 'Orlando City', prefix: 'ORL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/12011.png' },
+            { name: 'Philadelphia Union', prefix: 'PHI', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/10739.png' },
+            { name: 'Portland Timbers', prefix: 'POR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9723.png' },
+            { name: 'Real Salt Lake', prefix: 'RSL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4771.png' },
+            { name: 'San Jose Earthquakes', prefix: 'SJ', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/191.png' },
             { name: 'Seattle Sounders', prefix: 'SEA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9726.png' },
-            { name: 'Sporting Kansas City', prefix: 'SKC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9779.png' },
-            { name: 'St. Louis City SC', prefix: 'STL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/16226.png' },
-            { name: 'Toronto FC', prefix: 'TOR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9784.png' },
-            { name: 'Vancouver Whitecaps', prefix: 'VAN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9869.png' }
+            { name: 'Sporting Kansas City', prefix: 'SKC', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/186.png' },
+            { name: 'St. Louis City SC', prefix: 'STL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/21812.png' },
+            { name: 'Toronto FC', prefix: 'TOR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/7318.png' },
+            { name: 'Vancouver Whitecaps', prefix: 'VAN', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/9727.png' }
         ];
         
         // State
@@ -6091,7 +6091,7 @@
                 celticsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/bos.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 122, 51, 0.7); border-right: 2px solid rgba(0, 122, 51, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,122,51,0.05) 0%, transparent 10%, transparent 90%, rgba(0,122,51,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #007A33; text-shadow: 0 1px 2px rgba(186,150,83,0.5);">Celtics</span>
@@ -6136,7 +6136,7 @@
                 pistonsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_of_the_Detroit_Pistons.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/det.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(200, 16, 46, 0.7); border-right: 2px solid rgba(200, 16, 46, 0.7); position: relative; background: linear-gradient(90deg, rgba(200,16,46,0.05) 0%, transparent 10%, transparent 90%, rgba(200,16,46,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #C8102E; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Pistons</span>
@@ -6181,7 +6181,7 @@
                 knicksEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/2/25/New_York_Knicks_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/ny.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(255, 255, 255, 0.7); border-right: 2px solid rgba(255, 255, 255, 0.7); position: relative; background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 10%, transparent 90%, rgba(255,255,255,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,107,182,0.5);">Knicks</span>
@@ -6226,7 +6226,7 @@
                 cavsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4b/Cleveland_Cavaliers_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/cle.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(134, 0, 56, 0.7); border-right: 2px solid rgba(134, 0, 56, 0.7); position: relative; background: linear-gradient(90deg, rgba(134,0,56,0.05) 0%, transparent 10%, transparent 90%, rgba(134,0,56,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #860038; text-shadow: 0 1px 2px rgba(253,187,48,0.5);">Cavaliers</span>
@@ -6271,7 +6271,7 @@
                 raptorsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/3/36/Toronto_Raptors_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/tor.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(206, 17, 65, 0.7); border-right: 2px solid rgba(206, 17, 65, 0.7); position: relative; background: linear-gradient(90deg, rgba(206,17,65,0.05) 0%, transparent 10%, transparent 90%, rgba(206,17,65,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #CE1141; text-shadow: 0 1px 2px rgba(255,255,255,0.3);">Raptors</span>
@@ -6316,7 +6316,7 @@
                 sixersEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/0/0e/Philadelphia_76ers_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/phi.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 107, 182, 0.7); border-right: 2px solid rgba(0, 107, 182, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,107,182,0.05) 0%, transparent 10%, transparent 90%, rgba(0,107,182,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #006BB6; text-shadow: 0 1px 2px rgba(237,23,76,0.5);">76ers</span>
@@ -6361,7 +6361,7 @@
                 magicEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/1/10/Orlando_Magic_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/orl.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 119, 192, 0.7); border-right: 2px solid rgba(0, 119, 192, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,119,192,0.05) 0%, transparent 10%, transparent 90%, rgba(0,119,192,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #0077C0; text-shadow: 0 1px 2px rgba(196,206,212,0.5);">Magic</span>
@@ -6406,7 +6406,7 @@
                 heatEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/f/fb/Miami_Heat_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/mia.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(249, 160, 27, 0.7); border-right: 2px solid rgba(249, 160, 27, 0.7); position: relative; background: linear-gradient(90deg, rgba(249,160,27,0.05) 0%, transparent 10%, transparent 90%, rgba(249,160,27,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #98002E; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Heat</span>
@@ -6451,7 +6451,7 @@
                 hawksEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/atl.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(224, 58, 62, 0.7); border-right: 2px solid rgba(224, 58, 62, 0.7); position: relative; background: linear-gradient(90deg, rgba(224,58,62,0.05) 0%, transparent 10%, transparent 90%, rgba(224,58,62,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #E03A3E; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Hawks</span>
@@ -6496,7 +6496,7 @@
                 hornetsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/c/c4/Charlotte_Hornets_%282014%29.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/cha.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(29, 17, 96, 0.7); border-right: 2px solid rgba(29, 17, 96, 0.7); position: relative; background: linear-gradient(90deg, rgba(29,17,96,0.05) 0%, transparent 10%, transparent 90%, rgba(29,17,96,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #1D1160; text-shadow: 0 1px 2px rgba(0,120,140,0.5);">Hornets</span>
@@ -6541,7 +6541,7 @@
                 bullsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/chi.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(206, 17, 65, 0.7); border-right: 2px solid rgba(206, 17, 65, 0.7); position: relative; background: linear-gradient(90deg, rgba(206,17,65,0.05) 0%, transparent 10%, transparent 90%, rgba(206,17,65,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #CE1141; text-shadow: 0 1px 2px rgba(255,255,255,0.3);">Bulls</span>
@@ -6586,7 +6586,7 @@
                 bucksEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/4/4a/Milwaukee_Bucks_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/mil.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 71, 27, 0.7); border-right: 2px solid rgba(0, 71, 27, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,71,27,0.05) 0%, transparent 10%, transparent 90%, rgba(0,71,27,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #00471B; text-shadow: 0 1px 2px rgba(238,225,198,0.5);">Bucks</span>
@@ -6631,7 +6631,7 @@
                 netsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Brooklyn_Nets_newlogo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/bkn.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 0, 0, 0.7); border-right: 2px solid rgba(0, 0, 0, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,0,0,0.05) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #000000; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Nets</span>
@@ -6676,7 +6676,7 @@
                 wizardsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/0/02/Washington_Wizards_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/wsh.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(227, 24, 55, 0.7); border-right: 2px solid rgba(227, 24, 55, 0.7); position: relative; background: linear-gradient(90deg, rgba(227,24,55,0.05) 0%, transparent 10%, transparent 90%, rgba(227,24,55,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #002B5C; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Wizards</span>
@@ -6721,7 +6721,7 @@
                 pacersEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/1/1b/Indiana_Pacers.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/ind.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 45, 98, 0.7); border-right: 2px solid rgba(0, 45, 98, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,45,98,0.05) 0%, transparent 10%, transparent 90%, rgba(0,45,98,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #002D62; text-shadow: 0 1px 2px rgba(253,187,48,0.5);">Pacers</span>
@@ -6766,7 +6766,7 @@
                 thunderEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/5/5d/Oklahoma_City_Thunder.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/okc.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 122, 193, 0.7); border-right: 2px solid rgba(0, 122, 193, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,122,193,0.05) 0%, transparent 10%, transparent 90%, rgba(0,122,193,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #007AC1; text-shadow: 0 1px 2px rgba(239,59,36,0.5);">Thunder</span>
@@ -6811,7 +6811,7 @@
                 spursEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/a/a2/San_Antonio_Spurs.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/sa.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(58, 58, 58, 0.7); border-right: 2px solid rgba(58, 58, 58, 0.7); position: relative; background: linear-gradient(90deg, rgba(58,58,58,0.05) 0%, transparent 10%, transparent 90%, rgba(58,58,58,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #3A3A3A; text-shadow: 0 1px 2px rgba(196,206,212,0.5);">Spurs</span>
@@ -6856,7 +6856,7 @@
                 nuggetsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/7/76/Denver_Nuggets.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/den.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(14, 34, 64, 0.7); border-right: 2px solid rgba(14, 34, 64, 0.7); position: relative; background: linear-gradient(90deg, rgba(14,34,64,0.05) 0%, transparent 10%, transparent 90%, rgba(14,34,64,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #0E2240; text-shadow: 0 1px 2px rgba(254,197,36,0.5);">Nuggets</span>
@@ -6900,7 +6900,7 @@
                 rocketsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/2/28/Houston_Rockets.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/hou.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(206, 17, 65, 0.7); border-right: 2px solid rgba(206, 17, 65, 0.7); position: relative; background: linear-gradient(90deg, rgba(206,17,65,0.05) 0%, transparent 10%, transparent 90%, rgba(206,17,65,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #CE1141; text-shadow: 0 1px 2px rgba(255,255,255,0.3);">Rockets</span>
@@ -6943,7 +6943,7 @@
                 wolvesEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/Minnesota_Timberwolves_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/min.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(12, 35, 64, 0.7); border-right: 2px solid rgba(12, 35, 64, 0.7); position: relative; background: linear-gradient(90deg, rgba(12,35,64,0.05) 0%, transparent 10%, transparent 90%, rgba(12,35,64,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #0C2340; text-shadow: 0 1px 2px rgba(35,97,146,0.5);">Wolves</span>
@@ -6986,7 +6986,7 @@
                 sunsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/d/dc/Phoenix_Suns_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/phx.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(29, 17, 96, 0.7); border-right: 2px solid rgba(29, 17, 96, 0.7); position: relative; background: linear-gradient(90deg, rgba(29,17,96,0.05) 0%, transparent 10%, transparent 90%, rgba(29,17,96,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #1D1160; text-shadow: 0 1px 2px rgba(229,96,32,0.5);">Suns</span>
@@ -7030,7 +7030,7 @@
                 lakersEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Los_Angeles_Lakers_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/lal.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(85, 37, 131, 0.7); border-right: 2px solid rgba(85, 37, 131, 0.7); position: relative; background: linear-gradient(90deg, rgba(85,37,131,0.05) 0%, transparent 10%, transparent 90%, rgba(85,37,131,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #552583; text-shadow: 0 1px 2px rgba(253,185,39,0.5);">Lakers</span>
@@ -7075,7 +7075,7 @@
                 warriorsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/gs.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(29, 66, 138, 0.7); border-right: 2px solid rgba(29, 66, 138, 0.7); position: relative; background: linear-gradient(90deg, rgba(29,66,138,0.05) 0%, transparent 10%, transparent 90%, rgba(29,66,138,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #1D428A; text-shadow: 0 1px 2px rgba(255,199,44,0.5);">Warriors</span>
@@ -7118,7 +7118,7 @@
                 blazersEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/2/21/Portland_Trail_Blazers_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/por.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(224, 58, 62, 0.7); border-right: 2px solid rgba(224, 58, 62, 0.7); position: relative; background: linear-gradient(90deg, rgba(224,58,62,0.05) 0%, transparent 10%, transparent 90%, rgba(224,58,62,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #E03A3E; text-shadow: 0 1px 2px rgba(255,255,255,0.3);">Blazers</span>
@@ -7161,7 +7161,7 @@
                 clippersEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/e/ed/Los_Angeles_Clippers_%282024%29.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/lac.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(200, 16, 46, 0.7); border-right: 2px solid rgba(200, 16, 46, 0.7); position: relative; background: linear-gradient(90deg, rgba(200,16,46,0.05) 0%, transparent 10%, transparent 90%, rgba(200,16,46,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #C8102E; text-shadow: 0 1px 2px rgba(29,66,138,0.5);">Clippers</span>
@@ -7204,7 +7204,7 @@
                 grizzliesEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/f/f1/Memphis_Grizzlies.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/mem.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(93, 118, 169, 0.7); border-right: 2px solid rgba(93, 118, 169, 0.7); position: relative; background: linear-gradient(90deg, rgba(93,118,169,0.05) 0%, transparent 10%, transparent 90%, rgba(93,118,169,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #5D76A9; text-shadow: 0 1px 2px rgba(255,255,255,0.3);">Grizzlies</span>
@@ -7247,7 +7247,7 @@
                 mavsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/9/97/Dallas_Mavericks_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/dal.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(0, 83, 140, 0.7); border-right: 2px solid rgba(0, 83, 140, 0.7); position: relative; background: linear-gradient(90deg, rgba(0,83,140,0.05) 0%, transparent 10%, transparent 90%, rgba(0,83,140,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Mavericks</span>
@@ -7290,7 +7290,7 @@
                 jazzEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/utah.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(93, 46, 140, 0.7); border-right: 2px solid rgba(93, 46, 140, 0.7); position: relative; background: linear-gradient(90deg, rgba(93,46,140,0.05) 0%, transparent 10%, transparent 90%, rgba(93,46,140,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #5D2E8C; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">Jazz</span>
@@ -7333,7 +7333,7 @@
                 pelicansEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/0/0d/New_Orleans_Pelicans_logo.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/no.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(12, 35, 64, 0.7); border-right: 2px solid rgba(12, 35, 64, 0.7); position: relative; background: linear-gradient(90deg, rgba(12,35,64,0.05) 0%, transparent 10%, transparent 90%, rgba(12,35,64,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #0C2340; text-shadow: 0 1px 2px rgba(200,16,46,0.5);">Pelicans</span>
@@ -7376,7 +7376,7 @@
                 kingsEntry.innerHTML = `
                     <div style="position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 12px 8px; height: 100%; position: relative;">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/c/c7/SacramentoKings.svg" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                        <img src="https://a.espncdn.com/i/teamlogos/nba/500/sac.png" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                     </div>
                     <div style="display: flex; align-items: center; padding: 12px 8px; height: 100%; border-left: 2px solid rgba(90, 45, 129, 0.7); border-right: 2px solid rgba(90, 45, 129, 0.7); position: relative; background: linear-gradient(90deg, rgba(90,45,129,0.05) 0%, transparent 10%, transparent 90%, rgba(90,45,129,0.05) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(255,255,255,0.2);">
                         <span style="font-size: 13px; font-weight: 700; color: #5A2D81; text-shadow: 0 1px 2px rgba(99,114,122,0.5);">Kings</span>
@@ -10265,7 +10265,7 @@
                 currentConference = conf;
                 eastTab.textContent = 'EAST';
                 westTab.textContent = 'WEST';
-                if (logo) logo.src = 'https://upload.wikimedia.org/wikipedia/en/0/03/National_Basketball_Association_logo.svg';
+                if (logo) logo.src = 'https://a.espncdn.com/i/teamlogos/leagues/500/nba.png';
                 if (conf === 'east') {
                     eastTab.style.color='#fff'; eastTab.style.borderBottom='2px solid #1D428A';
                     westTab.style.color='#555'; westTab.style.borderBottom='2px solid transparent';
