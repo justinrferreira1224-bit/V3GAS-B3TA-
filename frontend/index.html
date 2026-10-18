@@ -10572,7 +10572,8 @@
 
                 // Find team by matching name
                 for (const [code, data] of Object.entries(teams)) {
-                    if (data.team && data.team.includes(teamName)) {
+                    // Case-insensitive so short names like "Wolves" match "Minnesota Timberwolves"
+                    if (data.team && data.team.toLowerCase().includes(teamName.toLowerCase())) {
                         const count = data.count || 0;
                         console.log('✅ ' + teamName + ' injuries: ' + count);
                         return count;
