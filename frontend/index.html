@@ -2569,6 +2569,7 @@
         let viewYear = null;
         let seasonContextDays = [];   // stored days of the visible seasons that fall outside viewYear
         let availableYears = [];
+        let moneyYearDays = {};       // { sport: { year: days } } other years, loaded for the Money tab's all-time totals
         let currentSeasonName = null; // season today belongs to (null in the offseason)
         let seasonWindow = null;      // { start, end } months for the current sport
 
@@ -11969,13 +11970,102 @@
         let monthStartOverrides = { nba: { robego: {}, justin: {}, kelly: {} }, mlb: { robego: {}, justin: {}, kelly: {} } };
 
         // Days of one calendar month (default: the year being viewed), oldest first.
-        // Includes the visible seasons' days from the year before, for chaining.
+        // Includes the visible seasons' days from the year before, for chaining,
+        // and other years loaded for the all-time totals.
         function monthDays(month, year) {
             const y = year || viewYear || todayPacificParts().year;
             const m = monthNames.indexOf(month) + 1;
-            return [...seasonContextDays, ...betLog]
+            return moneySourceDays(y)
                 .filter(d => d.year === y && Number(String(d.date).split('-')[0]) === m)
                 .sort((a, b) => a.day - b.day);
+        }
+
+        // The loaded days for a year: the year being viewed comes live from the
+        // bet log; another year comes from loadMoneyYears(), with any live days on top
+        function moneySourceDays(year) {
+            const live = [...seasonContextDays, ...betLog];
+            const cached = (moneyYearDays[currentSport || 'nba'] || {})[year];
+            if (year === viewYear || !cached) return live;
+            const byIso = new Map(cached.map(d => [d.iso, d]));
+            live.forEach(d => byIso.set(d.iso, d));
+            return [...byIso.values()];
+        }
+
+        // Fetch every year not being viewed (once per sport), then redraw the chart.
+        // Returns true once all of them are loaded.
+        const moneyYearsLoading = {};
+        function loadMoneyYears() {
+            const sport = currentSport || 'nba';
+            const cache = moneyYearDays[sport] = moneyYearDays[sport] || {};
+            availableYears.filter(y => y !== viewYear && !cache[y] && !moneyYearsLoading[sport + y]).forEach(y => {
+                moneyYearsLoading[sport + y] = true;
+                fetch(BACKEND_URL + '/api/state/' + sport + '?year=' + y)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data || !Array.isArray(data.betLog)) return;
+                        cache[y] = [...(data.seasonDays || []), ...data.betLog];
+                        if (monthChartInstance && sport === (currentSport || 'nba')) buildMonthChart(currentMonthTab);
+                    })
+                    .catch(e => console.warn('Money tab could not load ' + y, e))
+                    .finally(() => { delete moneyYearsLoading[sport + y]; });
+            });
+            return availableYears.every(y => y === viewYear || cache[y]);
+        }
+
+        // Reload at the start of a betting day: a bust ($0) reloads to $100, and from
+        // LOW_RELOAD_START on, a bankroll under $10 reloads to $50 (green dot).
+        // Earlier days keep the old math so past graphs don't change.
+        const LOW_RELOAD_START = '2026-10-22';
+        function dayReload(bankroll, day) {
+            if (bankroll <= 0) return { bankroll: 100, amount: 100, low: false };
+            if (bankroll < 10 && day.iso >= LOW_RELOAD_START) return { bankroll: 50, amount: 50, low: true };
+            return null;
+        }
+
+        // Chart point for a betting day; $0 is a bust (black dot)
+        function bankrollPoint(day, bankroll, reload, deposit) {
+            const p = { date: day.date, bankroll, bet: true };
+            if (bankroll === 0) p.bust = true;
+            if (reload) { p.reload = reload.amount; if (reload.low) p.lowReload = true; }
+            if (deposit) p.deposit = deposit;
+            return p;
+        }
+
+        // Graph data for one month of a Money tab
+        function calcTabData(sub, month, year) {
+            if (sub === 'justin') return calcJustinData(month, year);
+            if (sub === 'kelly') return calcKellyData(month, year);
+            if (sub === 'ev') return calcEVData(month, year);
+            return calcMonthData(month, year);
+        }
+
+        // Money put in vs. bankroll for one month's graph: the starting bankroll
+        // plus every reload and deposit is money put in, not profit
+        function monthMoney(data) {
+            const start = data[0].bankroll;
+            const added = data.reduce((sum, p) => sum + (p.reload || 0) + (p.deposit || 0), 0);
+            const current = data[data.length - 1].bankroll;
+            return { start, added, putIn: start + added, current, profit: current - start - added };
+        }
+
+        // All-time totals for a tab across every loaded year. A month's start only
+        // counts as put in when it isn't last month's money carried over.
+        function allTimeMoney(sub) {
+            const years = (availableYears.length ? availableYears : [viewYear]).slice().sort((a, b) => a - b);
+            const included = new Set();
+            let putIn = 0, profit = 0;
+            years.forEach(year => MONTH_ORDER.forEach((month, i) => {
+                const data = calcTabData(sub, month, year);
+                if (!data.some(p => p.bet || p.deposit)) return;
+                const mm = monthMoney(data);
+                const prevKey = i === 0 ? (year - 1) + '-dec' : year + '-' + MONTH_ORDER[i - 1];
+                const carried = sub !== 'kelly' && sub !== 'ev'
+                    && monthStartSource(month, sub, year) === 'carried' && included.has(prevKey);
+                putIn += (carried ? 0 : mm.start) + mm.added;
+                profit += mm.profit;
+                included.add(year + '-' + month);
+            }));
+            return { putIn, current: putIn + profit, profit };
         }
 
         // True if a calendar month (1-12) is inside the current sport's season window
@@ -12037,19 +12127,40 @@
             return bankroll;
         }
 
+        // Where a month's starting bankroll comes from: 'override', 'fresh' ($100 on
+        // the season's first month or in the offseason) or 'carried' (last month's end)
+        function monthStartSource(month, sub, year) {
+            const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
+            const overrides = (monthStartOverrides[sport] && monthStartOverrides[sport][sub]) || {};
+            if (overrides[month] !== undefined) return 'override';
+            const m = monthNames.indexOf(month) + 1;
+            const prevM = m === 1 ? 12 : m - 1;
+            if (!monthInSeason(m) || !monthInSeason(prevM) || (seasonWindow && m === seasonWindow.start)) return 'fresh';
+            return 'carried';
+        }
+
         // Start of a month's bankroll: an override if set, $100 on the season's
         // first month (or in the offseason), otherwise the previous month's end —
-        // following the season, so January continues from December
+        // following the season, so January continues from December. Months after
+        // LOW_RELOAD_START carry over the tab's own graph, reloads included;
+        // earlier months keep the old carry-over so past graphs don't change.
         function getMonthStart(month, sub, year) {
             sub = sub || currentMoneySubTab;
             year = year || viewYear || todayPacificParts().year;
-            const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
-            const overrides = (monthStartOverrides[sport] && monthStartOverrides[sport][sub]) || {};
-            if (overrides[month] !== undefined) return overrides[month];
+            const source = monthStartSource(month, sub, year);
+            if (source === 'override') {
+                const sport = currentSport === 'mlb' ? 'mlb' : 'nba';
+                return monthStartOverrides[sport][sub][month];
+            }
+            if (source === 'fresh') return 100;
             const m = monthNames.indexOf(month) + 1;
             const prevM = m === 1 ? 12 : m - 1;
-            if (!monthInSeason(m) || !monthInSeason(prevM) || (seasonWindow && m === seasonWindow.start)) return 100;
-            return calcMonthEndBankroll(monthNames[prevM - 1], sub, m === 1 ? year - 1 : year);
+            const prevYear = m === 1 ? year - 1 : year;
+            if (`${year}-${String(m).padStart(2, '0')}-01` > LOW_RELOAD_START) {
+                const prev = calcTabData(sub, monthNames[prevM - 1], prevYear);
+                return prev[prev.length - 1].bankroll;
+            }
+            return calcMonthEndBankroll(monthNames[prevM - 1], sub, prevYear);
         }
 
         function fmtMoney(val) {
@@ -12075,25 +12186,21 @@
             return (BANKROLL_DEPOSITS[sport] && BANKROLL_DEPOSITS[sport][sub]) || {};
         }
 
-        function calcMonthData(month) {
-            const range = MONTH_RANGES[month];
-            const startAmount = getMonthStart(month);
+        function calcMonthData(month, year) {
+            const startAmount = getMonthStart(month, 'robego', year);
             let bankroll = startAmount;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
-            monthDays(month).forEach(day => {
+            monthDays(month, year).forEach(day => {
                 // Apply any deposit for this day
                 const dep = getDeposits('robego')[day.iso];
                 if (dep) { bankroll += dep; bankroll = Math.round(bankroll * 100) / 100; }
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) {
-                    const dep2 = getDeposits('robego')[day.iso];
-                    if (dep2) data.push({ date: day.date + ' (+$' + dep2 + ')', bankroll });
+                    if (dep) data.push({ date: day.date + ' (+$' + dep + ')', bankroll, deposit: dep });
                     return;
                 }
-                // If busted, reload to $100 for this day
-                if (bankroll <= 0) {
-                    bankroll = 100;
-                }
+                const reload = dayReload(bankroll, day);
+                if (reload) bankroll = reload.bankroll;
                 const n = decided.length;
                 const stake = bankroll / n;
                 let newBankroll = 0;
@@ -12102,36 +12209,24 @@
                     const o = parseInt(g.pick === g.t1 ? g.o1 : g.o2);
                     if (g.res === 'W') newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
                 });
-                bankroll = Math.round(newBankroll * 100) / 100;
-                // Mark bust with black dot
-                if (bankroll === 0) {
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else if (bankroll < 0) {
-                    bankroll = 0;
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else {
-                    data.push({ date: day.date, bankroll });
-                }
+                bankroll = Math.max(0, Math.round(newBankroll * 100) / 100);
+                data.push(bankrollPoint(day, bankroll, reload, dep));
             });
             return data;
         }
 
-        function calcJustinData(month) {
+        function calcJustinData(month, year) {
             // Justin logic: top 5 games by most positive odds, 20% stake each
-            const range = MONTH_RANGES[month];
-            const startAmount = getMonthStart(month, 'justin');
+            const startAmount = getMonthStart(month, 'justin', year);
             let bankroll = startAmount;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll: startAmount }];
-            monthDays(month).forEach(day => {
+            monthDays(month, year).forEach(day => {
                 const jdep = getDeposits('justin')[day.iso];
                 if (jdep) bankroll = Math.round((bankroll + jdep) * 100) / 100;
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
-                const jdep2 = getDeposits('justin')[day.iso];
-                if (decided.length === 0) { if (jdep2) data.push({ date: day.date + ' (+$' + jdep2 + ')', bankroll }); return; }
-                // If busted, reload to $100 for this day
-                if (bankroll <= 0) {
-                    bankroll = 100;
-                }
+                if (decided.length === 0) { if (jdep) data.push({ date: day.date + ' (+$' + jdep + ')', bankroll, deposit: jdep }); return; }
+                const reload = dayReload(bankroll, day);
+                if (reload) bankroll = reload.bankroll;
                 // Sort by odds descending (most positive first)
                 const sorted = [...decided].sort((a, b) => {
                     const oA = parseInt(a.pick === a.t1 ? a.o1 : a.o2);
@@ -12146,16 +12241,8 @@
                     if (g.res === 'W') newBankroll += o > 0 ? stake * (o / 100) : stake * (100 / Math.abs(o));
                     else newBankroll -= stake;
                 });
-                bankroll = Math.round(newBankroll * 100) / 100;
-                // Mark bust with black dot
-                if (bankroll === 0) {
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else if (bankroll < 0) {
-                    bankroll = 0;
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else {
-                    data.push({ date: day.date, bankroll });
-                }
+                bankroll = Math.max(0, Math.round(newBankroll * 100) / 100);
+                data.push(bankrollPoint(day, bankroll, reload, jdep));
             });
             return data;
         }
@@ -12275,20 +12362,17 @@
             return confidenceScore;
         }
 
-        function calcEVData(month) {
+        function calcEVData(month, year) {
             // +EV logic: always bet the underdog (highest odds)
             // Bet sizing: 5+ games = split 100%, 1-4 games = 20% each
-            const range = MONTH_RANGES[month];
             let bankroll = 100;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
 
-            monthDays(month).forEach(day => {
+            monthDays(month, year).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
-                // If busted, reload to $100 for this day
-                if (bankroll <= 0) {
-                    bankroll = 100;
-                }
+                const reload = dayReload(bankroll, day);
+                if (reload) bankroll = reload.bankroll;
 
                 const n = decided.length;
                 // Bet sizing: 5+ games = split 100%, 1-4 games = 20% each
@@ -12331,35 +12415,24 @@
                     // If underdog lost, we get nothing (newBankroll stays at 0 or doesn't add)
                 });
 
-                bankroll = Math.round(newBankroll * 100) / 100;
-                // Mark bust with black dot
-                if (bankroll === 0) {
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else if (bankroll < 0) {
-                    bankroll = 0;
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else {
-                    data.push({ date: day.date, bankroll });
-                }
+                bankroll = Math.max(0, Math.round(newBankroll * 100) / 100);
+                data.push(bankrollPoint(day, bankroll, reload));
             });
 
             return data;
         }
 
-        function calcKellyData(month) {
+        function calcKellyData(month, year) {
             // Kelly logic: confidence-based splits (same as game log bet sizing)
             // Top 3 games by confidence get 35%, 25%, 20%; rest split remaining 20%
-            const range = MONTH_RANGES[month];
             let bankroll = 100;
             const data = [{ date: MONTH_RANGES[month].label + ' start', bankroll }];
 
-            monthDays(month).forEach(day => {
+            monthDays(month, year).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
-                // If busted, reload to $100 for this day
-                if (bankroll <= 0) {
-                    bankroll = 100;
-                }
+                const reload = dayReload(bankroll, day);
+                if (reload) bankroll = reload.bankroll;
 
                 // Calculate confidence for each game and attach it
                 const gamesWithConf = decided.map(g => {
@@ -12398,16 +12471,7 @@
                 });
 
                 bankroll = Math.round(Math.max(0, newBankroll) * 100) / 100;
-                // Mark bust with black dot
-                if (bankroll === 0) {
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                    bankroll = 100; // Reload for next day
-                } else if (bankroll < 0) {
-                    bankroll = 0;
-                    data.push({ date: day.date, bankroll: 0, bust: true });
-                } else {
-                    data.push({ date: day.date, bankroll });
-                }
+                data.push(bankrollPoint(day, bankroll, reload));
             });
 
             return data;
@@ -12418,12 +12482,8 @@
             if (!canvas) return;
             if (monthChartInstance) { monthChartInstance.destroy(); monthChartInstance = null; }
             // Choose data function based on selected tab
-            let data;
-            if (currentMoneySubTab === 'justin') data = calcJustinData(month);
-            else if (currentMoneySubTab === 'kelly') data = calcKellyData(month);
-            else if (currentMoneySubTab === 'ev') data = calcEVData(month);
-            else data = calcMonthData(month);
-            const startAmount = getMonthStart(month);
+            const data = calcTabData(currentMoneySubTab, month);
+            const startAmount = data[0].bankroll;
             const ctx = canvas.getContext('2d');
             const labels = data.map(d => d.date);
             const values = data.map(d => d.bankroll);
@@ -12433,18 +12493,21 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, `rgba(${chartColorRgb},0.4)`);
             gradient.addColorStop(1, `rgba(${chartColorRgb},0)`);
-            // Mark bust points with black dots
+            // Black dot for a bust, green dot for a day that started on a $50 reload
             const pointColors = values.map((v, i) => {
-                if (data[i].bust) return '#000'; // Black dot for bust
+                if (data[i].bust) return '#000';
+                if (data[i].lowReload) return '#22c55e';
                 if (i > 0 && v < data[i-1].bankroll) return '#555'; // Gray for loss
                 return chartColor; // Normal color
             });
-            const pointRadii = values.map((v, i) => data[i].bust ? 8 : 5); // Bigger dots for busts
+            const pointRadii = values.map((v, i) => data[i].bust ? 8 : (data[i].lowReload ? 7 : 5));
+            const pointLabel = p => p.bust ? 'BUST - Reload $100'
+                : (p.lowReload ? 'Reloaded to $50, ended ' + fmtMoney(p.bankroll) : fmtMoney(p.bankroll));
 
             monthChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: { labels, datasets: [{ data: values, borderColor: chartColor, borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: pointColors, pointRadius: pointRadii, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
-                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => data[ctx.dataIndex].bust ? 'BUST - Reload $100' : fmtMoney(ctx.raw) }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
+                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => pointLabel(data[ctx.dataIndex]) }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
             });
             const startInput = document.getElementById('monthStartInput');
             if (startInput) {
@@ -12460,17 +12523,35 @@
             if (justinTab) { justinTab.style.color = currentMoneySubTab === 'justin' ? '#3b82f6' : '#555'; justinTab.style.borderBottomColor = currentMoneySubTab === 'justin' ? '#3b82f6' : 'transparent'; }
             if (kellyTab) { kellyTab.style.color = currentMoneySubTab === 'kelly' ? '#fbbf24' : '#555'; kellyTab.style.borderBottomColor = currentMoneySubTab === 'kelly' ? '#fbbf24' : 'transparent'; }
             if (evTab) { evTab.style.color = currentMoneySubTab === 'ev' ? '#a855f7' : '#555'; evTab.style.borderBottomColor = currentMoneySubTab === 'ev' ? '#a855f7' : 'transparent'; }
-            const current = values[values.length - 1] || startAmount;
-            const gain = current - startAmount;
-            const gainPct = startAmount > 0 ? Math.round((gain / startAmount) * 100) : 0;
+            // Reloads and deposits are money put in, not profit
+            const mm = monthMoney(data);
+            const allLoaded = loadMoneyYears();
+            const all = allTimeMoney(currentMoneySubTab);
+            const current = mm.current;
+            const gain = mm.profit;
+            const gainPct = mm.putIn > 0 ? Math.round((gain / mm.putIn) * 100) : 0;
+            const upDown = v => v >= 0 ? '#22c55e' : '#ef4444';
+            const signed = v => (v >= 0 ? '+' : '-') + fmtMoney(Math.abs(v));
             const headerProgress = document.getElementById('monthHeaderProgress');
-            if (headerProgress) headerProgress.innerHTML = `<div style="font-size:18px;font-weight:900;color:${gain>=0?'#22c55e':'#ef4444'};font-family:monospace;">$${current.toFixed(2)}</div><div style="font-size:10px;color:${gain>=0?'#22c55e':'#ef4444'};opacity:0.8;">${gain>=0?'+':''}$${gain.toFixed(2)} (${gainPct}%)</div>`;
+            if (headerProgress) headerProgress.innerHTML = `<div style="font-size:18px;font-weight:900;color:${upDown(gain)};font-family:monospace;">${fmtMoney(current)}</div><div style="font-size:10px;color:${upDown(gain)};opacity:0.8;">${signed(gain)} (${gainPct}%) true profit</div>`;
+            const moneyRow = (title, m, note, middle = 'BANKROLL') => `<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:8px 10px;">`
+                + `<div style="font-size:9px;color:#555;letter-spacing:2px;margin-bottom:6px;">${title}${note ? ` <span style="color:#444;letter-spacing:0;">${note}</span>` : ''}</div>`
+                + `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">`
+                + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">TOTAL PUT IN</div><div style="font-size:14px;font-weight:900;color:#aaa;font-family:monospace;">${fmtMoney(m.putIn)}</div></div>`
+                + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">${middle}</div><div style="font-size:14px;font-weight:900;color:#fff;font-family:monospace;">${fmtMoney(m.current)}</div></div>`
+                + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">TRUE PROFIT</div><div style="font-size:14px;font-weight:900;color:${upDown(m.profit)};font-family:monospace;">${signed(m.profit)}</div></div>`
+                + `</div></div>`;
             const summaryEl = document.getElementById('monthSummary');
-            if (summaryEl) summaryEl.innerHTML = `<div style="font-size:10px;color:#555;letter-spacing:2px;">CURRENT BANKROLL</div><div style="font-size:28px;font-weight:900;color:${gain>=0?'#22c55e':'#ef4444'};font-family:monospace;text-shadow:0 0 12px rgba(34,197,94,0.5);">$${current.toFixed(2)}</div><div style="font-size:11px;color:${gain>=0?'#22c55e':'#ef4444'};opacity:0.7;">${gain>=0?'+':''}$${gain.toFixed(2)} (${gainPct}%) in ${MONTH_RANGES[month].label}</div>`;
+            if (summaryEl) summaryEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;text-align:center;">`
+                + moneyRow(MONTH_RANGES[month].label.toUpperCase() + ' ' + (viewYear || ''), mm)
+                + moneyRow('ALL-TIME', all, allLoaded ? '' : '(loading other years)', 'ENDED WITH')
+                + `</div>`;
             const peak = Math.max(...values);
             const peakDay = data.find(d => d.bankroll === peak)?.date || '';
+            // A day's result leaves out the reload or deposit it started with
+            const dayResult = (d, i) => d.bankroll - data[i].bankroll - (d.reload || 0) - (d.deposit || 0);
             let bestDiff = 0, bestDay = '';
-            data.slice(1).forEach((d, i) => { const diff = d.bankroll - data[i].bankroll; if (diff > bestDiff) { bestDiff = diff; bestDay = d.date; } });
+            data.slice(1).forEach((d, i) => { const diff = dayResult(d, i); if (diff > bestDiff) { bestDiff = diff; bestDay = d.date; } });
             const peakEl = document.getElementById('monthStatPeak');
             const peakDayEl = document.getElementById('monthStatPeakDay');
             const bestEl = document.getElementById('monthStatBest');
@@ -12481,7 +12562,7 @@
             if (bestDayEl) bestDayEl.textContent = bestDay || '—';
             const breakdown = document.getElementById('monthBreakdown');
             if (breakdown) {
-                const rows = data.slice(1).map((d, i) => { const prev = data[i].bankroll; const diff = d.bankroll - prev; const color = diff >= 0 ? '#22c55e' : '#ef4444'; const sign = diff >= 0 ? '+' : '-'; return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#0a0a0a;border-radius:8px;border-left:3px solid ${color};"><span style="font-size:11px;font-weight:700;color:#fff;">${d.date}</span><span style="font-size:11px;font-weight:900;color:${color};font-family:monospace;">${sign}${fmtMoney(Math.abs(diff))}</span><span style="font-size:11px;font-weight:800;color:#aaa;font-family:monospace;">${fmtMoney(d.bankroll)}</span></div>`; }).join('');
+                const rows = data.slice(1).map((d, i) => { const diff = dayResult(d, i); const color = diff >= 0 ? '#22c55e' : '#ef4444'; const sign = diff >= 0 ? '+' : '-'; return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#0a0a0a;border-radius:8px;border-left:3px solid ${color};"><span style="font-size:11px;font-weight:700;color:#fff;">${d.date}${d.reload ? ` <span style="font-size:9px;color:${d.lowReload ? '#22c55e' : '#666'};">reload $${d.reload}</span>` : ''}</span><span style="font-size:11px;font-weight:900;color:${color};font-family:monospace;">${sign}${fmtMoney(Math.abs(diff))}</span><span style="font-size:11px;font-weight:800;color:#aaa;font-family:monospace;">${fmtMoney(d.bankroll)}</span></div>`; }).join('');
                 breakdown.innerHTML = `<div style="font-size:9px;color:#444;letter-spacing:2px;margin-bottom:4px;">DAY BY DAY</div>${rows}`;
             }
         }
