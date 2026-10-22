@@ -2569,7 +2569,6 @@
         let viewYear = null;
         let seasonContextDays = [];   // stored days of the visible seasons that fall outside viewYear
         let availableYears = [];
-        let moneyYearDays = {};       // { sport: { year: days } } other years, loaded for the Money tab's all-time totals
         let currentSeasonName = null; // season today belongs to (null in the offseason)
         let seasonWindow = null;      // { start, end } months for the current sport
 
@@ -11970,46 +11969,13 @@
         let monthStartOverrides = { nba: { robego: {}, justin: {}, kelly: {} }, mlb: { robego: {}, justin: {}, kelly: {} } };
 
         // Days of one calendar month (default: the year being viewed), oldest first.
-        // Includes the visible seasons' days from the year before, for chaining,
-        // and other years loaded for the all-time totals.
+        // Includes the visible seasons' days from the year before, for chaining.
         function monthDays(month, year) {
             const y = year || viewYear || todayPacificParts().year;
             const m = monthNames.indexOf(month) + 1;
-            return moneySourceDays(y)
+            return [...seasonContextDays, ...betLog]
                 .filter(d => d.year === y && Number(String(d.date).split('-')[0]) === m)
                 .sort((a, b) => a.day - b.day);
-        }
-
-        // The loaded days for a year: the year being viewed comes live from the
-        // bet log; another year comes from loadMoneyYears(), with any live days on top
-        function moneySourceDays(year) {
-            const live = [...seasonContextDays, ...betLog];
-            const cached = (moneyYearDays[currentSport || 'nba'] || {})[year];
-            if (year === viewYear || !cached) return live;
-            const byIso = new Map(cached.map(d => [d.iso, d]));
-            live.forEach(d => byIso.set(d.iso, d));
-            return [...byIso.values()];
-        }
-
-        // Fetch every year not being viewed (once per sport), then redraw the chart.
-        // Returns true once all of them are loaded.
-        const moneyYearsLoading = {};
-        function loadMoneyYears() {
-            const sport = currentSport || 'nba';
-            const cache = moneyYearDays[sport] = moneyYearDays[sport] || {};
-            availableYears.filter(y => y !== viewYear && !cache[y] && !moneyYearsLoading[sport + y]).forEach(y => {
-                moneyYearsLoading[sport + y] = true;
-                fetch(BACKEND_URL + '/api/state/' + sport + '?year=' + y)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (!data || !Array.isArray(data.betLog)) return;
-                        cache[y] = [...(data.seasonDays || []), ...data.betLog];
-                        if (monthChartInstance && sport === (currentSport || 'nba')) buildMonthChart(currentMonthTab);
-                    })
-                    .catch(e => console.warn('Money tab could not load ' + y, e))
-                    .finally(() => { delete moneyYearsLoading[sport + y]; });
-            });
-            return availableYears.every(y => y === viewYear || cache[y]);
         }
 
         // Reload at the start of a betting day: a bust ($0) reloads to $100, and a
@@ -12044,26 +12010,6 @@
             const added = data.reduce((sum, p) => sum + (p.reload || 0) + (p.deposit || 0), 0);
             const current = data[data.length - 1].bankroll;
             return { start, added, putIn: start + added, current, profit: current - start - added };
-        }
-
-        // All-time totals for a tab across every loaded year. A month's start only
-        // counts as put in when it isn't last month's money carried over.
-        function allTimeMoney(sub) {
-            const years = (availableYears.length ? availableYears : [viewYear]).slice().sort((a, b) => a - b);
-            const included = new Set();
-            let putIn = 0, profit = 0;
-            years.forEach(year => MONTH_ORDER.forEach((month, i) => {
-                const data = calcTabData(sub, month, year);
-                if (!data.some(p => p.bet || p.deposit)) return;
-                const mm = monthMoney(data);
-                const prevKey = i === 0 ? (year - 1) + '-dec' : year + '-' + MONTH_ORDER[i - 1];
-                const carried = sub !== 'kelly' && sub !== 'ev'
-                    && monthStartSource(month, sub, year) === 'carried' && included.has(prevKey);
-                putIn += (carried ? 0 : mm.start) + mm.added;
-                profit += mm.profit;
-                included.add(year + '-' + month);
-            }));
-            return { putIn, current: putIn + profit, profit };
         }
 
         // True if a calendar month (1-12) is inside the current sport's season window
@@ -12499,8 +12445,6 @@
             if (evTab) { evTab.style.color = currentMoneySubTab === 'ev' ? '#a855f7' : '#555'; evTab.style.borderBottomColor = currentMoneySubTab === 'ev' ? '#a855f7' : 'transparent'; }
             // Reloads and deposits are money put in, not profit
             const mm = monthMoney(data);
-            const allLoaded = loadMoneyYears();
-            const all = allTimeMoney(currentMoneySubTab);
             const current = mm.current;
             const gain = mm.profit;
             const gainPct = mm.putIn > 0 ? Math.round((gain / mm.putIn) * 100) : 0;
@@ -12508,17 +12452,16 @@
             const signed = v => (v >= 0 ? '+' : '-') + fmtMoney(Math.abs(v));
             const headerProgress = document.getElementById('monthHeaderProgress');
             if (headerProgress) headerProgress.innerHTML = `<div style="font-size:18px;font-weight:900;color:${upDown(gain)};font-family:monospace;">${fmtMoney(current)}</div><div style="font-size:10px;color:${upDown(gain)};opacity:0.8;">${signed(gain)} (${gainPct}%) true profit</div>`;
-            const moneyRow = (title, m, note, middle = 'BANKROLL') => `<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:8px 10px;">`
-                + `<div style="font-size:9px;color:#555;letter-spacing:2px;margin-bottom:6px;">${title}${note ? ` <span style="color:#444;letter-spacing:0;">${note}</span>` : ''}</div>`
+            const moneyRow = (title, m) => `<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:8px 10px;">`
+                + `<div style="font-size:9px;color:#555;letter-spacing:2px;margin-bottom:6px;">${title}</div>`
                 + `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">`
                 + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">TOTAL PUT IN</div><div style="font-size:14px;font-weight:900;color:#aaa;font-family:monospace;">${fmtMoney(m.putIn)}</div></div>`
-                + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">${middle}</div><div style="font-size:14px;font-weight:900;color:#fff;font-family:monospace;">${fmtMoney(m.current)}</div></div>`
+                + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">CURRENT BANKROLL</div><div style="font-size:14px;font-weight:900;color:#fff;font-family:monospace;">${fmtMoney(m.current)}</div></div>`
                 + `<div><div style="font-size:8px;color:#555;letter-spacing:1px;">TRUE PROFIT</div><div style="font-size:14px;font-weight:900;color:${upDown(m.profit)};font-family:monospace;">${signed(m.profit)}</div></div>`
                 + `</div></div>`;
             const summaryEl = document.getElementById('monthSummary');
-            if (summaryEl) summaryEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;text-align:center;">`
+            if (summaryEl) summaryEl.innerHTML = `<div style="text-align:center;">`
                 + moneyRow(MONTH_RANGES[month].label.toUpperCase() + ' ' + (viewYear || ''), mm)
-                + moneyRow('ALL-TIME', all, allLoaded ? '' : '(loading other years)', 'ENDED WITH')
                 + `</div>`;
             const peak = Math.max(...values);
             const peakDay = data.find(d => d.bankroll === peak)?.date || '';
