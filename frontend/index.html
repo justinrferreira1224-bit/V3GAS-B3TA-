@@ -12012,13 +12012,11 @@
             return availableYears.every(y => y === viewYear || cache[y]);
         }
 
-        // Reload at the start of a betting day: a bust ($0) reloads to $100, and from
-        // LOW_RELOAD_START on, a bankroll under $10 reloads to $50 (green dot).
-        // Earlier days keep the old math so past graphs don't change.
-        const LOW_RELOAD_START = '2026-10-22';
-        function dayReload(bankroll, day) {
+        // Reload at the start of a betting day: a bust ($0) reloads to $100, and a
+        // bankroll under $10 reloads to $50 (green dot)
+        function dayReload(bankroll) {
             if (bankroll <= 0) return { bankroll: 100, amount: 100, low: false };
-            if (bankroll < 10 && day.iso >= LOW_RELOAD_START) return { bankroll: 50, amount: 50, low: true };
+            if (bankroll < 10) return { bankroll: 50, amount: 50, low: true };
             return null;
         }
 
@@ -12108,25 +12106,6 @@
             } catch(e) {}
         }
 
-        function calcMonthEndBankroll(month, sub, year) {
-            let bankroll = getMonthStart(month, sub, year);
-            monthDays(month, year).forEach(day => {
-                const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
-                if (decided.length === 0 || bankroll <= 0) return;
-                const n = decided.length;
-                const stake = bankroll / n;
-                let newBankroll = 0;
-                decided.forEach((g, i) => {
-                    const s = i === n - 1 ? bankroll - (stake * (n - 1)) : stake;
-                    const o = parseInt(g.pick === g.t1 ? g.o1 : g.o2);
-                    if (g.res === 'W') newBankroll += o > 0 ? s + s * (o / 100) : s + s * (100 / Math.abs(o));
-                });
-                bankroll = Math.round(newBankroll * 100) / 100;
-                if (bankroll < 0) bankroll = 0;
-            });
-            return bankroll;
-        }
-
         // Where a month's starting bankroll comes from: 'override', 'fresh' ($100 on
         // the season's first month or in the offseason) or 'carried' (last month's end)
         function monthStartSource(month, sub, year) {
@@ -12135,15 +12114,14 @@
             if (overrides[month] !== undefined) return 'override';
             const m = monthNames.indexOf(month) + 1;
             const prevM = m === 1 ? 12 : m - 1;
-            if (!monthInSeason(m) || !monthInSeason(prevM) || (seasonWindow && m === seasonWindow.start)) return 'fresh';
+            if (!seasonWindow || !monthInSeason(m) || !monthInSeason(prevM) || m === seasonWindow.start) return 'fresh';
             return 'carried';
         }
 
         // Start of a month's bankroll: an override if set, $100 on the season's
         // first month (or in the offseason), otherwise the previous month's end —
-        // following the season, so January continues from December. Months after
-        // LOW_RELOAD_START carry over the tab's own graph, reloads included;
-        // earlier months keep the old carry-over so past graphs don't change.
+        // following the season, so January continues from December. It carries over
+        // the tab's own graph, reloads included.
         function getMonthStart(month, sub, year) {
             sub = sub || currentMoneySubTab;
             year = year || viewYear || todayPacificParts().year;
@@ -12155,12 +12133,8 @@
             if (source === 'fresh') return 100;
             const m = monthNames.indexOf(month) + 1;
             const prevM = m === 1 ? 12 : m - 1;
-            const prevYear = m === 1 ? year - 1 : year;
-            if (`${year}-${String(m).padStart(2, '0')}-01` > LOW_RELOAD_START) {
-                const prev = calcTabData(sub, monthNames[prevM - 1], prevYear);
-                return prev[prev.length - 1].bankroll;
-            }
-            return calcMonthEndBankroll(monthNames[prevM - 1], sub, prevYear);
+            const prev = calcTabData(sub, monthNames[prevM - 1], m === 1 ? year - 1 : year);
+            return prev[prev.length - 1].bankroll;
         }
 
         function fmtMoney(val) {
@@ -12199,7 +12173,7 @@
                     if (dep) data.push({ date: day.date + ' (+$' + dep + ')', bankroll, deposit: dep });
                     return;
                 }
-                const reload = dayReload(bankroll, day);
+                const reload = dayReload(bankroll);
                 if (reload) bankroll = reload.bankroll;
                 const n = decided.length;
                 const stake = bankroll / n;
@@ -12225,7 +12199,7 @@
                 if (jdep) bankroll = Math.round((bankroll + jdep) * 100) / 100;
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) { if (jdep) data.push({ date: day.date + ' (+$' + jdep + ')', bankroll, deposit: jdep }); return; }
-                const reload = dayReload(bankroll, day);
+                const reload = dayReload(bankroll);
                 if (reload) bankroll = reload.bankroll;
                 // Sort by odds descending (most positive first)
                 const sorted = [...decided].sort((a, b) => {
@@ -12371,7 +12345,7 @@
             monthDays(month, year).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
-                const reload = dayReload(bankroll, day);
+                const reload = dayReload(bankroll);
                 if (reload) bankroll = reload.bankroll;
 
                 const n = decided.length;
@@ -12431,7 +12405,7 @@
             monthDays(month, year).forEach(day => {
                 const decided = day.games.filter(g => (g.res === 'W' || g.res === 'L') && gameMatchesCurrentSport(g));
                 if (decided.length === 0) return;
-                const reload = dayReload(bankroll, day);
+                const reload = dayReload(bankroll);
                 if (reload) bankroll = reload.bankroll;
 
                 // Calculate confidence for each game and attach it
