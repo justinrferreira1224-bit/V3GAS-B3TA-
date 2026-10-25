@@ -12414,20 +12414,35 @@
             gradient.addColorStop(0, `rgba(${chartColorRgb},0.4)`);
             gradient.addColorStop(1, `rgba(${chartColorRgb},0)`);
             // Black dot for a bust, green dot for a day that started on a $50 reload
+            // Gray for a losing day, measured from what the day started with: the
+            // reload amount on a reload day, otherwise the day before plus any deposit
+            const dayStart = i => data[i].reload || values[i - 1] + (data[i].deposit || 0);
+            const dayColor = i => i > 0 && values[i] < dayStart(i) ? '#555' : chartColor;
             const pointColors = values.map((v, i) => {
                 if (data[i].bust) return '#000';
                 if (data[i].lowReload) return '#22c55e';
-                if (i > 0 && v < data[i-1].bankroll) return '#555'; // Gray for loss
-                return chartColor; // Normal color
+                return dayColor(i);
             });
             const pointRadii = values.map((v, i) => data[i].bust ? 8 : (data[i].lowReload ? 7 : 5));
-            const pointLabel = p => p.bust ? 'BUST - Reload $100'
-                : (p.lowReload ? 'Reloaded to $50, ended ' + fmtMoney(p.bankroll) : fmtMoney(p.bankroll));
+            // Invisible series on reload days only, so their popup gets its own
+            // "Reloaded to $50" row with a green square above the day's amount
+            const reloadValues = values.map((v, i) => data[i].lowReload ? v : null);
 
             monthChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: { labels, datasets: [{ data: values, borderColor: chartColor, borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: pointColors, pointRadius: pointRadii, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true }] },
-                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => pointLabel(data[ctx.dataIndex]) }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
+                data: { labels, datasets: [
+                    { data: values, borderColor: chartColor, borderWidth: 2.5, backgroundColor: gradient, pointBackgroundColor: pointColors, pointRadius: pointRadii, pointHitRadius: 30, pointHoverRadius: 7, tension: 0.35, fill: true },
+                    { data: reloadValues, showLine: false, fill: false, pointRadius: 0, pointHoverRadius: 0, pointHitRadius: 0 }
+                ] },
+                options: { responsive: true, interaction: { mode: 'nearest', axis: 'x', intersect: false }, plugins: { legend: { display: false }, tooltip: {
+                    filter: item => item.raw != null,
+                    itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
+                    callbacks: {
+                        label: ctx => ctx.datasetIndex === 1 ? 'Reloaded to $50'
+                            : (data[ctx.dataIndex].bust ? 'BUST - Reload $100' : fmtMoney(ctx.raw)),
+                        labelColor: ctx => ctx.datasetIndex === 1 ? { borderColor: '#22c55e', backgroundColor: '#22c55e' }
+                            : { borderColor: chartColor, backgroundColor: data[ctx.dataIndex].lowReload ? dayColor(ctx.dataIndex) : pointColors[ctx.dataIndex] }
+                    }, backgroundColor: '#111', borderColor: chartColor, borderWidth: 1, titleColor: '#fff', bodyColor: chartColor } }, scales: { x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#111' } }, y: { ticks: { color: '#555', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: '#1a1a1a' } } } }
             });
             const startInput = document.getElementById('monthStartInput');
             if (startInput) {
