@@ -5362,10 +5362,12 @@
             }
         });
 
-        // Clock editing
-        timeDisplay.addEventListener('dblclick', () => {
+        // Clock editing: tap the clock (double-tap zooms on phones). The phone's
+        // number pad has no ":", so "4:30", "4.30" and "430" all mean 4:30.
+        timeDisplay.addEventListener('click', () => {
             const input = document.createElement('input');
             input.type = 'text';
+            input.inputMode = 'decimal';
             input.className = 'clock-edit';
             input.value = formatTime(clockSeconds);
             timeDisplay.replaceWith(input);
@@ -5379,12 +5381,19 @@
             });
             
             input.addEventListener('blur', () => {
-                const parts = input.value.split(':');
-                if (parts.length === 2) {
-                    const mins = parseInt(parts[0]) || 0;
-                    const secs = parseInt(parts[1]) || 0;
-                    clockSeconds = mins * 60 + secs;
+                const val = input.value.trim();
+                let mins = null, secs = 0;
+                const parts = val.split(/[:.]/);
+                if (parts.length === 2 && /^\d*$/.test(parts[0]) && /^\d{1,2}$/.test(parts[1])) {
+                    mins = parseInt(parts[0]) || 0;
+                    secs = parseInt(parts[1]);
+                } else if (/^\d{1,2}$/.test(val)) {
+                    mins = parseInt(val);
+                } else if (/^\d{3,4}$/.test(val)) {
+                    mins = parseInt(val.slice(0, -2));
+                    secs = parseInt(val.slice(-2));
                 }
+                if (mins !== null && secs < 60) clockSeconds = mins * 60 + secs;
                 input.replaceWith(timeDisplay);
                 updateClockDisplay();
                 calculateStats();
