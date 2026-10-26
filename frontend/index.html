@@ -397,6 +397,9 @@
             position: relative;
             overflow: visible;
             min-height: 120px;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
             box-shadow: 
                 0 1px 3px rgba(0, 0, 0, 0.12),
                 0 2px 6px rgba(0, 0, 0, 0.16),
@@ -5114,6 +5117,7 @@
 
         // Team selection
         scoreLeft.addEventListener('click', () => {
+            if (skipScoreClick) { skipScoreClick = false; return; }
             if (selectedTeam === 'left') {
                 scoreLeft.classList.remove('selected');
                 selectedTeam = null;
@@ -5126,6 +5130,7 @@
         });
 
         scoreRight.addEventListener('click', () => {
+            if (skipScoreClick) { skipScoreClick = false; return; }
             if (selectedTeam === 'right') {
                 scoreRight.classList.remove('selected');
                 selectedTeam = null;
@@ -5137,8 +5142,11 @@
             applyScore();
         });
 
-        // Score editing - double click to type score directly
-        scoreLeft.addEventListener('dblclick', () => {
+        // Score editing: press and hold a score (or double-click on a computer)
+        // to type it. A tap still selects the team for the +1/+2/+3 buttons.
+        let skipScoreClick = false;
+        function editScore(side) {
+            const box = side === 'left' ? scoreLeft : scoreRight;
             const input = document.createElement('input');
             input.type = 'number';
             input.inputMode = 'numeric';
@@ -5149,59 +5157,45 @@
             input.style.background = 'rgba(255,255,255,0.3)';
             input.style.color = '#000';
             input.style.textAlign = 'center';
-            input.value = teamAScore;
-            scoreLeft.replaceWith(input);
+            input.value = side === 'left' ? teamAScore : teamBScore;
+            box.replaceWith(input);
             input.focus();
             input.select();
-            
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    input.blur();
-                }
-            });
-            
-            input.addEventListener('blur', () => {
-                const val = parseInt(input.value);
-                if (!isNaN(val) && val >= 0) {
-                    teamAScore = val;
-                }
-                input.replaceWith(scoreLeft);
-                scoreLeft.textContent = teamAScore;
-                calculateStats();
-            });
-        });
 
-        scoreRight.addEventListener('dblclick', () => {
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.inputMode = 'numeric';
-            input.pattern = '[0-9]*';
-            input.className = 'score-edit';
-            input.style.fontSize = '72px';
-            input.style.width = '100%';
-            input.style.background = 'rgba(255,255,255,0.3)';
-            input.style.color = '#000';
-            input.style.textAlign = 'center';
-            input.value = teamBScore;
-            scoreRight.replaceWith(input);
-            input.focus();
-            input.select();
-            
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     input.blur();
                 }
             });
-            
+
             input.addEventListener('blur', () => {
+                skipScoreClick = false;
                 const val = parseInt(input.value);
                 if (!isNaN(val) && val >= 0) {
-                    teamBScore = val;
+                    if (side === 'left') teamAScore = val; else teamBScore = val;
                 }
-                input.replaceWith(scoreRight);
-                scoreRight.textContent = teamBScore;
+                input.replaceWith(box);
+                box.textContent = side === 'left' ? teamAScore : teamBScore;
                 calculateStats();
             });
+        }
+
+        [['left', scoreLeft], ['right', scoreRight]].forEach(([side, box]) => {
+            let holdTimer = null;
+            const cancelHold = () => { clearTimeout(holdTimer); holdTimer = null; };
+            box.addEventListener('pointerdown', () => {
+                cancelHold();
+                holdTimer = setTimeout(() => {
+                    holdTimer = null;
+                    skipScoreClick = true; // the release after a hold isn't a tap
+                    editScore(side);
+                }, 500);
+            });
+            box.addEventListener('pointerup', cancelHold);
+            box.addEventListener('pointerleave', cancelHold);
+            box.addEventListener('pointercancel', cancelHold);
+            box.addEventListener('contextmenu', e => e.preventDefault());
+            box.addEventListener('dblclick', () => editScore(side));
         });
 
         // O/U line swipe/drag detection with limited visual feedback
