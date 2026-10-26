@@ -71,45 +71,29 @@
             flex: 1;
             min-height: 480px;
         }
-        /* On a phone, fill exactly the visible screen (dvh excludes Safari's
-           bars) instead of drawing a phone frame, so the bottom nav is never
-           hidden; the middle scrolls. Safe-area padding keeps it clear of the
-           notch and home bar when opened from the home screen. */
+        /* On a phone, keep the phone card but never let it be taller than the
+           visible screen (dvh excludes Safari's bars): if it doesn't fit, the
+           card's inside scrolls so the bottom nav and clipboard stay on screen.
+           The top padding leaves room for the version tag above the card. */
         @media (max-width: 500px) {
             body {
                 min-height: 0;
                 height: 100vh;
                 height: 100dvh;
-                padding: 0;
-                align-items: stretch;
+                padding: calc(env(safe-area-inset-top) + 44px) 20px max(20px, env(safe-area-inset-bottom));
             }
             .phone-container {
-                max-width: none;
-                height: 100%;
                 display: flex;
                 flex-direction: column;
-                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-                border: none;
-                border-radius: 0;
-                box-shadow: none;
-                background: #000;
+                max-height: 100%;
             }
             .phone-wrapper {
-                flex: 1;
-                min-height: 0;
-                border-radius: 0;
-            }
-            .container {
+                flex: 1 1 auto;
                 min-height: 0;
                 overflow-y: auto;
             }
             .phone-container > .bottom-nav {
                 flex-shrink: 0;
-            }
-            .log-panel {
-                top: env(safe-area-inset-top);
-                height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-                border-radius: 0;
             }
         }
         .baseball-header {
@@ -1944,7 +1928,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
-    <div style="position:fixed;top:0;left:0;background:red;color:white;padding:5px;z-index:99999;font-size:20px;">V5.22.8</div>
+    <div style="position:fixed;top:env(safe-area-inset-top);left:0;background:red;color:white;padding:5px;z-index:99999;font-size:20px;">V5.22.8</div>
     <div class="phone-container">
         <div class="phone-wrapper">
             <div class="container">
