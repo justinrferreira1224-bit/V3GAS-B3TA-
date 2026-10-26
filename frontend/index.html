@@ -1,11 +1,15 @@
-11<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VEGAS B3TA">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     <title>VEGAS B3TA - e-NBA</title>
     <style>
         * {
@@ -66,6 +70,47 @@
             gap: 12px;
             flex: 1;
             min-height: 480px;
+        }
+        /* On a phone, fill exactly the visible screen (dvh excludes Safari's
+           bars) instead of drawing a phone frame, so the bottom nav is never
+           hidden; the middle scrolls. Safe-area padding keeps it clear of the
+           notch and home bar when opened from the home screen. */
+        @media (max-width: 500px) {
+            body {
+                min-height: 0;
+                height: 100vh;
+                height: 100dvh;
+                padding: 0;
+                align-items: stretch;
+            }
+            .phone-container {
+                max-width: none;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                background: #000;
+            }
+            .phone-wrapper {
+                flex: 1;
+                min-height: 0;
+                border-radius: 0;
+            }
+            .container {
+                min-height: 0;
+                overflow-y: auto;
+            }
+            .phone-container > .bottom-nav {
+                flex-shrink: 0;
+            }
+            .log-panel {
+                top: env(safe-area-inset-top);
+                height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+                border-radius: 0;
+            }
         }
         .baseball-header {
             display: flex;
