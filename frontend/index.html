@@ -429,7 +429,8 @@
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
-            box-shadow: 
+            touch-action: manipulation;
+            box-shadow:
                 0 1px 3px rgba(0, 0, 0, 0.12),
                 0 2px 6px rgba(0, 0, 0, 0.16),
                 0 4px 12px rgba(0, 0, 0, 0.2),
@@ -5144,36 +5145,39 @@
         updateRecordDisplay();
         loadBankroll();
 
-        // Team selection
-        scoreLeft.addEventListener('click', () => {
-            if (skipScoreClick) { skipScoreClick = false; return; }
-            if (selectedTeam === 'left') {
-                scoreLeft.classList.remove('selected');
-                selectedTeam = null;
-            } else {
-                scoreLeft.classList.add('selected');
-                scoreRight.classList.remove('selected');
-                selectedTeam = 'left';
-            }
-            applyScore();
-        });
-
-        scoreRight.addEventListener('click', () => {
-            if (skipScoreClick) { skipScoreClick = false; return; }
-            if (selectedTeam === 'right') {
-                scoreRight.classList.remove('selected');
-                selectedTeam = null;
-            } else {
-                scoreRight.classList.add('selected');
-                scoreLeft.classList.remove('selected');
-                selectedTeam = 'right';
-            }
-            applyScore();
-        });
-
-        // Score editing: press and hold a score (or double-click on a computer)
-        // to type it. A tap still selects the team for the +1/+2/+3 buttons.
+        // Team selection. A single tap selects the team for the +1/+2/+3
+        // buttons; a double-tap (or press and hold) opens the score for typing.
+        // iPhone only shows the keyboard when the input is focused inside the
+        // tap itself, so editing is opened from click/pointerup, never a timer.
         let skipScoreClick = false;
+        let lastScoreTap = { side: null, time: 0 };
+        function tapScore(side) {
+            if (skipScoreClick) { skipScoreClick = false; return; }
+            const now = Date.now();
+            if (lastScoreTap.side === side && now - lastScoreTap.time < 400) {
+                lastScoreTap = { side: null, time: 0 };
+                scoreLeft.classList.remove('selected');
+                scoreRight.classList.remove('selected');
+                selectedTeam = null;
+                editScore(side);
+                return;
+            }
+            lastScoreTap = { side, time: now };
+            const box = side === 'left' ? scoreLeft : scoreRight;
+            const other = side === 'left' ? scoreRight : scoreLeft;
+            if (selectedTeam === side) {
+                box.classList.remove('selected');
+                selectedTeam = null;
+            } else {
+                box.classList.add('selected');
+                other.classList.remove('selected');
+                selectedTeam = side;
+            }
+            applyScore();
+        }
+        scoreLeft.addEventListener('click', () => tapScore('left'));
+        scoreRight.addEventListener('click', () => tapScore('right'));
+
         function editScore(side) {
             const box = side === 'left' ? scoreLeft : scoreRight;
             const input = document.createElement('input');
@@ -5210,21 +5214,19 @@
         }
 
         [['left', scoreLeft], ['right', scoreRight]].forEach(([side, box]) => {
-            let holdTimer = null;
-            const cancelHold = () => { clearTimeout(holdTimer); holdTimer = null; };
-            box.addEventListener('pointerdown', () => {
-                cancelHold();
-                holdTimer = setTimeout(() => {
-                    holdTimer = null;
-                    skipScoreClick = true; // the release after a hold isn't a tap
-                    editScore(side);
-                }, 500);
+            let holdStart = 0;
+            box.addEventListener('pointerdown', () => { holdStart = Date.now(); });
+            box.addEventListener('pointerup', () => {
+                const held = holdStart && Date.now() - holdStart >= 500;
+                holdStart = 0;
+                if (!held) return;
+                skipScoreClick = true; // the click after a hold isn't a tap
+                lastScoreTap = { side: null, time: 0 };
+                editScore(side);
             });
-            box.addEventListener('pointerup', cancelHold);
-            box.addEventListener('pointerleave', cancelHold);
-            box.addEventListener('pointercancel', cancelHold);
+            box.addEventListener('pointerleave', () => { holdStart = 0; });
+            box.addEventListener('pointercancel', () => { holdStart = 0; });
             box.addEventListener('contextmenu', e => e.preventDefault());
-            box.addEventListener('dblclick', () => editScore(side));
         });
 
         // O/U line swipe/drag detection with limited visual feedback
